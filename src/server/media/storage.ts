@@ -1,0 +1,1 @@
+export type StoredObject={storageKey:string;sizeBytes:number};export interface MediaStorageAdapter{put(input:{bytes:Buffer}):Promise<StoredObject>;read(storageKey:string):Promise<Buffer>;exists(storageKey:string):Promise<boolean>;remove(storageKey:string):Promise<void>;}

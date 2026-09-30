@@ -1,0 +1,4 @@
+import { z } from "zod";
+import { parseEnv } from "@/server/config/env";import{createDatabaseClient}from"@/server/db/client";import{apiErrorResponse,requireAuthenticatedUser}from"@/server/http/api";import{addCreatorTaxonomyValue}from"@/server/creator/creator-service";
+const schema=z.object({creatorProfileId:z.string().uuid(),taxonomyValueId:z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),kind:z.enum(["NICHE","CONTENT_STYLE","MUSIC_GENRE"]),primary:z.boolean().optional()});
+export async function POST(request:Request){const env=parseEnv(process.env);const{client}=createDatabaseClient(env.DATABASE_URL);try{const user=await requireAuthenticatedUser(request);const body=schema.parse(await request.json());return Response.json(await addCreatorTaxonomyValue(client,{userId:user.id,...body}));}catch(error){return apiErrorResponse(error);}finally{await client.end();}}

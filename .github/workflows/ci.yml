@@ -1,0 +1,218 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lander_creators_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d lander_creators_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/lander_creators_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/lander_creators_test
+      AUTH_SECRET: ci-only-placeholder-secret-0123456789abcdef
+      AUTH_BASE_URL: http://127.0.0.1:3000
+      EMAIL_DELIVERY_MODE: safe-log
+      LOG_LEVEL: info
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Deterministic install
+        run: npm ci --no-audit --no-fund
+      - name: Migrate clean PostgreSQL
+        run: npm run db:migrate
+      - name: Verify migration repeatability
+        run: npm run db:migrate
+      - name: Bootstrap reference foundation
+        run: npm run foundation:bootstrap
+      - name: Verify bootstrap idempotency
+        run: npm run foundation:bootstrap
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Runtime smoke
+        run: |
+          NODE_ENV=production npm start > /tmp/lander-creators.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/api/health > /tmp/health.json; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/lander-creators.log
+            exit 1
+          fi
+          grep -q '"status":"ok"' /tmp/health.json
+          curl --fail --silent http://127.0.0.1:3000/ > /tmp/root.html
+
+  visual_inspection:
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lander_creators_visual
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d lander_creators_visual"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/lander_creators_visual
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/lander_creators_visual
+      AUTH_SECRET: ci-only-visual-secret-0123456789abcdef
+      AUTH_BASE_URL: http://127.0.0.1:3000
+      EMAIL_DELIVERY_MODE: safe-log
+      MEDIA_STORAGE_MODE: ephemeral
+      LOG_LEVEL: info
+    steps:
+      - name: Checkout exact validated SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Deterministic application install
+        run: npm ci --no-audit --no-fund
+      - name: Install repository-local visual tooling
+        run: npm install --no-save --no-package-lock @playwright/test@1.55.0 @axe-core/playwright@4.10.2
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Migrate visual PostgreSQL
+        run: npm run db:migrate
+      - name: Bootstrap visual reference foundation
+        run: npm run foundation:bootstrap
+      - name: Build exact SHA
+        run: npm run build
+      - name: Start application
+        run: |
+          NODE_ENV=production npm start > /tmp/lander-creators-visual.log 2>&1 &
+          echo $! > /tmp/lander-creators-visual.pid
+          ready=0
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/api/health > /tmp/health.json; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/lander-creators-visual.log
+            exit 1
+          fi
+          grep -q '"status":"ok"' /tmp/health.json
+          curl --fail --silent http://127.0.0.1:3000/ > /tmp/root.html
+      - name: Browser visual inspection
+        run: npx playwright test --config=playwright.visual.config.mjs
+      - name: Generate visual report
+        if: always()
+        run: node scripts/generate-visual-report.mjs
+      - name: Upload visual inspection artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lander-creators-visual-inspection
+          path: |
+            visual/
+            visual-report/
+            test-results/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Stop application
+        if: always()
+        run: |
+          if [ -f /tmp/lander-creators-visual.pid ]; then
+            kill "$(cat /tmp/lander-creators-visual.pid)" 2>/dev/null || true
+          fi
+
+  publish_visual:
+    needs: [validate, visual_inspection]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download visual inspection artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lander-creators-visual-inspection
+          path: public-visual
+      - name: Prepare GitHub Pages site
+        run: |
+          mkdir -p _site
+          cp -R public-visual/visual _site/visual
+          cp -R public-visual/visual-report _site/visual-report
+          cat > _site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="pt-BR">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta http-equiv="refresh" content="0; url=visual-report/index.html">
+            <title>LANDER CREATORS — Visual</title>
+          </head>
+          <body>
+            <p><a href="visual-report/index.html">Abrir relatório visual do LANDER CREATORS</a></p>
+          </body>
+          </html>
+          HTML
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy public visual site
+        id: deployment
+        uses: actions/deploy-pages@v4
+
