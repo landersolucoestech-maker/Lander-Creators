@@ -132,15 +132,15 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await signIn.getByLabel("E-mail").fill(email);
   await signIn.getByLabel("Senha").fill(password);
   await signIn.getByRole("button", { name: "Entrar" }).click();
-  await expect(page.getByRole("heading", { name: "Fundação de acesso" })).toBeVisible();
-  await expect(page.getByText("Você ainda não possui workspace.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Workspace" })).toBeVisible();
+  await expect(page.getByText("Você ainda não possui workspace")).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(
     page,
     project,
-    "workspace-empty",
+    "workspace-onboarding",
     "/",
-    "Authenticated empty Workspace state renders without fabricated product modules."
+    "Authenticated first-time users receive the real application shell and Workspace onboarding without fabricated data."
   );
 
   const workspaceForm = page.locator("form").filter({ hasText: "Criar workspace" });
@@ -148,37 +148,33 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await workspaceForm.getByLabel("Tipo").selectOption("AGENCY");
   await workspaceForm.getByRole("button", { name: "Criar workspace" }).click();
 
-  await expect(page.getByText("Workspace criado.")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: new RegExp(`Visual Workspace ${project}`) })
-  ).toBeVisible();
-  await expect(page.getByText("Workspace ativo:")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByText(`Visual Workspace ${project}`, { exact: false }).first()).toBeVisible();
   await verifyNoHorizontalOverflow(page);
-  await capture(
-    page,
-    project,
-    "workspace",
-    "/",
-    "Workspace creation and active Workspace state render from real PostgreSQL-backed data."
-  );
+  await capture(page, project, "dashboard-empty", "/", "Dashboard renders real zero-state counts for a new Workspace.");
+  await capture(page, project, "shell-context-switcher", "/", "Shell makes Workspace and Creator contexts explicit.");
 
+  if (project === "desktop") {
+    await expect(page.getByRole("navigation", { name: "Navegação principal" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
+    await capture(page, project, "shell-sidebar", "/", "Persistent sidebar exposes only implemented modules and marks the active route accessibly.");
+  } else {
+    await page.getByRole("button", { name: "Abrir navegação" }).click();
+    await expect(page.getByRole("complementary", { name: "Navegação móvel" })).toBeVisible();
+    await capture(page, project, "shell-mobile-navigation", "/", "Mobile navigation opens as a labeled drawer without horizontal overflow.");
+    await page.getByRole("button", { name: "Fechar" }).click();
+  }
+
+  await page.goto("/team");
   await expect(page.getByRole("heading", { name: "Equipe" })).toBeVisible();
   await expect(page.getByText(email)).toBeVisible();
-  await capture(
-    page,
-    project,
-    "team",
-    "/",
-    "Team management renders the authenticated owner Membership and invitation controls."
-  );
+  await verifyNoHorizontalOverflow(page);
+  await capture(page, project, "module-team", "/team", "Team management is a dedicated permission-authorized module inside the shared shell.");
 
-  await expect(page.getByRole("heading", { name: "Taxonomias" })).toBeVisible();
-  await expect(page.getByText("Gêneros musicais")).toBeVisible();
-  await capture(page, project, "taxonomy-reference", "/", "Taxonomy and reference-data foundation renders governed PT-BR labels.");
-
-  await expect(page.getByRole("heading", { name: "Arquivos do workspace" })).toBeVisible();
-  await expect(page.getByText("Nenhum arquivo compartilhado foi adicionado.")).toBeVisible();
-  await capture(page, project, "media-empty", "/", "Shared Media empty state is visible without fake assets.");
+  await page.goto("/media");
+  await expect(page.getByRole("heading", { name: "Mídia" })).toBeVisible();
+  await expect(page.getByText("Nenhuma mídia enviada")).toBeVisible();
+  await capture(page, project, "module-media-empty", "/media", "Shared Media has a product-oriented empty state inside the shared shell.");
 
   const mediaForm = page.locator("form").filter({ hasText: "Adicionar arquivo" });
   await mediaForm.locator('input[type="file"]').setInputFiles({name:"visual.png",mimeType:"image/png",buffer:Buffer.from("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082","hex")});
@@ -188,13 +184,12 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await mediaForm.locator('input[type="file"]').setInputFiles({name:"visual.wav",mimeType:"audio/wav",buffer:Buffer.concat([Buffer.from("RIFF"),Buffer.alloc(4),Buffer.from("WAVEfmt "),Buffer.alloc(24)])});
   await mediaForm.getByRole("button", { name: "Adicionar arquivo" }).click();
   await expect(page.getByText("visual.wav")).toBeVisible();
-  await capture(page, project, "media-list", "/", "Validated Workspace image and private-audio candidates render from Shared Media.");
+  await capture(page, project, "module-media", "/media", "Validated Workspace media renders as a reusable product resource.");
 
   await mediaForm.locator('input[type="file"]').setInputFiles({name:"fake.jpg",mimeType:"image/jpeg",buffer:Buffer.from("not-a-jpeg")});
   await mediaForm.getByRole("button", { name: "Adicionar arquivo" }).click();
   await expect(page.getByText("O tipo do arquivo não é permitido ou não corresponde ao conteúdo.")).toBeVisible();
-  await capture(page, project, "media-validation-error", "/", "Invalid media content is rejected with safe PT-BR copy.");
-
+  await capture(page, project, "media-validation-error", "/media", "Invalid media content is rejected with safe PT-BR copy.");
 
   await page.goto("/creator");
   await expect(page.getByRole("heading", { name: "Perfil de Creator", exact: true })).toBeVisible();
@@ -437,6 +432,12 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await capture(page,project,"promoted-institutional-initiative","/promoted-entities","Institutional Initiative uses the canonical terminology and remains distinct from Campaign.");
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"promoted-platform-event-project-initiative","/promoted-entities","Platform, Event, Project and Institutional Initiative render in the same coherent commercial area with no Campaign UI.");
+
+  await page.goto("/");
+  await expect(page.getByRole("heading",{name:"Dashboard"})).toBeVisible();
+  await expect(page.getByText("Artistas").first()).toBeVisible();
+  await verifyNoHorizontalOverflow(page);
+  await capture(page,project,"dashboard-populated","/","Dashboard reflects real ephemeral Artist, Release, Track, commercial entity, media and team data.");
 
   await page.goto("/reset-password?token=visual-inspection-placeholder");
   await expect(page.getByRole("heading", { name: "Definir nova senha" })).toBeVisible();
