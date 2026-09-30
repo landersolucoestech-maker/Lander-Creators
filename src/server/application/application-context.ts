@@ -20,7 +20,8 @@ export type ApplicationCapability =
   | "media"
   | "music"
   | "promoted"
-  | "workspaceSettings";
+  | "workspaceSettings"
+  | "campaign";
 
 export type ApplicationShellState = {
   user: { id: string; name: string; email: string };
@@ -65,20 +66,22 @@ export async function getApplicationShellState(
     media: false,
     music: false,
     promoted: false,
-    workspaceSettings: false
+    workspaceSettings: false,
+    campaign: false
   };
 
   if (activeWorkspace) {
     const workspaceId = activeWorkspace.id;
-    const [workspace, team, media, music, promoted, workspaceSettings] = await Promise.all([
+    const [workspace, team, media, music, promoted, workspaceSettings, campaign] = await Promise.all([
       hasWorkspacePermission(sql, user.id, workspaceId, "workspace.view"),
       hasWorkspacePermission(sql, user.id, workspaceId, "team.member.view"),
       hasWorkspacePermission(sql, user.id, workspaceId, "media.view"),
       hasWorkspacePermission(sql, user.id, workspaceId, "music_catalog.view"),
       hasWorkspacePermission(sql, user.id, workspaceId, "promoted_entity.view"),
-      hasWorkspacePermission(sql, user.id, workspaceId, "workspace.update")
+      hasWorkspacePermission(sql, user.id, workspaceId, "workspace.update"),
+      hasWorkspacePermission(sql, user.id, workspaceId, "campaign.view")
     ]);
-    Object.assign(capabilities, { workspace, team, media, music, promoted, workspaceSettings });
+    Object.assign(capabilities, { workspace, team, media, music, promoted, workspaceSettings, campaign });
   }
 
   return { user, workspaces, activeWorkspace, creator, capabilities };
