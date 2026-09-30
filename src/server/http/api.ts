@@ -6,8 +6,14 @@ export function assertTrustedRequestOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return;
 
-  const requestOrigin = new URL(request.url).origin;
-  if (origin !== requestOrigin) {
+  const allowedOrigins = new Set([new URL(request.url).origin]);
+  const configuredBaseUrl = process.env.AUTH_BASE_URL;
+
+  if (configuredBaseUrl) {
+    allowedOrigins.add(new URL(configuredBaseUrl).origin);
+  }
+
+  if (!allowedOrigins.has(origin)) {
     throw new DomainError("UNTRUSTED_ORIGIN", "Request origin is not trusted", 403);
   }
 }
