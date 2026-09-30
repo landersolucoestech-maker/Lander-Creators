@@ -16,4 +16,9 @@ A change is complete only when:
 - security implications are reviewed;
 - no secret or raw technical error is exposed;
 - documentation reflects implemented truth;
-- the diff contains no unrelated work.
+- the diff contains no unrelated work;
+- for user-visible changes, the exact CI-green `main` commit is deployed to the configured non-Vercel visual environment;
+- the deployed root, health endpoint and changed user-visible routes are smoke-tested;
+- desktop/mobile visual QA is performed where applicable;
+- the owner receives the accessible deployment URL;
+- if deployment is unavailable, the stage reports `IMPLEMENTATION_COMPLETE_VISUAL_DEPLOYMENT_BLOCKED` instead of complete.

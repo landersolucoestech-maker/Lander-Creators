@@ -18,4 +18,11 @@ describe("main-only repository governance", () => {
   it("does not keep branch-producing Dependabot configuration", () => {
     expect(existsSync(".github/dependabot.yml")).toBe(false);
   });
+
+  it("prohibits Vercel and requires visual deployment for user-visible stages", () => {
+    const policy = readFileSync("VISUAL-DEVELOPMENT-POLICY.md", "utf8");
+    expect(policy).toContain("**Vercel is prohibited.**");
+    expect(policy).toContain("exact validated \`main\` commit");
+    expect(policy).toContain("IMPLEMENTATION_COMPLETE_VISUAL_DEPLOYMENT_BLOCKED");
+  });
 });

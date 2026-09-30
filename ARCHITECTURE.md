@@ -29,4 +29,8 @@ Session identity is resolved by Better Auth. Workspace authorization is not cach
 Technical diagnostics remain English and internal. User-visible messages are PT-BR and mapped from stable public error codes. Raw Better Auth, Drizzle and PostgreSQL exceptions never render directly to users.
 
 ## Deployment
-The application remains deployable as OCI-compatible containers. A specific hosting provider is still deferred.
+The application remains deployable as OCI-compatible containers. Hosting is an operational delivery concern and must not leak into domain architecture.
+
+Vercel is permanently prohibited.
+
+A persistent non-Vercel visual/development environment must consume only the exact CI-green `main` commit. User-visible stages are not complete until that commit is deployed, reachable and visually verified.

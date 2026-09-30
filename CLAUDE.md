@@ -25,3 +25,12 @@ Current security-root specialists:
 - `authorization-engineer`
 
 Use authorization/tenant/database analysis skills for changes that touch Identity, Workspace, Membership, permissions, invitations, migrations or tenant isolation. No downstream-domain specialist is installed by Etapa 3.
+
+
+## Permanent visual development rule
+
+For any stage that changes user-visible application behavior, read and enforce `VISUAL-DEVELOPMENT-POLICY.md`.
+
+A user-visible stage is not complete until the exact CI-green `main` commit is deployed to the configured non-Vercel visual environment, smoke-tested, visually inspected and returned with an accessible URL.
+
+**Vercel is prohibited for this project.**
