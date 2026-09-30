@@ -7,5 +7,5 @@ const schema=z.object({name:z.string().trim().min(1).max(180),brandId:z.string()
 export async function POST(request:Request,{params}:{params:Promise<{workspaceId:string}>}){
  const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);
  try{const user=await requireAuthenticatedUser(request);const{workspaceId}=await params;const body=schema.parse(await request.json());return Response.json({entity:await createProduct(client,{userId:user.id,workspaceId,...body} as never)},{status:201});}
- catch(error){return apiErrorResponse(error);}finally{await client.end();}
+ catch(error){console.error("Failed to create promoted product",error);return apiErrorResponse(error);}finally{await client.end();}
 }
