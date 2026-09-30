@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll,beforeEach,describe,expect,it } from "vitest";
 import { createTestSql,resetSecurityData } from "./test-db";
 import { createWorkspace } from "@/server/workspace/workspace-service";
-import { createCompany,createBrand,createProduct,createService,createPromotedPlatform,createPromotedEvent,createPromotedProject,createInstitutionalInitiative,evaluateCommercialReadiness } from "@/server/promoted-entities/service";
+import { createCompany,createBrand,createProduct,createService,createPromotedPlatform,createPromotedEvent,createPromotedProject,createInstitutionalInitiative,evaluateCommercialReadiness,activatePromotedEntity,listWorkspacePromotedEntities } from "@/server/promoted-entities/service";
 import { authorizePromotedEntityAccess,setPromotedEntityAccessStatus } from "@/server/promoted-entities/access";
 import { getRegisteredPromotedObjectTypes,resolvePromotedObject } from "@/server/promoted-entities/registry";
 import { uploadMediaAsset } from "@/server/media/media-service";
@@ -45,12 +45,51 @@ describe("Commercial promoted entities foundation",()=>{
    await expect(authorizePromotedEntityAccess(sql,{...a,entityType:"COMPANY",entityId:String(company.id),permission:"promoted_entity.view"})).rejects.toMatchObject({code:"PROMOTED_ENTITY_ACCESS_DENIED"});
  });
 
- it("never auto merges possible duplicates",async()=>{
+ it("classifies NEW, POSSIBLE_DUPLICATE and EXISTING without auto merge",async()=>{
    const x=await setup("dup@commercial.test");
-   await createCompany(sql,{...x,tradeName:"Mesmo Nome"});
+   const first=await createCompany(sql,{...x,tradeName:"Mesmo Nome",website:"https://same.example"});
+   expect(first.duplicateClassification).toBe("NEW");
    await expect(createCompany(sql,{...x,tradeName:"Mesmo Nome"})).rejects.toMatchObject({code:"POSSIBLE_DUPLICATE_REQUIRES_RESOLUTION"});
-   const second=await createCompany(sql,{...x,tradeName:"Mesmo Nome",confirmDuplicate:true});
-   expect(second.id).toBeTruthy();
+   const existing=await createCompany(sql,{...x,tradeName:"Mesmo Nome",existingEntityId:String(first.id)});
+   expect(existing).toMatchObject({id:String(first.id),duplicateClassification:"EXISTING"});
+   const second=await createCompany(sql,{...x,tradeName:"Outro Nome",website:"https://same.example",confirmDuplicate:true});
+   expect(second.duplicateClassification).toBe("POSSIBLE_DUPLICATE");
+   const count=await sql.unsafe("select count(*)::int count from companies");
+   expect(Number(count[0].count)).toBe(2);
+ });
+
+ it("uses parent context for duplicate candidates and rejects conflicting existing resolution",async()=>{
+   const x=await setup("dup-context@commercial.test");
+   const a=await createCompany(sql,{...x,tradeName:"Parent A"});const b=await createCompany(sql,{...x,tradeName:"Parent B"});
+   const brandA=await createBrand(sql,{...x,name:"Shared Brand",companyId:String(a.id)});
+   const brandB=await createBrand(sql,{...x,name:"Shared Brand",companyId:String(b.id)});
+   expect(brandA.duplicateClassification).toBe("NEW");
+   expect(brandB.duplicateClassification).toBe("NEW");
+   await expect(createBrand(sql,{...x,name:"Shared Brand",companyId:String(a.id)})).rejects.toMatchObject({code:"POSSIBLE_DUPLICATE_REQUIRES_RESOLUTION"});
+   await expect(createBrand(sql,{...x,name:"Shared Brand",companyId:String(a.id),existingEntityId:String(brandB.id)})).rejects.toMatchObject({code:"EXISTING_ENTITY_NOT_DUPLICATE"});
+ });
+
+ it("keeps Company activation separate from verification",async()=>{
+   const x=await setup("verification@commercial.test");
+   const company=await createCompany(sql,{...x,tradeName:"Verification Company"});
+   await activatePromotedEntity(sql,{...x,entityType:"COMPANY",entityId:String(company.id)});
+   const rows=await sql.unsafe("select status::text,verification_status::text from companies where id=$1::uuid",[String(company.id)]);
+   expect(rows[0]).toMatchObject({status:"ACTIVE",verification_status:"UNVERIFIED"});
+ });
+
+ it("requires centralized media permission in addition to promoted entity creation permission",async()=>{
+   const x=await setup("media-permission@test");
+   const root=await mkdtemp(path.join(tmpdir(),"promoted-media-permission-"));
+   try{
+     const storage=new LocalEphemeralStorageAdapter(root);
+     const png=Buffer.from("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082","hex");
+     const media=await uploadMediaAsset(sql,storage,{...x,originalFileName:"logo.png",declaredMime:"image/png",bytes:png});
+     const roleId=randomUUID();
+     await sql.unsafe("insert into roles(id,workspace_id,code,name,kind) values($1::uuid,$2::uuid,'PROMOTED_CREATE_ONLY','Promoted create only','CUSTOM')",[roleId,x.workspaceId]);
+     await sql.unsafe("insert into role_permissions(role_id,permission_id) select $1::uuid,id from permission_definitions where code='promoted_entity.create'",[roleId]);
+     await sql.unsafe("update memberships set role_id=$3::uuid where user_id=$1 and workspace_id=$2::uuid",[x.userId,x.workspaceId,roleId]);
+     await expect(createCompany(sql,{...x,tradeName:"No Media Permission",logoMediaAssetId:media.id})).rejects.toMatchObject({code:"PROMOTED_ENTITY_MEDIA_ACCESS_DENIED"});
+   }finally{await rm(root,{recursive:true,force:true});}
  });
 
  it("rejects foreign Shared Media and invalid event ordering",async()=>{
@@ -65,9 +104,21 @@ describe("Commercial promoted entities foundation",()=>{
    }finally{await rm(root,{recursive:true,force:true});}
  });
 
- it("registers every canonical type and resolves a commercial adapter",async()=>{
+ it("covers event modes and keeps foreign Workspace listings isolated",async()=>{
+   const a=await setup("events-a@commercial.test");const b=await setup("events-b@commercial.test");
+   const company=await createCompany(sql,{...a,tradeName:"Events Company"});const companyId=String(company.id);
+   const online=await createPromotedEvent(sql,{...a,name:"Online Event",companyId,eventMode:"ONLINE",startsAt:new Date("2026-10-12T12:00:00Z"),timezoneCode:"UTC",onlineUrl:"https://events.example/online"});
+   const hybrid=await createPromotedEvent(sql,{...a,name:"Hybrid Event",companyId,eventMode:"HYBRID",startsAt:new Date("2026-10-13T12:00:00Z"),timezoneCode:"America/Sao_Paulo",locationText:"São Paulo",onlineUrl:"https://events.example/hybrid"});
+   expect([online,hybrid].every(v=>Boolean(v.id))).toBe(true);
+   const foreign=await listWorkspacePromotedEntities(sql,b);
+   expect((foreign.COMPANY??[]).length).toBe(0);
+   expect((foreign.EVENT??[]).length).toBe(0);
+ });
+
+ it("registers every canonical type, resolves adapters and rejects wrong type/entity combinations",async()=>{
    const x=await setup("registry@test");const company=await createCompany(sql,{...x,tradeName:"Registry Co"});
    expect(getRegisteredPromotedObjectTypes()).toEqual(["MUSIC_TRACK","MUSIC_RELEASE","ARTIST","COMPANY","BRAND","PRODUCT","SERVICE","PLATFORM","EVENT","PROJECT","INSTITUTIONAL_INITIATIVE"]);
    expect(await resolvePromotedObject(sql,{...x,type:"COMPANY",entityId:String(company.id)})).toMatchObject({type:"COMPANY",displayName:"Registry Co"});
+   await expect(resolvePromotedObject(sql,{...x,type:"BRAND",entityId:String(company.id)})).rejects.toMatchObject({code:"PROMOTED_ENTITY_ACCESS_DENIED"});
  });
 });
