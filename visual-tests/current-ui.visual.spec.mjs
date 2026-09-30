@@ -174,7 +174,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
 
 
   await page.goto("/creator");
-  await expect(page.getByRole("heading", { name: "Perfil de Creator" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Perfil de Creator", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Criar perfil de Creator" })).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(page, project, "creator-empty", "/creator", "Creator empty state requires explicit user action and does not auto-create a profile.");
