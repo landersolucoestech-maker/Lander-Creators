@@ -162,7 +162,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
     await page.getByRole("button", { name: "Abrir navegação" }).click();
     await expect(page.getByRole("complementary", { name: "Navegação móvel" })).toBeVisible();
     await capture(page, project, "shell-mobile-navigation", "/", "Mobile navigation opens as a labeled drawer without horizontal overflow.");
-    await page.getByRole("button", { name: "Fechar" }).click();
+    await page.getByRole("button", { name: "Fechar", exact: true }).click();
   }
 
   await page.goto("/team");
@@ -442,7 +442,15 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   const accessSql=postgres(process.env.DATABASE_URL,{max:1,prepare:false});
   try{
     await accessSql.unsafe(
-      "update memberships set role_id=(select id from roles where workspace_id is null and code='VIEWER' limit 1),updated_at=now() where user_id=(select id from \"user\" where email=$1)",
+      "insert into roles(workspace_id,code,name,kind) select w.id,'VISUAL_WORKSPACE_ONLY','Visual Workspace Only','CUSTOM' from workspaces w join memberships m on m.workspace_id=w.id join \"user\" u on u.id=m.user_id where u.email=$1 on conflict do nothing",
+      [email]
+    );
+    await accessSql.unsafe(
+      "insert into role_permissions(role_id,permission_id) select r.id,p.id from roles r join permission_definitions p on p.code='workspace.view' where r.code='VISUAL_WORKSPACE_ONLY' and r.workspace_id=(select m.workspace_id from memberships m join \"user\" u on u.id=m.user_id where u.email=$1 limit 1) on conflict do nothing",
+      [email]
+    );
+    await accessSql.unsafe(
+      "update memberships set role_id=(select r.id from roles r where r.code='VISUAL_WORKSPACE_ONLY' and r.workspace_id=memberships.workspace_id limit 1),updated_at=now() where user_id=(select id from \"user\" where email=$1)",
       [email]
     );
   }finally{await accessSql.end();}
