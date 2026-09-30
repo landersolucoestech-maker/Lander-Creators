@@ -34,3 +34,28 @@ jobs:
           AUTH_SECRET: ci-only-placeholder-secret-0123456789abcdef
           LOG_LEVEL: info
         run: npm run build
+      - name: Runtime smoke
+        env:
+          NODE_ENV: production
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/lander_creators
+          AUTH_SECRET: ci-only-placeholder-secret-0123456789abcdef
+          LOG_LEVEL: info
+        run: |
+          npm start > /tmp/lander-creators.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/api/health > /tmp/health.json; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/lander-creators.log
+            exit 1
+          fi
+          grep -q '"status":"ok"' /tmp/health.json
+          curl --fail --silent http://127.0.0.1:3000/ > /tmp/root.html
+          grep -q 'Plataforma em configuração inicial.' /tmp/root.html
