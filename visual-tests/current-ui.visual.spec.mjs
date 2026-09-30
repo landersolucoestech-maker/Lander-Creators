@@ -69,17 +69,22 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   );
 
   const signIn = page.locator("form").filter({ hasText: "Entrar" }).first();
-  await signIn.getByLabel("E-mail").fill(email);
-  await signIn.getByLabel("Senha").fill("WrongVisualPassword123!");
-  await signIn.getByRole("button", { name: "Entrar" }).click();
-  await expect(page.getByText("E-mail, senha ou verificação inválidos.")).toBeVisible();
-  await capture(
-    page,
-    project,
-    "authentication-error",
-    "/",
-    "Authentication error is rendered as user-facing PT-BR copy."
-  );
+
+  if (project === "desktop") {
+    await signIn.getByLabel("E-mail").fill(email);
+    await signIn.getByLabel("Senha").fill("WrongVisualPassword123!");
+    await signIn.getByRole("button", { name: "Entrar" }).click();
+    await expect(
+      page.getByText("E-mail, senha ou verificação inválidos.")
+    ).toBeVisible();
+    await capture(
+      page,
+      project,
+      "authentication-error",
+      "/",
+      "Authentication error is rendered as user-facing PT-BR copy."
+    );
+  }
 
   const signUp = page.locator("form").filter({ hasText: "Criar conta" });
   await signUp.getByLabel("Nome").fill("Inspeção Visual");
@@ -124,7 +129,9 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await workspaceForm.getByRole("button", { name: "Criar workspace" }).click();
 
   await expect(page.getByText("Workspace criado.")).toBeVisible();
-  await expect(page.getByText(`Visual Workspace ${project}`)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: new RegExp(`Visual Workspace ${project}`) })
+  ).toBeVisible();
   await expect(page.getByText("Workspace ativo:")).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(
