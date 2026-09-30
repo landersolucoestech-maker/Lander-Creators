@@ -21,6 +21,10 @@ const versionLabels:Record<string,string>={
   "estendida":"EXTENDED","extended":"EXTENDED","radio edit":"RADIO_EDIT","edição de rádio":"RADIO_EDIT","edicao de radio":"RADIO_EDIT"
 };
 function rowHash(value:unknown){return createHash("sha256").update(JSON.stringify(value)).digest("hex");}
+function jsonValue<T>(value:unknown):T{
+  if(typeof value==="string")return JSON.parse(value) as T;
+  return value as T;
+}
 function fileHash(bytes:Buffer){return createHash("sha256").update(bytes).digest("hex");}
 function splitArtists(value:string){return value.split(";").map(x=>x.trim()).filter(Boolean);}
 function parseExplicit(value:string){
@@ -136,14 +140,14 @@ export async function getMusicCatalogImport(sql:QueryExecutor,input:{userId:stri
   const s=await sql.unsafe("select id::text,source_filename,status::text,row_count,created_at,imported_at from music_import_sessions where id=$1::uuid and workspace_id=$2::uuid",[input.sessionId,input.workspaceId]);
   if(!s[0])throw new DomainError("MUSIC_IMPORT_INVALID","Import session not found",404);
   const rows=await sql.unsafe("select id::text,row_number,classification::text,normalized_data,error_codes,resolution,created_entity_ids from music_import_rows where session_id=$1::uuid order by row_number",[input.sessionId]);
-  return{session:s[0],rows};
+  return{session:s[0],rows:rows.map(row=>({...row,normalized_data:jsonValue<NormalizedRow>(row.normalized_data),error_codes:jsonValue<string[]>(row.error_codes),resolution:row.resolution==null?null:jsonValue<Record<string,unknown>>(row.resolution),created_entity_ids:row.created_entity_ids==null?null:jsonValue<Record<string,unknown>>(row.created_entity_ids)}))};
 }
 
 export async function resolveMusicImportRow(sql:Sql,input:{userId:string;workspaceId:string;sessionId:string;rowId:string;artistResolutions:Record<string,string>}){
   await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"music_catalog.import"});
   const rows=await sql.unsafe("select mir.normalized_data from music_import_rows mir join music_import_sessions mis on mis.id=mir.session_id where mir.id=$1::uuid and mis.id=$2::uuid and mis.workspace_id=$3::uuid",[input.rowId,input.sessionId,input.workspaceId]);
   if(!rows[0])throw new DomainError("MUSIC_IMPORT_INVALID","Import row not found",404);
-  const data=rows[0].normalized_data as NormalizedRow;
+  const data=jsonValue<NormalizedRow>(rows[0].normalized_data);
   for(const artist of [...data.primaryArtists,...data.featuredArtists]){
     if(artist.kind==="POSSIBLE_DUPLICATE"){
       const choice=input.artistResolutions[artist.normalizedName];
@@ -181,7 +185,7 @@ export async function confirmMusicCatalogImport(sql:Sql,input:{userId:string;wor
     const releaseCache=new Map<string,string>();
     for(const row of rows){
       if(row.created_entity_ids)continue;
-      const data=row.normalized_data as NormalizedRow;const resolution=(row.resolution as {artistResolutions?:Record<string,string>}|null)?.artistResolutions;
+      const data=jsonValue<NormalizedRow>(row.normalized_data);const resolution=(row.resolution==null?null:jsonValue<{artistResolutions?:Record<string,string>}>(row.resolution))?.artistResolutions;
       if(data.existingTrackId){await tx.unsafe("update music_import_rows set created_entity_ids=$2::jsonb where id=$1::uuid",[String(row.id),JSON.stringify({trackId:data.existingTrackId,releaseId:data.existingReleaseId,matched:true})]);continue;}
       const primaryIds=[];for(const artist of data.primaryArtists)primaryIds.push(await resolveArtistId(tx,{workspaceId:input.workspaceId,userId:input.userId,artist,resolution}));
       const featuredIds=[];for(const artist of data.featuredArtists)featuredIds.push(await resolveArtistId(tx,{workspaceId:input.workspaceId,userId:input.userId,artist,resolution}));
