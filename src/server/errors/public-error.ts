@@ -15,7 +15,14 @@ const messages: Record<string, string> = {
   INVITATION_EXPIRED: "Este convite é inválido, expirou ou já foi utilizado.",
   INVITATION_RECIPIENT_MISMATCH: "Este convite pertence a outro endereço de e-mail.",
   INVALID_REQUEST: "Verifique os dados informados e tente novamente.",
-  UNTRUSTED_ORIGIN: "A origem desta solicitação não é permitida."
+  UNTRUSTED_ORIGIN: "A origem desta solicitação não é permitida.",
+  TAXONOMY_NOT_FOUND: "Classificação não encontrada.",
+  TAXONOMY_VALUE_DEPRECATED: "Esta classificação não está mais disponível para novas seleções.",
+  INVALID_TAXONOMY_HIERARCHY: "A hierarquia informada não é válida.",
+  INVALID_MEDIA_TYPE: "O tipo do arquivo não é permitido ou não corresponde ao conteúdo.",
+  MEDIA_TOO_LARGE: "O arquivo excede o limite técnico permitido.",
+  MEDIA_NOT_FOUND: "Arquivo não encontrado.",
+  MEDIA_STORAGE_UNAVAILABLE: "O arquivo está temporariamente indisponível."
 };
 
 const fallback: PublicError = {

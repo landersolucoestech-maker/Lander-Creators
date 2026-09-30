@@ -152,6 +152,26 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
     "Team management renders the authenticated owner Membership and invitation controls."
   );
 
+  await expect(page.getByRole("heading", { name: "Taxonomias" })).toBeVisible();
+  await expect(page.getByText("Gêneros musicais")).toBeVisible();
+  await capture(page, project, "taxonomy-reference", "/", "Taxonomy and reference-data foundation renders governed PT-BR labels.");
+
+  await expect(page.getByRole("heading", { name: "Arquivos do workspace" })).toBeVisible();
+  await expect(page.getByText("Nenhum arquivo compartilhado foi adicionado.")).toBeVisible();
+  await capture(page, project, "media-empty", "/", "Shared Media empty state is visible without fake assets.");
+
+  const mediaForm = page.locator("form").filter({ hasText: "Adicionar arquivo" });
+  await mediaForm.locator('input[type="file"]').setInputFiles({name:"visual.png",mimeType:"image/png",buffer:Buffer.from("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082","hex")});
+  await mediaForm.getByRole("button", { name: "Adicionar arquivo" }).click();
+  await expect(page.getByText("Arquivo validado e adicionado.")).toBeVisible();
+  await expect(page.getByText("visual.png")).toBeVisible();
+  await capture(page, project, "media-list", "/", "Validated Workspace media renders from PostgreSQL metadata and ephemeral CI storage.");
+
+  await mediaForm.locator('input[type="file"]').setInputFiles({name:"fake.jpg",mimeType:"image/jpeg",buffer:Buffer.from("not-a-jpeg")});
+  await mediaForm.getByRole("button", { name: "Adicionar arquivo" }).click();
+  await expect(page.getByText("O tipo do arquivo não é permitido ou não corresponde ao conteúdo.")).toBeVisible();
+  await capture(page, project, "media-validation-error", "/", "Invalid media content is rejected with safe PT-BR copy.");
+
   await page.goto("/reset-password?token=visual-inspection-placeholder");
   await expect(page.getByRole("heading", { name: "Definir nova senha" })).toBeVisible();
   await verifyNoHorizontalOverflow(page);

@@ -47,6 +47,10 @@ jobs:
         run: npm run db:migrate
       - name: Verify migration repeatability
         run: npm run db:migrate
+      - name: Bootstrap reference foundation
+        run: npm run foundation:bootstrap
+      - name: Verify bootstrap idempotency
+        run: npm run foundation:bootstrap
       - name: Lint
         run: npm run lint
       - name: Typecheck
@@ -120,6 +124,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Migrate visual PostgreSQL
         run: npm run db:migrate
+      - name: Bootstrap visual reference foundation
+        run: npm run foundation:bootstrap
       - name: Build exact SHA
         run: npm run build
       - name: Start application
