@@ -1,0 +1,1 @@
+export default function HomePage(){return <main className="shell"><section className="card" aria-labelledby="page-title"><p className="eyebrow">LANDER CREATORS</p><h1 id="page-title">Plataforma em configuração inicial.</h1><p>A fundação técnica está sendo preparada para os próximos módulos da plataforma.</p></section></main>;}
