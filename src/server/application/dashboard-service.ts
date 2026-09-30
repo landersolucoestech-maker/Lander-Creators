@@ -25,7 +25,7 @@ async function permitted(sql: Sql, userId: string, workspaceId: string, permissi
   }
 }
 
-async function count(sql: Sql, query: string, parameters: unknown[]) {
+async function count(sql: Sql, query: string, parameters: string[]) {
   const rows = await sql.unsafe(query, parameters);
   return Number((rows[0] as Record<string, unknown> | undefined)?.count ?? 0);
 }
