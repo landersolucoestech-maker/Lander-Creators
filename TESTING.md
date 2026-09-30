@@ -24,3 +24,7 @@
 
 ## Etapa 5C coverage
 Commercial integration tests cover every canonical commercial type, parent consistency, explicit Workspace access, revocation, duplicate non-merge, foreign-media denial, event validation, registry completeness and adapter resolution. Existing Music Catalog tests remain regression gates. Visual coverage runs desktop/mobile plus axe.
+
+
+## Etapa 5D application experience coverage
+Validation includes Dashboard access-filtering tests, canonical navigation tests, direct module authorization behavior, the entire pre-existing integration suite, and desktop/mobile Playwright coverage for the shell, Dashboard, context controls, Creator, Music Catalog, Promoted Entities, Shared Media and Team. Axe remains a blocking visual gate for serious/critical findings.
