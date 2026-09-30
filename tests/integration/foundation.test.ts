@@ -72,7 +72,7 @@ describe("Etapa 4 foundation", () => {
       "select code from taxonomy_definitions order by code"
     );
     expect(definitions.map((row) => (row as Record<string, unknown>).code)).toEqual(
-      ["CONTENT_STYLE", "CREATOR_NICHE", "MUSIC_GENRE"]
+      ["CONTENT_STYLE", "CREATOR_NICHE", "INDUSTRY", "MUSIC_GENRE", "PRODUCT_CATEGORY", "SERVICE_CATEGORY"]
     );
   });
 
