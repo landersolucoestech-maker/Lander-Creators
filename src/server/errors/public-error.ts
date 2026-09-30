@@ -58,6 +58,7 @@ const messages: Record<string, string> = {
   COMPANY_REQUIRED: "Selecione uma empresa válida.",
   PARENT_ENTITY_INVALID: "O contexto comercial informado não é válido.",
   POSSIBLE_DUPLICATE_REQUIRES_RESOLUTION: "Há um possível duplicado. Confirme como deseja continuar.",
+  EXISTING_ENTITY_NOT_DUPLICATE: "O registro existente selecionado não corresponde ao contexto informado.",
   PROMOTED_ENTITY_MEDIA_ACCESS_DENIED: "Este arquivo não pode ser vinculado ao objeto promovido.",
 };
 
