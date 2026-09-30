@@ -2,7 +2,9 @@
   "name": "lander-creators",
   "version": "0.0.0",
   "private": true,
-  "engines": {"node": ">=24.0.0 <25"},
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,7 +15,9 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
-    "quality": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "quality": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "db:migrate": "node scripts/migrate.mjs",
+    "test:integration": "vitest run tests/integration"
   },
   "dependencies": {
     "better-auth": "^1.7.6",
