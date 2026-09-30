@@ -7,6 +7,7 @@ import { getApplicationShellState } from "@/server/application/application-conte
 import { listWorkspaceMembers } from "@/server/workspace/membership-service";
 import { resolveActiveWorkspace } from "@/server/workspace/workspace-service";
 import { ApplicationShell } from "../application-shell";
+import { AccessDeniedState } from "../access-denied-state";
 import { workspaceNavigation } from "../application-navigation";
 import { TeamPanel } from "./team-panel";
 
@@ -16,6 +17,7 @@ export default async function TeamPage(){
  try{
   const state=await getApplicationShellState(client,{id:session.user.id,name:session.user.name,email:session.user.email});
   const active=await resolveActiveWorkspace(client,{userId:session.user.id});if(!active)redirect("/workspace");
+  if(!state.capabilities.team)return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><AccessDeniedState/></ApplicationShell>;
   const members=await listWorkspaceMembers(client,{actorUserId:session.user.id,workspaceId:active.workspaceId});
   return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><TeamPanel workspaceId={active.workspaceId} workspaceName={state.activeWorkspace?.name??"Workspace"} members={members as never}/></ApplicationShell>;
  }finally{await client.end();}
