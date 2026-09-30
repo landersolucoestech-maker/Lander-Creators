@@ -7,5 +7,5 @@ const schema=z.object({name:z.string().trim().min(1).max(180),companyId:z.string
 export async function POST(request:Request,{params}:{params:Promise<{workspaceId:string}>}){
  const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);
  try{const user=await requireAuthenticatedUser(request);const{workspaceId}=await params;return Response.json({entity:await createPromotedEvent(client,{userId:user.id,workspaceId,...schema.parse(await request.json())})},{status:201});}
- catch(error){return apiErrorResponse(error);}finally{await client.end();}
+ catch(error){console.error("Failed to create promoted event",error);return apiErrorResponse(error);}finally{await client.end();}
 }
