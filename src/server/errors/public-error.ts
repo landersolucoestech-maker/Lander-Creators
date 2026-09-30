@@ -60,6 +60,20 @@ const messages: Record<string, string> = {
   POSSIBLE_DUPLICATE_REQUIRES_RESOLUTION: "Há um possível duplicado. Confirme como deseja continuar.",
   EXISTING_ENTITY_NOT_DUPLICATE: "O registro existente selecionado não corresponde ao contexto informado.",
   PROMOTED_ENTITY_MEDIA_ACCESS_DENIED: "Este arquivo não pode ser vinculado ao objeto promovido.",
+  CAMPAIGN_NOT_FOUND: "Campanha não encontrada.",
+  CAMPAIGN_ACCESS_DENIED: "Você não tem acesso a esta campanha.",
+  CAMPAIGN_INVALID_STATUS_TRANSITION: "Esta mudança de situação da campanha não é permitida.",
+  CAMPAIGN_NOT_READY: "Esta campanha ainda não pode ser ativada.",
+  CAMPAIGN_PROMOTED_OBJECT_REQUIRED: "Selecione o objeto promovido da campanha.",
+  CAMPAIGN_PROMOTED_OBJECT_BLOCKED: "O objeto promovido selecionado possui bloqueios.",
+  CAMPAIGN_PROMOTED_OBJECT_ACCESS_REQUIRED: "O workspace não possui mais acesso ao objeto promovido.",
+  CAMPAIGN_GOAL_REQUIRED: "Selecione o objetivo da campanha.",
+  CAMPAIGN_GOAL_INCOMPATIBLE: "O objetivo não é compatível com o objeto promovido.",
+  CAMPAIGN_SCHEDULE_INVALID: "Revise o período da campanha.",
+  CAMPAIGN_BUDGET_INVALID: "Revise o orçamento planejado.",
+  CAMPAIGN_ASSET_ACCESS_DENIED: "Um dos arquivos não está disponível para esta campanha.",
+  CAMPAIGN_MATERIAL_EDIT_LOCKED: "A configuração material desta campanha está bloqueada nesta situação.",
+  CAMPAIGN_STALE_WRITE: "A campanha foi atualizada em outra operação. Recarregue antes de salvar.",
 };
 
 const fallback: PublicError = {
