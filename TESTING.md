@@ -1,16 +1,15 @@
 # Testing Strategy
 
 - Vitest: unit and integration tests.
-- PostgreSQL 16: real CI integration database for migrations, authentication persistence, tenancy, authorization and concurrency.
-- CI applies all migrations from zero and reruns the migrator to prove repeatability.
+- PostgreSQL 16: real CI integration database for migrations, authentication, tenancy, authorization, taxonomy, reference data and media metadata.
+- CI applies all migrations from zero and reruns the migrator for repeatability.
+- Reference/taxonomy bootstrap runs twice to prove idempotency.
 - Authentication tests cover signup, verification, signin, invalid credentials, anonymous session, suspension, signout and password recovery.
 - Workspace tests cover atomic Owner creation and retry idempotency.
-- Tenant tests cover guessed Workspace IDs, foreign member listing and invalid context switching.
-- Team/security tests cover invitation recipient binding, expiration, replay, Owner privilege escalation, suspension and removal effects.
-- Concurrency tests protect the final Owner and invitation single-use behavior.
-- Playwright remains deferred until broader end-user product workflows exist.
+- Tenant tests cover guessed Workspace IDs, foreign listing/context and immediate suspension effects.
+- Etapa 4 taxonomy tests cover seeded definitions, value uniqueness, alias uniqueness/resolution, hierarchy safety, deprecation preservation and selection denial.
+- Reference tests cover canonical standard codes and deterministic bootstrap.
+- Media tests cover allowed upload, MIME/extension mismatch, oversize rejection, SHA-256 checksum, filename sanitization, archive semantics, storage isolation, cross-tenant denial, suspended Membership denial and time-limited signed access.
+- GitHub Actions Playwright visual inspection covers authentication, Workspace, taxonomy/reference data and Shared Media states on desktop/mobile.
+- Axe runs against captured visual states and blocks serious/critical violations.
 - Every defect fix adds regression coverage when practical.
-- CI must pass deterministic install, migration, lint, typecheck, tests, build and runtime smoke on `main`.
-
-- Etapa 4 tests cover taxonomy alias/hierarchy/deprecation, deterministic reference lookup, media validation/checksum, archive behavior, cross-tenant denial and local adapter isolation.
-- Playwright visual inspection covers taxonomy/reference and Shared Media states on desktop/mobile.

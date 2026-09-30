@@ -31,7 +31,7 @@ Use authorization/tenant/database analysis skills for changes that touch Identit
 
 For any stage that changes user-visible application behavior, read and enforce `VISUAL-DEVELOPMENT-POLICY.md`.
 
-A user-visible stage is not complete until the exact CI-green `main` commit is deployed to the configured non-Vercel visual environment, smoke-tested, visually inspected and returned with an accessible URL.
+Under the current owner-authorized policy, a user-visible stage is complete only after the exact CI-green `main` SHA passes the GitHub Actions visual-inspection job and its artifact is verified. No external deployment or public URL is implied or authorized.
 
 **Vercel is prohibited for this project.**
 

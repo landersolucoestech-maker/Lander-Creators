@@ -10,7 +10,8 @@ Shared Media owns technical file identity, metadata, validation, storage referen
 - opaque storage key;
 - Workspace ownership;
 - uploader identity;
-- authorized application-mediated reads.
+- authorized application-mediated reads;
+- short-lived HMAC media-access token bound to user, Workspace, MediaAsset and expiration.
 
 Current accepted signatures:
 - PNG;
@@ -19,15 +20,16 @@ Current accepted signatures:
 - WAV;
 - MP3 with ID3 header.
 
-SVG and archives are rejected. No transcoding or AI analysis is implemented.
+SVG and archives are rejected. No transcoding, malware scanning or AI analysis is implemented.
 
 Default technical file-size limit: 10 MiB. Future domain-specific limits belong to their own policies.
 
 ## Storage
-MediaStorageAdapter is provider-neutral. LocalEphemeralStorageAdapter is used only for CI/test and GitHub visual inspection. It is not production persistence.
+MediaStorageAdapter is provider-neutral. LocalEphemeralStorageAdapter is non-production and can be used by runtime code only when `MEDIA_STORAGE_MODE=ephemeral` is explicitly configured. GitHub visual inspection sets that mode intentionally.
 
 External storage provider: NONE.
+Production persistent object storage: NOT IMPLEMENTED.
 
-Raw storage keys and filesystem paths are never public API fields. Private media content is served only after authentication, active Workspace Membership and media.view authorization.
+Raw storage keys and filesystem paths are never public API fields. Private media content requires authentication, current Workspace permission and a short-lived application-issued access token.
 
-Malware scanning is not implemented. No external scanning service is authorized in Etapa 4.
+Malware scanning remains deferred because no repository-local scanner is present and no external scanning service is authorized.
