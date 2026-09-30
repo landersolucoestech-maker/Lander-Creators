@@ -243,6 +243,71 @@ describe("Identity Workspace Authorization foundation", () => {
     ).rejects.toMatchObject({ code: "MISSING_PERMISSION" });
   });
 
+  it("prevents ADMIN from mutating an Owner even when another Owner remains", async () => {
+    const ownerA = await user("owner-a@example.com");
+    const ownerB = await user("owner-b@example.com");
+    const admin = await user("admin@example.com");
+    const workspace = await createWorkspace(sql, {
+      userId: ownerA,
+      name: "A",
+      type: "AGENCY",
+      idempotencyKey: "a"
+    });
+
+    const ownerInvitation = await inviteWorkspaceMember(sql, {
+      actorUserId: ownerA,
+      workspaceId: String(workspace.id),
+      recipientEmail: "owner-b@example.com",
+      roleCode: "OWNER"
+    });
+    await acceptWorkspaceInvitation(sql, {
+      userId: ownerB,
+      token: ownerInvitation.token
+    });
+
+    const adminInvitation = await inviteWorkspaceMember(sql, {
+      actorUserId: ownerA,
+      workspaceId: String(workspace.id),
+      recipientEmail: "admin@example.com",
+      roleCode: "ADMIN"
+    });
+    await acceptWorkspaceInvitation(sql, {
+      userId: admin,
+      token: adminInvitation.token
+    });
+
+    const rows = await sql.unsafe(
+      "select id::text from memberships where user_id=$1 and workspace_id=$2::uuid",
+      [ownerB, String(workspace.id)]
+    );
+    const ownerMembershipId = String((rows[0] as Record<string, unknown>).id);
+
+    await expect(
+      changeMembershipRole(sql, {
+        actorUserId: admin,
+        workspaceId: String(workspace.id),
+        membershipId: ownerMembershipId,
+        roleCode: "ADMIN"
+      })
+    ).rejects.toMatchObject({ code: "MISSING_PERMISSION" });
+
+    await expect(
+      suspendWorkspaceMember(sql, {
+        actorUserId: admin,
+        workspaceId: String(workspace.id),
+        membershipId: ownerMembershipId
+      })
+    ).rejects.toMatchObject({ code: "MISSING_PERMISSION" });
+
+    await expect(
+      removeWorkspaceMember(sql, {
+        actorUserId: admin,
+        workspaceId: String(workspace.id),
+        membershipId: ownerMembershipId
+      })
+    ).rejects.toMatchObject({ code: "MISSING_PERMISSION" });
+  });
+
   it("suspends a member, clears active context and immediately denies access", async () => {
     const owner = await user("owner@example.com");
     const member = await user("member@example.com");

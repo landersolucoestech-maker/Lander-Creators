@@ -60,16 +60,42 @@ async function audit(
   );
 }
 
+async function getMembershipRole(
+  tx: QueryExecutor,
+  workspaceId: string,
+  membershipId: string
+) {
+  const rows = await tx.unsafe(
+    "select r.code,m.status::text as status from memberships m join roles r on r.id=m.role_id where m.id=$1::uuid and m.workspace_id=$2::uuid",
+    [membershipId, workspaceId]
+  );
+  return rows[0] as Record<string, unknown> | undefined;
+}
+
+async function requireOwnershipAuthorityForOwnerMutation(
+  tx: QueryExecutor,
+  input: { actorUserId: string; workspaceId: string; membershipId: string }
+) {
+  const target = await getMembershipRole(tx, input.workspaceId, input.membershipId);
+  if (!target) {
+    throw new DomainError("MEMBERSHIP_NOT_FOUND", "Membership not found", 404);
+  }
+  if (target.code === "OWNER") {
+    await authorizeWorkspacePermission(tx, {
+      userId: input.actorUserId,
+      workspaceId: input.workspaceId,
+      permission: "workspace.ownership.transfer"
+    });
+  }
+  return target;
+}
+
 async function protectLastOwner(
   tx: QueryExecutor,
   workspaceId: string,
   membershipId: string
 ) {
-  const target = await tx.unsafe(
-    "select r.code,m.status::text as status from memberships m join roles r on r.id=m.role_id where m.id=$1::uuid and m.workspace_id=$2::uuid",
-    [membershipId, workspaceId]
-  );
-  const row = target[0] as Record<string, unknown> | undefined;
+  const row = await getMembershipRole(tx, workspaceId, membershipId);
   if (row?.code !== "OWNER" || row?.status !== "ACTIVE") return;
 
   const owners = await tx.unsafe(
@@ -245,13 +271,10 @@ export async function changeMembershipRole(
   return sql.begin(async (tx) => {
     await lockWorkspace(tx, input.workspaceId);
 
-    const current = await tx.unsafe(
-      "select r.code from memberships m join roles r on r.id=m.role_id where m.id=$1::uuid and m.workspace_id=$2::uuid and m.status='ACTIVE'",
-      [input.membershipId, input.workspaceId]
-    );
-    const previousRole = (current[0] as Record<string, unknown> | undefined)?.code;
-    if (!previousRole) {
-      throw new DomainError("MEMBERSHIP_NOT_FOUND", "Membership not found", 404);
+    const current = await requireOwnershipAuthorityForOwnerMutation(tx, input);
+    const previousRole = current.code;
+    if (current.status !== "ACTIVE") {
+      throw new DomainError("MEMBERSHIP_INACTIVE", "Membership is not active", 403);
     }
 
     if (input.roleCode !== "OWNER") {
@@ -289,6 +312,7 @@ export async function suspendWorkspaceMember(
 
   return sql.begin(async (tx) => {
     await lockWorkspace(tx, input.workspaceId);
+    await requireOwnershipAuthorityForOwnerMutation(tx, input);
     await protectLastOwner(tx, input.workspaceId, input.membershipId);
 
     const rows = await tx.unsafe(
@@ -328,6 +352,7 @@ export async function removeWorkspaceMember(
 
   return sql.begin(async (tx) => {
     await lockWorkspace(tx, input.workspaceId);
+    await requireOwnershipAuthorityForOwnerMutation(tx, input);
     await protectLastOwner(tx, input.workspaceId, input.membershipId);
 
     const rows = await tx.unsafe(
