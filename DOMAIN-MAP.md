@@ -34,3 +34,6 @@ Logical domain boundaries do not imply one package or service per domain.
 - Track Artist Credits
 - TrackSegment
 - Music Catalog XLSX Import
+
+## Etapa 5C
+Implemented: Company, Brand, Product, Service, PromotedPlatform, PromotedEvent, PromotedProject, InstitutionalInitiative, WorkspacePromotedEntityAccess and the typed Promoted Object Registry across Music + Commercial types.

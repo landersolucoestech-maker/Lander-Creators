@@ -40,3 +40,11 @@ Better Auth owns passwords, credential accounts, sessions and verification token
 | Language/country | Reference Data |
 | Workspace catalog access | Authorization + WorkspaceArtistAccess |
 | XLSX import decisions/provenance | Catalog Import |
+
+| Company / Brand / Product / Service | Commercial Promoted Entities |
+| PromotedPlatform / PromotedEvent / PromotedProject / InstitutionalInitiative | Commercial Promoted Entities |
+| Commercial entity media | Shared Media |
+| Commercial classifications | Taxonomy |
+| Country / language / timezone | Reference Data |
+| Workspace commercial entity access | Promoted Entity Access + Authorization |
+| Promoted-object type resolution | Promoted Object Registry |

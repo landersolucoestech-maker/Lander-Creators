@@ -43,3 +43,6 @@ Catalog resources are global, but access is Workspace-scoped:
 Authenticated User → active Workspace Membership → required catalog permission → WorkspaceArtistAccess → Artist/Release/Track action.
 
 Permissions alone do not grant access to unassigned Artists. Artist access alone does not bypass missing Workspace permissions. Release and Track authorization resolve their primary Artist and re-evaluate the same chain. Track-bound audio adds this catalog check on top of Shared Media authorization.
+
+## Commercial promoted entity path
+Authenticated User → active Workspace → active Membership → Workspace Permission → explicit WorkspacePromotedEntityAccess → entity state → action. There is no Company-to-child access inheritance and Workspace ADMIN does not bypass entity assignment.

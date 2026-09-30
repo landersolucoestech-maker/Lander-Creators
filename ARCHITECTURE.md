@@ -42,3 +42,6 @@ No external hosting, storage, database, CDN or deployment provider is authorized
 
 ## Etapa 5B Music Catalog
 Music Catalog is a global marketing catalog with explicit Workspace access: Artist → Release → Track. Artist access is granted through WorkspaceArtistAccess and combines with current Workspace permission checks. Track audio remains Shared Media and private. XLSX catalog import is repository-local, one-sheet, preview-first, resolution-aware and transactional. No rights, publishing, royalties, distribution or Campaign domain is introduced.
+
+## Etapa 5C — Commercial Promoted Entities
+Commercial promoted entities are global catalog/business records distinct from Workspace. Company, Brand, Product, Service, PromotedPlatform, PromotedEvent, PromotedProject and InstitutionalInitiative use explicit per-entity Workspace access and Shared Media. Music and commercial objects converge only through PromotedObjectAdapter + Registry. Campaign remains absent.

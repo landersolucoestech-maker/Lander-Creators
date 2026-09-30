@@ -38,3 +38,10 @@ Identity, Workspace, Membership, active Workspace context, authorization and the
 27. Track audio is private Shared Media and cannot be reached around catalog authorization.
 28. Catalog import is preview/resolution-first and never auto-merges possible duplicates.
 29. Work, Phonogram, Publishing, Rights, Royalties and Distribution remain outside LANDER CREATORS Music Catalog.
+
+## Commercial promoted-object boundaries
+- Workspace is operational tenancy; Company is a promoted commercial entity.
+- Commercial entities are not CRM, ecommerce, inventory, logistics, ticketing or project-management systems.
+- Parent relationships never implicitly grant Workspace access.
+- Music and Commercial converge only through typed adapters/registry.
+- Campaign is a separate future domain.

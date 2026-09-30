@@ -56,3 +56,6 @@ Never log passwords, session tokens, verification tokens, invitation secrets, me
 - Catalog URLs require HTTPS; raw parser/database errors remain behind stable PT-BR public errors.
 - XLSX parsing is local: no formula execution, external links, extra/hidden sheets, malformed archives, unbounded rows or unbounded entry expansion.
 - Possible Artist duplicates are never auto-merged.
+
+## Etapa 5C security
+Commercial links are HTTPS-only and are never fetched server-side during creation. Descriptions are untrusted plain text. Foreign MediaAsset attachment is rejected. Entity access status and expiry fail closed. Duplicate candidates never auto-merge. Typed registry validation prevents arbitrary promoted-object type injection.
