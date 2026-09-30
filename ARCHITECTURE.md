@@ -45,3 +45,9 @@ Music Catalog is a global marketing catalog with explicit Workspace access: Arti
 
 ## Etapa 5C — Commercial Promoted Entities
 Commercial promoted entities are global catalog/business records distinct from Workspace. Company, Brand, Product, Service, PromotedPlatform, PromotedEvent, PromotedProject and InstitutionalInitiative use explicit per-entity Workspace access and Shared Media. Music and commercial objects converge only through PromotedObjectAdapter + Registry. Campaign remains absent.
+
+
+## Etapa 5D — Application Shell and Dashboard
+The existing domains are consolidated by a reusable authenticated application shell. The shell owns navigation composition, responsive desktop/mobile layout and explicit Workspace/Creator context presentation; it does not own business authorization. Workspace capability checks remain server-authoritative, Creator ownership stays separate, and Artist/promoted-entity lists preserve their explicit access models.
+
+The authenticated root is the real Dashboard when an active Workspace exists. Dashboard queries are read-only, access-filtered and use only implemented data. No new business-domain tables or external providers were introduced.
