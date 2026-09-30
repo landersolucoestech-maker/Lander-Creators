@@ -17,6 +17,9 @@ export function workspaceNavigation(state: ApplicationShellState): ApplicationNa
     items.push({ id: "artists", label: "Artistas", href: "/music-catalog#artists", group: "Operação" });
     items.push({ id: "music", label: "Catálogo musical", href: "/music-catalog", group: "Operação" });
   }
+  if (state.capabilities.campaign) {
+    items.push({ id: "campaigns", label: "Campanhas", href: "/campaigns", group: "Operação" });
+  }
   if (state.capabilities.promoted) {
     items.push({ id: "promoted", label: "Entidades promovidas", href: "/promoted-entities", group: "Operação" });
   }
