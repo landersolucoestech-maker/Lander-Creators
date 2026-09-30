@@ -23,6 +23,7 @@ export function PromotedEntitiesPanel({workspaceId,initialEntities,taxonomies,re
   const[entities,setEntities]=useState(initialEntities);
   const[message,setMessage]=useState("");
   const images=media.filter(x=>x.mediaKind==="IMAGE");
+  const industries=taxonomies.find(x=>x.code==="INDUSTRY")?.values??[];
   const productCategories=taxonomies.find(x=>x.code==="PRODUCT_CATEGORY")?.values??[];
   const serviceCategories=taxonomies.find(x=>x.code==="SERVICE_CATEGORY")?.values??[];
   const companies=entities.COMPANY??[];
@@ -64,10 +65,11 @@ export function PromotedEntitiesPanel({workspaceId,initialEntities,taxonomies,re
       </article>)}
     </section>
     <section className="catalog-grid">
-      <article className="card"><h2>Nova empresa</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("companies",event,{tradeName:String(data.get("tradeName")??""),legalName:String(data.get("legalName")??"")||null,description:String(data.get("description")??"")||null,website:String(data.get("website")??"")||null,countryCode:String(data.get("countryCode")??"")||null,languageCode:String(data.get("languageCode")??"")||null,logoMediaAssetId:String(data.get("mediaId")??"")||null,confirmDuplicate:data.get("confirmDuplicate")==="on"});}}>
+      <article className="card"><h2>Nova empresa</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("companies",event,{tradeName:String(data.get("tradeName")??""),legalName:String(data.get("legalName")??"")||null,description:String(data.get("description")??"")||null,website:String(data.get("website")??"")||null,countryCode:String(data.get("countryCode")??"")||null,languageCode:String(data.get("languageCode")??"")||null,industryTaxonomyValueId:String(data.get("industryTaxonomyValueId")??"")||null,logoMediaAssetId:String(data.get("mediaId")??"")||null,confirmDuplicate:data.get("confirmDuplicate")==="on"});}}>
         <label>Nome comercial<input name="tradeName" required/></label><label>Razão social<input name="legalName"/></label><label>Site HTTPS<input name="website" type="url"/></label>
         <label>País<select name="countryCode" defaultValue=""><option value="">Não informado</option>{referenceData.countries.map(item=><option key={item.code} value={item.code}>{item.label}</option>)}</select></label>
         <label>Idioma<select name="languageCode" defaultValue=""><option value="">Não informado</option>{referenceData.languages.map(item=><option key={item.code} value={item.code}>{item.label}</option>)}</select></label>
+        <label>Setor<select name="industryTaxonomyValueId" defaultValue=""><option value="">Não informado</option>{industries.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
         <label>Logo<select name="mediaId" defaultValue=""><option value="">Sem logo</option>{images.map(item=><option key={item.id} value={item.id}>{item.originalFileName}</option>)}</select></label>
         <label>Descrição<textarea name="description"/></label><label className="checkbox-field"><input type="checkbox" name="confirmDuplicate"/> Confirmar novo registro se houver possível duplicado</label><button type="submit">Criar empresa</button>
       </form></article>

@@ -18,6 +18,7 @@ create table companies (
   normalized_trade_name text not null,
   description text,
   website text,
+  industry_taxonomy_value_id uuid references taxonomy_values(id) on delete restrict,
   country_code text references reference_countries(code) on delete restrict,
   language_code text references reference_languages(code) on delete restrict,
   logo_media_asset_id uuid references media_assets(id) on delete set null,
