@@ -12,10 +12,12 @@ type Props={
 };
 const labels:Record<string,string>={COMPANY:"Empresas",BRAND:"Marcas",PRODUCT:"Produtos",SERVICE:"Serviços",PLATFORM:"Plataformas",EVENT:"Eventos",PROJECT:"Projetos",INSTITUTIONAL_INITIATIVE:"Iniciativas institucionais"};
 
+class ApiError extends Error{constructor(public readonly code:string,message:string,public readonly details?:{candidateIds?:string[]}){super(message);this.name="ApiError";}}
+
 async function api(url:string,init?:RequestInit){
   const r=await fetch(url,{...init,headers:{"Content-Type":"application/json",...(init?.headers??{})}});
   const p=await r.json();
-  if(!r.ok)throw new Error(p?.error?.message??"Não foi possível concluir a operação.");
+  if(!r.ok)throw new ApiError(String(p?.error?.code??"INTERNAL_ERROR"),p?.error?.message??"Não foi possível concluir a operação.",p?.error?.details);
   return p;
 }
 
@@ -49,7 +51,12 @@ export function PromotedEntitiesPanel({workspaceId,initialEntities,taxonomies,re
       await refresh();
       setMessage(result.entity?.duplicateClassification==="EXISTING"?"Registro existente selecionado.":"Objeto promovido criado.");
     }catch(error){
-      setMessage(error instanceof Error?error.message:"Não foi possível criar o objeto promovido.");
+      if(error instanceof ApiError&&error.code==="POSSIBLE_DUPLICATE_REQUIRES_RESOLUTION"){
+        const typeByPath:Record<string,string>={companies:"COMPANY",brands:"BRAND",products:"PRODUCT",services:"SERVICE",platforms:"PLATFORM",events:"EVENT",projects:"PROJECT",initiatives:"INSTITUTIONAL_INITIATIVE"};
+        const ids=error.details?.candidateIds??[];
+        const names=(entities[typeByPath[path]]??[]).filter(item=>ids.includes(item.id)).map(item=>item.name);
+        setMessage(names.length?`Possível duplicado: ${names.join(", ")}. Escolha o registro existente ou confirme um novo.`:error.message);
+      }else setMessage(error instanceof Error?error.message:"Não foi possível criar o objeto promovido.");
     }
   }
 
