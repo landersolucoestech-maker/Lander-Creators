@@ -34,3 +34,7 @@ External infrastructure is never selected or introduced without explicit owner a
 
 ## Etapa 5C addition
 Commercial Promoted Entities require additive migrations from zero, explicit authorization, all canonical registry adapters, structured readiness, real PT-BR UI, full tests/build/runtime, desktop/mobile evidence, axe without serious/critical issues, exact-SHA artifact and GitHub-native publication. Campaign must remain absent.
+
+
+## Etapa 5D completion additions
+Application Shell + Dashboard is complete only when the exact final main SHA has: a coherent authenticated shell, real access-filtered Dashboard, capability-aware navigation, explicit Workspace/Creator contexts, safe direct-route authorization, responsive mobile navigation, no future-domain implementation, full regression tests, build/runtime smoke, desktop/mobile Playwright, axe with no unresolved serious/critical findings, visual artifact and successful GitHub-native publication.
