@@ -19,6 +19,7 @@ LANDER CREATORS is a TypeScript modular monolith delivered through a Next.js ful
 - Taxonomy: governed platform classification with stable codes, aliases and shallow hierarchy.
 - Reference Data: standards-oriented language, country, currency and timezone registries.
 - Shared Media: Workspace-scoped technical media metadata, validation, checksum, provider-neutral storage and authorized access.
+- Creator: global professional CreatorProfile, taxonomy preferences, declared SocialProfile, provenance-aware metric snapshots, readiness and ownership-based self-service authorization.
 
 ## Tenant strategy
 Application-layer tenant enforcement remains authoritative. Every Workspace-bound service resolves current User, Membership, Workspace state and required permission from the database. Client Workspace identifiers never authorize by themselves.

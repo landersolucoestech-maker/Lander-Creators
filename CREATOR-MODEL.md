@@ -66,3 +66,19 @@ Workspace ADMIN does not become Creator owner.
 
 ## Future boundaries
 Discovery, Matching, Campaign recruitment, Engagement, Finance, rankings and social provider integrations are not implemented here.
+
+
+## Context selection
+The same authenticated User may use Workspace and Creator contexts. The UI exposes explicit navigation between the Workspace area and the Creator area. Creator self-service never silently derives authority from the active Workspace.
+
+## Workspace relationships and restrictions
+WorkspaceCreatorRelationship, DO_NOT_CONTRACT and Creator-level Workspace blocks are deferred. CreatorProfile remains global and is not duplicated per Workspace.
+
+## Portfolio
+Creator portfolio is deferred. Shared Media is already the required future byte source; no parallel storage model exists.
+
+## Rate Card
+Rate Card remains deferred. No pricing, wallet, ledger, payable, payout or contractual price model was introduced in Etapa 5A.
+
+## Social provider extension
+No OAuth/API provider client exists. A future provider integration must preserve SocialProfile provenance and may only claim PROVIDER/CONNECTED when supported by real provider evidence and explicit owner-authorized infrastructure.

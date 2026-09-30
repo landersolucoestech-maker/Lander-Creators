@@ -4,7 +4,7 @@ import { createTestSql, resetSecurityData } from "./test-db";
 import { createWorkspace } from "@/server/workspace/workspace-service";
 import { inviteWorkspaceMember, acceptWorkspaceInvitation } from "@/server/workspace/membership-service";
 import { createCreatorProfile, updateCreatorProfile, requireCreatorOwner, addCreatorTaxonomyValue, calculateCreatorReadiness, submitCreatorProfileForReview, setCreatorAvailability, setMarketplaceVisibility } from "@/server/creator/creator-service";
-import { addDeclaredSocialProfile, addManualMetricsSnapshot, listSocialProfiles } from "@/server/creator/social-profile-service";
+import { addDeclaredSocialProfile, addManualMetricsSnapshot, listSocialProfiles, removeSocialProfile } from "@/server/creator/social-profile-service";
 import { setCreatorAvatar } from "@/server/creator/creator-media-service";
 import { uploadMediaAsset } from "@/server/media/media-service";
 import { LocalEphemeralStorageAdapter } from "@/server/media/local-storage-adapter";
@@ -34,6 +34,35 @@ describe("Creator foundation",()=>{
   const invitation=await inviteWorkspaceMember(sql,{actorUserId:owner,workspaceId:String(workspace.id),recipientEmail:"admin@example.com",roleCode:"ADMIN"});
   await acceptWorkspaceInvitation(sql,{userId:admin,token:invitation.token});
   await expect(requireCreatorOwner(sql,{userId:admin,creatorProfileId:String((p as Record<string,unknown>).id)})).rejects.toMatchObject({code:"CREATOR_PROFILE_ACCESS_DENIED"});
+ });
+
+ it("blocks cross-user Creator reads, mutations and social changes",async()=>{
+  const a=await user("owner-a@example.com");
+  const b=await user("owner-b@example.com");
+  const pa=await profile(a);
+  const pb=await profile(b);
+  const aid=String((pa as Record<string,unknown>).id);
+  const bid=String((pb as Record<string,unknown>).id);
+
+  await expect(
+    requireCreatorOwner(sql,{userId:a,creatorProfileId:bid})
+  ).rejects.toMatchObject({code:"CREATOR_PROFILE_ACCESS_DENIED"});
+
+  await expect(
+    updateCreatorProfile(sql,{userId:a,creatorProfileId:bid,displayName:"Ataque",bio:"x",countryCode:"BR",languageCode:"pt-BR",timezoneCode:"America/Sao_Paulo"})
+  ).rejects.toMatchObject({code:"CREATOR_PROFILE_ACCESS_DENIED"});
+
+  await expect(
+    addDeclaredSocialProfile(sql,{userId:a,creatorProfileId:bid,platform:"INSTAGRAM",handle:"foreign",profileUrl:"https://instagram.com/foreign"})
+  ).rejects.toMatchObject({code:"CREATOR_PROFILE_ACCESS_DENIED"});
+
+  const social=await addDeclaredSocialProfile(sql,{userId:b,creatorProfileId:bid,platform:"INSTAGRAM",handle:"owned",profileUrl:"https://instagram.com/owned"});
+  await expect(
+    removeSocialProfile(sql,{userId:a,creatorProfileId:bid,socialProfileId:String((social as Record<string,unknown>).id)})
+  ).rejects.toMatchObject({code:"CREATOR_PROFILE_ACCESS_DENIED"});
+
+  const own=await updateCreatorProfile(sql,{userId:a,creatorProfileId:aid,displayName:"Owner A",bio:"ok",countryCode:"BR",languageCode:"pt-BR",timezoneCode:"America/Sao_Paulo"});
+  expect(own).toMatchObject({display_name:"Owner A"});
  });
 
  it("uses canonical taxonomies and rejects wrong/deprecated values",async()=>{
