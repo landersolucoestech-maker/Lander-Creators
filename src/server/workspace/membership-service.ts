@@ -1,12 +1,14 @@
 import { createHash, randomBytes } from "node:crypto";
-import type { Sql } from "postgres";
+import type { Sql, TransactionSql } from "postgres";
+
+type QueryExecutor = Sql | TransactionSql;
 import { DomainError } from "@/server/shared/domain-error";
 import { authorizeWorkspacePermission } from "@/server/authorization/authorization-service";
 
 function hashToken(value: string) { return createHash("sha256").update(value).digest("hex"); }
-async function lockWorkspace(tx: Sql, workspaceId: string) { await tx.unsafe("select id from workspaces where id=$1::uuid for update", [workspaceId]); }
-async function roleId(tx: Sql, code: string) { const rows=await tx.unsafe("select id::text from roles where workspace_id is null and code=$1 limit 1",[code]); if(!rows[0]) throw new DomainError("AUTHORIZATION_CONFIGURATION_ERROR","Role missing",500); return String((rows[0] as Record<string,unknown>).id); }
-async function protectLastOwner(tx: Sql, workspaceId: string, membershipId: string) {
+async function lockWorkspace(tx: QueryExecutor, workspaceId: string) { await tx.unsafe("select id from workspaces where id=$1::uuid for update", [workspaceId]); }
+async function roleId(tx: QueryExecutor, code: string) { const rows=await tx.unsafe("select id::text from roles where workspace_id is null and code=$1 limit 1",[code]); if(!rows[0]) throw new DomainError("AUTHORIZATION_CONFIGURATION_ERROR","Role missing",500); return String((rows[0] as Record<string,unknown>).id); }
+async function protectLastOwner(tx: QueryExecutor, workspaceId: string, membershipId: string) {
   const target=await tx.unsafe("select r.code,m.status::text as status from memberships m join roles r on r.id=m.role_id where m.id=$1::uuid and m.workspace_id=$2::uuid",[membershipId,workspaceId]);
   const row=target[0] as Record<string,unknown>|undefined;
   if(row?.code!=="OWNER"||row?.status!=="ACTIVE") return;
