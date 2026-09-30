@@ -1,0 +1,1 @@
+import{LocalEphemeralStorageAdapter}from"./local-storage-adapter";const g=globalThis as typeof globalThis&{__lcMedia?:LocalEphemeralStorageAdapter};export function getRuntimeMediaStorage(){g.__lcMedia??=new LocalEphemeralStorageAdapter();return g.__lcMedia;}

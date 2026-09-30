@@ -1,22 +1,3 @@
-export const permissionCodes = [
-  "workspace.view",
-  "workspace.update",
-  "workspace.security.manage",
-  "workspace.ownership.transfer",
-  "team.member.view",
-  "team.member.invite",
-  "team.member.update",
-  "team.member.suspend",
-  "team.member.remove",
-  "team.role.view",
-  "team.role.assign"
-] as const;
-
-export type PermissionCode = (typeof permissionCodes)[number];
-
-export type ResourceScope =
-  | { kind: "WORKSPACE"; workspaceId: string }
-  | { kind: "OWN_RESOURCE"; resourceId: string }
-  | { kind: "ASSIGNED_ARTIST"; artistId: string }
-  | { kind: "ASSIGNED_PROMOTED_ENTITY"; promotedEntityId: string }
-  | { kind: "ASSIGNED_CAMPAIGN"; campaignId: string };
+export const permissionCodes=["workspace.view","workspace.update","workspace.security.manage","workspace.ownership.transfer","team.member.view","team.member.invite","team.member.update","team.member.suspend","team.member.remove","team.role.view","team.role.assign","taxonomy.view","media.view","media.upload","media.archive"] as const;
+export type PermissionCode=(typeof permissionCodes)[number];
+export type ResourceScope={kind:"WORKSPACE";workspaceId:string}|{kind:"OWN_RESOURCE";resourceId:string}|{kind:"ASSIGNED_ARTIST";artistId:string}|{kind:"ASSIGNED_PROMOTED_ENTITY";promotedEntityId:string}|{kind:"ASSIGNED_CAMPAIGN";campaignId:string};

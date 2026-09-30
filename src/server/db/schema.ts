@@ -1,5 +1,8 @@
 import {
+  bigint,
+  boolean,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -173,3 +176,71 @@ export const auditLogs = pgTable("audit_logs", {
   correlationId: text("correlation_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 });
+
+export const taxonomyStatus = pgEnum("taxonomy_status", ["ACTIVE","DEPRECATED"]);
+export const mediaKind = pgEnum("media_kind", ["IMAGE","AUDIO","DOCUMENT"]);
+export const mediaStatus = pgEnum("media_status", ["READY","ARCHIVED"]);
+export const mediaVisibility = pgEnum("media_visibility", ["PRIVATE","WORKSPACE_AVAILABLE"]);
+
+export const taxonomyDefinitions = pgTable("taxonomy_definitions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull(),
+  displayNamePtBr: text("display_name_pt_br").notNull(),
+  description: text("description").notNull(),
+  hierarchyEnabled: boolean("hierarchy_enabled").notNull().default(false),
+  maxDepth: integer("max_depth"),
+  status: taxonomyStatus("status").notNull().default("ACTIVE"),
+  revision: integer("revision").notNull().default(1),
+  createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()
+}, t => ({ codeUnique: uniqueIndex("taxonomy_definitions_code_unique").on(t.code) }));
+
+export const taxonomyValues = pgTable("taxonomy_values", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  taxonomyDefinitionId: uuid("taxonomy_definition_id").notNull().references(()=>taxonomyDefinitions.id),
+  code: text("code").notNull(),
+  displayLabelPtBr: text("display_label_pt_br").notNull(),
+  parentId: uuid("parent_id"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  status: taxonomyStatus("status").notNull().default("ACTIVE"),
+  supersededById: uuid("superseded_by_id"),
+  createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()
+}, t => ({
+  definitionCodeUnique: uniqueIndex("taxonomy_values_definition_code_unique").on(t.taxonomyDefinitionId,t.code),
+  parentIndex: index("taxonomy_values_parent_idx_drizzle").on(t.parentId)
+}));
+
+export const taxonomyAliases = pgTable("taxonomy_aliases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  taxonomyValueId: uuid("taxonomy_value_id").notNull().references(()=>taxonomyValues.id,{onDelete:"cascade"}),
+  normalizedAlias: text("normalized_alias").notNull(),
+  createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow()
+}, t => ({ aliasUnique: uniqueIndex("taxonomy_aliases_value_unique").on(t.taxonomyValueId,t.normalizedAlias) }));
+
+export const referenceLanguages = pgTable("reference_languages",{code:text("code").primaryKey(),displayNamePtBr:text("display_name_pt_br").notNull(),active:boolean("active").notNull().default(true)});
+export const referenceCountries = pgTable("reference_countries",{code:text("code").primaryKey(),displayNamePtBr:text("display_name_pt_br").notNull(),active:boolean("active").notNull().default(true)});
+export const referenceCurrencies = pgTable("reference_currencies",{code:text("code").primaryKey(),displayNamePtBr:text("display_name_pt_br").notNull(),active:boolean("active").notNull().default(true)});
+export const referenceTimezones = pgTable("reference_timezones",{code:text("code").primaryKey(),displayNamePtBr:text("display_name_pt_br").notNull(),active:boolean("active").notNull().default(true)});
+
+export const mediaAssets = pgTable("media_assets",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  workspaceId:uuid("workspace_id").notNull().references(()=>workspaces.id),
+  createdByUserId:text("created_by_user_id").notNull().references(()=>user.id),
+  fileName:text("file_name").notNull(),
+  originalFileName:text("original_file_name").notNull(),
+  mediaKind:mediaKind("media_kind").notNull(),
+  mimeType:text("mime_type").notNull(),
+  sizeBytes:bigint("size_bytes",{mode:"number"}).notNull(),
+  checksumSha256:text("checksum_sha256").notNull(),
+  storageKey:text("storage_key").notNull(),
+  status:mediaStatus("status").notNull().default("READY"),
+  visibility:mediaVisibility("visibility").notNull().default("PRIVATE"),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
+  archivedAt:timestamp("archived_at",{withTimezone:true})
+},t=>({
+  storageUnique:uniqueIndex("media_assets_storage_key_unique").on(t.storageKey),
+  workspaceIndex:index("media_assets_workspace_idx_drizzle").on(t.workspaceId),
+  checksumIndex:index("media_assets_checksum_idx_drizzle").on(t.checksumSha256)
+}));
