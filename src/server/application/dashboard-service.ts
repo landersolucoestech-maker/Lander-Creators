@@ -12,6 +12,8 @@ export type DashboardSummary = {
   promotedByType: Record<string, number> | null;
   media: number | null;
   members: number | null;
+  campaigns: number | null;
+  campaignByStatus: Record<string, number> | null;
   recentActivity: Array<{ label: string; createdAt: string }>;
 };
 
@@ -56,11 +58,12 @@ export async function getDashboardSummary(
     [input.userId]
   );
 
-  const [musicAllowed, promotedAllowed, mediaAllowed, teamAllowed] = await Promise.all([
+  const [musicAllowed, promotedAllowed, mediaAllowed, teamAllowed, campaignAllowed] = await Promise.all([
     permitted(sql, input.userId, input.workspaceId, "music_catalog.view"),
     permitted(sql, input.userId, input.workspaceId, "promoted_entity.view"),
     permitted(sql, input.userId, input.workspaceId, "media.view"),
-    permitted(sql, input.userId, input.workspaceId, "team.member.view")
+    permitted(sql, input.userId, input.workspaceId, "team.member.view"),
+    permitted(sql, input.userId, input.workspaceId, "campaign.view")
   ]);
 
   let artists: number | null = null;
@@ -92,6 +95,9 @@ export async function getDashboardSummary(
     ? await count(sql, "select count(*)::int count from memberships where workspace_id=$1::uuid and status<>'REMOVED'", [input.workspaceId])
     : null;
 
+  let campaigns:number|null=null,campaignByStatus:Record<string,number>|null=null;
+  if(campaignAllowed){const rows=await sql.unsafe("select status::text,count(*)::int count from campaigns where workspace_id=$1::uuid group by status",[input.workspaceId]);campaignByStatus=Object.fromEntries(rows.map(r=>[String(r.status),Number(r.count)]));campaigns=Object.values(campaignByStatus).reduce((a,b)=>a+b,0);}
+
   const workspaceAllowed = await permitted(sql, input.userId, input.workspaceId, "workspace.view");
   const recentRows = workspaceAllowed
     ? await sql.unsafe(
@@ -109,6 +115,8 @@ export async function getDashboardSummary(
     promotedByType,
     media,
     members,
+    campaigns,
+    campaignByStatus,
     recentActivity: recentRows.map((row) => ({
       label: activityLabels[String(row.action)] ?? "Atividade",
       createdAt: new Date(String(row.created_at)).toISOString()
