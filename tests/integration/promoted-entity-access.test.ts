@@ -54,7 +54,7 @@ describe("Promoted entity access and adapters",()=>{
    const event=await createPromotedEvent(sql,{...x,name:"Adapter Event",companyId,eventMode:"ONLINE",startsAt:new Date("2026-10-10T12:00:00Z"),timezoneCode:"UTC",onlineUrl:"https://example.com/event"});
    const project=await createPromotedProject(sql,{...x,name:"Adapter Project",companyId});
    const initiative=await createInstitutionalInitiative(sql,{...x,name:"Adapter Initiative",companyId});
-   const values:[any,string][]=[[company,"COMPANY"],[brand,"BRAND"],[product,"PRODUCT"],[service,"SERVICE"],[platform,"PLATFORM"],[event,"EVENT"],[project,"PROJECT"],[initiative,"INSTITUTIONAL_INITIATIVE"]];
+   const values:Array<[{id:unknown},string]>=[[company,"COMPANY"],[brand,"BRAND"],[product,"PRODUCT"],[service,"SERVICE"],[platform,"PLATFORM"],[event,"EVENT"],[project,"PROJECT"],[initiative,"INSTITUTIONAL_INITIATIVE"]];
    for(const[value,type]of values){const resolved=await resolvePromotedObject(sql,{...x,type:type as never,entityId:String(value.id)});expect(resolved.type).toBe(type);expect(resolved.displayName.length).toBeGreaterThan(0);}
  });
 
