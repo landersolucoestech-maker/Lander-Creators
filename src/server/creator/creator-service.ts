@@ -7,14 +7,6 @@ export type CreatorStatus = "DRAFT" | "UNDER_REVIEW" | "ACTIVE" | "LIMITED" | "S
 export type CreatorAvailability = "AVAILABLE" | "LIMITED_AVAILABILITY" | "UNAVAILABLE";
 export type MarketplaceVisibility = "VISIBLE" | "HIDDEN";
 
-const readinessCopy = {
-  MISSING_DISPLAY_NAME: "Nome de exibição",
-  MISSING_COUNTRY: "País",
-  MISSING_LANGUAGE: "Idioma principal",
-  MISSING_NICHE: "Nicho",
-  MISSING_SOCIAL_PROFILE: "Rede social"
-} as const;
-
 async function audit(sql: QueryExecutor, input: {
   userId: string;
   action: string;
@@ -170,7 +162,6 @@ export async function calculateCreatorReadiness(sql: Sql, userId: string) {
   return {
     technicalReady:missing.length===0,
     missing,
-    missingLabels:missing.map(code=>readinessCopy[code as keyof typeof readinessCopy]??code),
     legalGate:"CREATOR_TERMS_GATE_DEFERRED" as const
   };
 }

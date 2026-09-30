@@ -213,7 +213,9 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await capture(page, project, "creator-social", "/creator", "Declared social profile is clearly marked as manual and not provider-connected.");
 
   await expect(page.getByText("Perfil tecnicamente pronto para análise.")).toBeVisible();
-  await capture(page, project, "creator-populated", "/creator", "Creator profile shows taxonomy, readiness, social and independent availability/visibility state.");
+  const avatarSelect=page.getByLabel("Arquivo");
+  if(await avatarSelect.count())await avatarSelect.selectOption({label:"visual.png"});
+  await capture(page, project, "creator-populated", "/creator", "Creator profile shows taxonomy, readiness, social, Shared Media avatar choice and independent availability/visibility state.");
   await page.getByLabel("Disponibilidade").selectOption("LIMITED_AVAILABILITY");
   await expect(page.getByText("Disponibilidade atualizada.")).toBeVisible();
   await capture(page, project, "creator-availability", "/creator", "Availability is independent from lifecycle and marketplace visibility.");

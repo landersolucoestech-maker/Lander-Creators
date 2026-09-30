@@ -24,7 +24,7 @@ function validateProfileUrl(platform:SocialPlatform,value?:string|null){
 }
 
 export async function addDeclaredSocialProfile(sql:Sql,input:{
-  userId:string;creatorProfileId:string;platform:SocialPlatform;handle:string;profileUrl?:string|null;displayName?:string|null;externalAccountId?:string|null;
+  userId:string;creatorProfileId:string;platform:SocialPlatform;handle:string;profileUrl?:string|null;displayName?:string|null;
 }){
   await requireCreatorOwner(sql,input);
   const normalized=normalizeHandle(input.handle);
@@ -33,7 +33,7 @@ export async function addDeclaredSocialProfile(sql:Sql,input:{
   try{
     const rows=await sql.unsafe(
       "insert into social_profiles(creator_profile_id,platform,external_account_id,handle,normalized_handle,profile_url,display_name,provenance,connection_status) values($1::uuid,$2::social_platform,$3,$4,$5,$6,$7,'DECLARED','NOT_CONNECTED') returning id::text,creator_profile_id::text,platform::text,external_account_id,handle,normalized_handle,profile_url,display_name,provenance::text,connection_status::text,created_at,updated_at",
-      [input.creatorProfileId,input.platform,input.externalAccountId?.trim()||null,input.handle.trim(),normalized,profileUrl,input.displayName?.trim()||null]
+      [input.creatorProfileId,input.platform,null,input.handle.trim(),normalized,profileUrl,input.displayName?.trim()||null]
     );
     await sql.unsafe("insert into audit_logs(actor_type,actor_id,action,entity_type,entity_id,delta,origin) values('USER',$1,'creator.social_added','social_profile',$2,$3::jsonb,'API')",[input.userId,String((rows[0] as Record<string,unknown>).id),JSON.stringify({platform:input.platform,provenance:"DECLARED"})]);
     return rows[0];

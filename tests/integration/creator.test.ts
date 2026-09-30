@@ -54,9 +54,13 @@ describe("Creator foundation",()=>{
   const a=await user("a@example.com");const b=await user("b@example.com");const pa=await profile(a);const pb=await profile(b);
   const aid=String((pa as Record<string,unknown>).id),bid=String((pb as Record<string,unknown>).id);
   await expect(addDeclaredSocialProfile(sql,{userId:a,creatorProfileId:aid,platform:"INSTAGRAM",handle:"@creator",profileUrl:"javascript:alert(1)"})).rejects.toMatchObject({code:"SOCIAL_PROFILE_INVALID"});
-  const social=await addDeclaredSocialProfile(sql,{userId:a,creatorProfileId:aid,platform:"INSTAGRAM",handle:"@Creator",profileUrl:"https://instagram.com/creator",externalAccountId:"ig-123"});
-  expect(social).toMatchObject({provenance:"DECLARED",connection_status:"NOT_CONNECTED",normalized_handle:"creator"});
-  await expect(addDeclaredSocialProfile(sql,{userId:b,creatorProfileId:bid,platform:"INSTAGRAM",handle:"other",profileUrl:"https://instagram.com/other",externalAccountId:"ig-123"})).rejects.toMatchObject({code:"SOCIAL_PROFILE_ALREADY_LINKED"});
+  const social=await addDeclaredSocialProfile(sql,{userId:a,creatorProfileId:aid,platform:"INSTAGRAM",handle:"@Creator",profileUrl:"https://instagram.com/creator"});
+  expect(social).toMatchObject({provenance:"DECLARED",connection_status:"NOT_CONNECTED",normalized_handle:"creator",external_account_id:null});
+  const sa=String((social as Record<string,unknown>).id);
+  const other=await addDeclaredSocialProfile(sql,{userId:b,creatorProfileId:bid,platform:"INSTAGRAM",handle:"other",profileUrl:"https://instagram.com/other"});
+  const sb=String((other as Record<string,unknown>).id);
+  await sql.unsafe("update social_profiles set external_account_id='ig-123' where id=$1::uuid",[sa]);
+  await expect(sql.unsafe("update social_profiles set external_account_id='ig-123' where id=$1::uuid",[sb])).rejects.toBeDefined();
  });
 
  it("stores metrics snapshots with manual provenance, timestamp and null unknowns",async()=>{
