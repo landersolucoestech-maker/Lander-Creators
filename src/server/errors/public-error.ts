@@ -36,6 +36,21 @@ const messages: Record<string, string> = {
   CREATOR_MEDIA_ACCESS_DENIED: "Este arquivo não pode ser vinculado ao perfil de Creator.",
   INVALID_REFERENCE_DATA: "A opção selecionada não é válida.",
   INVALID_CREATOR_STATUS_TRANSITION: "Esta mudança de situação do Creator não é permitida.",
+  ARTIST_NOT_FOUND: "Artista não encontrado.",
+  ARTIST_ACCESS_DENIED: "Você não tem acesso a este Artista.",
+  ARTIST_INVALID: "Verifique os dados do Artista.",
+  RELEASE_NOT_FOUND: "Lançamento não encontrado.",
+  RELEASE_INVALID: "Verifique os dados do lançamento.",
+  TRACK_NOT_FOUND: "Música não encontrada.",
+  TRACK_ACCESS_DENIED: "Você não tem acesso a esta música.",
+  TRACK_INVALID: "Verifique os dados da música.",
+  TRACK_SEGMENT_INVALID: "O trecho informado não é válido.",
+  ISRC_INVALID: "O ISRC informado não é válido.",
+  DURATION_INVALID: "A duração informada não é válida.",
+  GENRE_INVALID: "O gênero informado não é válido.",
+  URL_INVALID: "Uma das URLs informadas não é válida.",
+  MUSIC_IMPORT_INVALID: "A planilha contém dados inválidos ou não segue o modelo.",
+  MUSIC_IMPORT_DUPLICATE_RESOLUTION_REQUIRED: "Resolva as possíveis duplicidades antes de confirmar a importação.",
 };
 
 const fallback: PublicError = {
