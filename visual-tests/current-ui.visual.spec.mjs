@@ -334,7 +334,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await expect(page.getByText("Duplicidade resolvida.")).toBeVisible();
   await page.getByRole("button",{name:"Confirmar importação"}).click();
   await expect(page.getByText("Importação concluída.")).toBeVisible();
-  await expect(page.getByText("Importado",{exact:true})).toBeVisible();
+  await expect(page.getByText(/Situação:\s*Importado/)).toBeVisible();
   await expect(page.getByRole("cell",{name:"Importada Visual"}).first()).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"catalog-import-success","/music-catalog","Confirmed import creates the catalog graph only after preview and explicit duplicate resolution.");
