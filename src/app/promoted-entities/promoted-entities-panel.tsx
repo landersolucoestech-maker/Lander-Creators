@@ -1,6 +1,5 @@
 "use client";
 import { useState,type FormEvent } from "react";
-import Link from "next/link";
 
 type Entity={id:string;name:string;status:string;access_level:string;access_status:string;verification_status?:string|null};
 type Props={
