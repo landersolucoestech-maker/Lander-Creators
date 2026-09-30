@@ -38,6 +38,7 @@ export function DashboardView({
           <StatCard label="Lançamentos" value={summary.releases} href="/music-catalog" description="lançamentos acessíveis" />
           <StatCard label="Músicas" value={summary.tracks} href="/music-catalog" description="músicas acessíveis" />
           <StatCard label="Entidades promovidas" value={summary.promotedEntities} href="/promoted-entities" description="entidades comerciais acessíveis" />
+          <StatCard label="Campanhas" value={summary.campaigns} href="/campaigns" description="campanhas do workspace" />
           <StatCard label="Mídias" value={summary.media} href="/media" description="arquivos disponíveis" />
           <StatCard label="Equipe" value={summary.members} href="/team" description="membros do workspace" />
         </div>
@@ -69,6 +70,7 @@ export function DashboardView({
           <p className="eyebrow">ATALHOS</p>
           <h2>Próximas ações</h2>
           <div className="shortcut-list">
+            {summary.campaigns !== null ? <Link href="/campaigns">Criar campanha</Link> : null}
             {summary.artists !== null ? <Link href="/music-catalog">Cadastrar artista ou importar catálogo</Link> : null}
             {summary.promotedEntities !== null ? <Link href="/promoted-entities">Cadastrar entidade promovida</Link> : null}
             {summary.media !== null ? <Link href="/media">Enviar mídia</Link> : null}
