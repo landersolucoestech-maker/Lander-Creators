@@ -366,8 +366,12 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
 
   await companyForm.getByLabel("Nome comercial").fill(companyName);
   await companyForm.getByRole("button",{name:"Criar empresa"}).click();
-  await expect(page.getByText("Há um possível duplicado. Confirme como deseja continuar.")).toBeVisible();
-  await capture(page,project,"promoted-duplicate-warning","/promoted-entities","Possible duplicate is surfaced without automatic merge.");
+  await expect(page.getByText(new RegExp(`Possível duplicado: ${companyName}`))).toBeVisible();
+  await capture(page,project,"promoted-duplicate-warning","/promoted-entities","Possible duplicate exposes only the accessible matching candidate and never auto-merges.");
+  await companyForm.getByLabel("Usar registro existente").selectOption({label:companyName});
+  await companyForm.getByRole("button",{name:"Criar empresa"}).click();
+  await expect(page.getByText("Registro existente selecionado.")).toBeVisible();
+  await capture(page,project,"promoted-existing-resolution","/promoted-entities","Explicit EXISTING resolution reuses the accessible Company without creating a duplicate.");
 
   const brandForm=page.locator("form").filter({hasText:"Criar marca"});
   await brandForm.getByLabel("Nome").fill(brandName);
