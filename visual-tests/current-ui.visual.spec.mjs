@@ -132,7 +132,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await signIn.getByLabel("E-mail").fill(email);
   await signIn.getByLabel("Senha").fill(password);
   await signIn.getByRole("button", { name: "Entrar" }).click();
-  await expect(page.getByRole("heading", { name: "Workspace" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Workspace", exact: true, level: 1 })).toBeVisible();
   await expect(page.getByText("Você ainda não possui workspace")).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(
