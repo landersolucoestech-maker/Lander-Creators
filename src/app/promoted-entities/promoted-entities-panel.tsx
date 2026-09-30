@@ -2,7 +2,7 @@
 import { useState,type FormEvent } from "react";
 import Link from "next/link";
 
-type Entity={id:string;name:string;status:string;access_level:string;access_status:string};
+type Entity={id:string;name:string;status:string;access_level:string;access_status:string;verification_status?:string|null};
 type Props={
   workspaceId:string;
   initialEntities:Record<string,Entity[]>;
@@ -33,6 +33,11 @@ export function PromotedEntitiesPanel({workspaceId,initialEntities,taxonomies,re
     setEntities(p.entities);
   }
 
+  async function edit(type:string,entity:Entity,event:FormEvent<HTMLFormElement>){
+    event.preventDefault();const form=event.currentTarget;const data=new FormData(form);
+    try{await api(`/api/workspaces/${workspaceId}/promoted-entities/${type}/${entity.id}`,{method:"PATCH",body:JSON.stringify({name:String(data.get("name")??""),description:String(data.get("description")??"")||null,website:String(data.get("website")??"")||null})});await refresh();setMessage("Objeto promovido atualizado.");}catch(error){setMessage(error instanceof Error?error.message:"Não foi possível atualizar.");}
+  }
+
   async function submit(path:string,event:FormEvent<HTMLFormElement>,payload:Record<string,unknown>){
     event.preventDefault();
     const form=event.currentTarget;
@@ -55,7 +60,7 @@ export function PromotedEntitiesPanel({workspaceId,initialEntities,taxonomies,re
     <section className="catalog-grid">
       {Object.entries(labels).map(([type,label])=><article className="card" key={type}>
         <p className="eyebrow">{label.toUpperCase()}</p><h2>{label}</h2>
-        {(entities[type]??[]).length===0?<p>Nenhum registro acessível neste workspace.</p>:<div className="stack">{(entities[type]??[]).map(entity=><div className="catalog-row" key={entity.id}><strong>{entity.name}</strong><span>{entity.status==="ACTIVE"?"Ativo":entity.status==="DRAFT"?"Rascunho":entity.status==="ARCHIVED"?"Arquivado":"Suspenso"} · {entity.access_level==="OWNER"?"Proprietário":entity.access_level}</span></div>)}</div>}
+        {(entities[type]??[]).length===0?<p>Nenhum registro acessível neste workspace.</p>:<div className="stack">{(entities[type]??[]).map(entity=><div className="catalog-row" key={entity.id}><strong>{entity.name}</strong><span>{entity.status==="ACTIVE"?"Ativo":entity.status==="DRAFT"?"Rascunho":entity.status==="ARCHIVED"?"Arquivado":"Suspenso"} · {entity.access_level==="OWNER"?"Proprietário":entity.access_level}{type==="COMPANY"&&entity.verification_status?` · Verificação: ${entity.verification_status==="VERIFIED"?"Verificada":entity.verification_status==="PENDING"?"Pendente":entity.verification_status==="REJECTED"?"Rejeitada":entity.verification_status==="REVIEW_REQUIRED"?"Revisão necessária":"Não verificada"}`:""}</span>{entity.access_level==="OWNER"?<details><summary>Editar</summary><form className="form compact-form" onSubmit={event=>void edit(type,entity,event)}><label>Nome<input name="name" defaultValue={entity.name} required/></label><label>Descrição<textarea name="description"/></label><label>URL HTTPS<input name="website" type="url"/></label><button type="submit">Salvar alterações</button></form></details>:null}</div>)}</div>}
       </article>)}
     </section>
     <section className="catalog-grid">
