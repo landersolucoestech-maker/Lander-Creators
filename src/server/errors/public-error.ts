@@ -1,6 +1,6 @@
 import { DomainError } from "@/server/shared/domain-error";
 
-export type PublicError = { code: string; message: string };
+export type PublicError = { code: string; message: string; details?: Record<string, unknown> };
 
 const messages: Record<string, string> = {
   AUTHENTICATION_REQUIRED: "Entre na sua conta para continuar.",
@@ -71,7 +71,8 @@ export function toPublicError(error: unknown): PublicError {
   if (error instanceof DomainError) {
     return {
       code: error.code,
-      message: messages[error.code] ?? fallback.message
+      message: messages[error.code] ?? fallback.message,
+      ...(error.publicDetails ? { details: error.publicDetails } : {})
     };
   }
 
