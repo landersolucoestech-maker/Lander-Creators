@@ -48,3 +48,7 @@ Use `artist-engineer` for Artist identity/access, `music-catalog-engineer` for R
 
 ## Etapa 5C boundary
 Commercial promoted entities are Company/Brand/Product/Service/Platform/Event/Project/InstitutionalInitiative. Keep Workspace separate from Company, require explicit per-entity access, reuse Shared Media/Taxonomy/Reference Data and route promoted-object polymorphism through the typed registry. Do not implement Campaign until Etapa 6.
+
+
+## Etapa 5D assisted engineering
+Application experience work may use `.claude/agents/application-shell-engineer.md` and `.claude/agents/dashboard-engineer.md` with the repository-local skills `implement-application-shell`, `implement-dashboard`, `navigation-audit` and `visual-consistency-audit`. These helpers consolidate implemented domains only; they must not start Campaign or introduce new providers.
