@@ -38,3 +38,7 @@ Commercial Promoted Entities require additive migrations from zero, explicit aut
 
 ## Etapa 5D completion additions
 Application Shell + Dashboard is complete only when the exact final main SHA has: a coherent authenticated shell, real access-filtered Dashboard, capability-aware navigation, explicit Workspace/Creator contexts, safe direct-route authorization, responsive mobile navigation, no future-domain implementation, full regression tests, build/runtime smoke, desktop/mobile Playwright, axe with no unresolved serious/critical findings, visual artifact and successful GitHub-native publication.
+
+
+## Etapa 6 — Campaign Core
+Etapa 6 is complete only when one generic Campaign engine, all 10 persistent builder steps, exact promoted-object registry integration, readiness, lifecycle, authorization, Dashboard/navigation, migration, tests, build, runtime smoke, Playwright, axe, exact-SHA artifact and GitHub Pages are green while downstream domains remain absent.

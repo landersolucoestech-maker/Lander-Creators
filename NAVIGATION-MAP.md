@@ -45,3 +45,7 @@ No clickable navigation exists for:
 - Reporting;
 - Matching;
 - AI Runtime.
+
+
+## Etapa 6 — Campaign Core
+Etapa 6 Workspace operation navigation adds `/campaigns`, `/campaigns/[campaignId]` and `/campaigns/[campaignId]/builder`. No downstream Participation/Finance/Analytics navigation is exposed.

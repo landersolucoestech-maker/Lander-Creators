@@ -52,3 +52,7 @@ Commercial promoted entities are Company/Brand/Product/Service/Platform/Event/Pr
 
 ## Etapa 5D assisted engineering
 Application experience work may use `.claude/agents/application-shell-engineer.md` and `.claude/agents/dashboard-engineer.md` with the repository-local skills `implement-application-shell`, `implement-dashboard`, `navigation-audit` and `visual-consistency-audit`. These helpers consolidate implemented domains only; they must not start Campaign or introduce new providers.
+
+
+## Etapa 6 — Campaign Core
+Campaign work must use the Campaign Core and Campaign Builder agents/skills. Never create subtype campaign engines or skip into Participation, Engagement, Finance, Content, Publication, Analytics metrics, Matching or AI.

@@ -59,3 +59,7 @@ Never log passwords, session tokens, verification tokens, invitation secrets, me
 
 ## Etapa 5C security
 Commercial links are HTTPS-only and are never fetched server-side during creation. Descriptions are untrusted plain text. Foreign MediaAsset attachment is rejected. Entity access status and expiry fail closed. Duplicate candidates never auto-merge. Typed registry validation prevents arbitrary promoted-object type injection.
+
+
+## Etapa 6 — Campaign Core
+Campaign security gate covers cross-Workspace IDOR, promoted-object access, foreign Shared Media, direct lifecycle escalation, activation bypass, unsafe URLs, stale writes and active material edits. Authorization remains permission-based.

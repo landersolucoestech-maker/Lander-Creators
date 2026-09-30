@@ -80,3 +80,7 @@ The shell exposes only implemented areas:
 - Settings.
 
 Campaign and later domains remain absent.
+
+
+## Etapa 6 — Campaign Core
+Etapa 6 adds `Campanhas` to Workspace navigation only when `campaign.view` is effective. Creator self-service navigation remains isolated.

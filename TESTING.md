@@ -28,3 +28,7 @@ Commercial integration tests cover every canonical commercial type, parent consi
 
 ## Etapa 5D application experience coverage
 Validation includes Dashboard access-filtering tests, canonical navigation tests, direct module authorization behavior, the entire pre-existing integration suite, and desktop/mobile Playwright coverage for the shell, Dashboard, context controls, Creator, Music Catalog, Promoted Entities, Shared Media and Team. Axe remains a blocking visual gate for serious/critical findings.
+
+
+## Etapa 6 — Campaign Core
+Etapa 6 requires migration 0008 from zero/repeatability, Campaign lifecycle and validation tests, builder/domain-boundary regressions, Dashboard/navigation regressions, desktop/mobile Campaign visual states and axe.
