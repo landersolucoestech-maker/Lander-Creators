@@ -68,8 +68,7 @@ describe("Promoted entity access and adapters",()=>{
    expect((await resolvePromotedObject(sql,{...x,type:"MUSIC_TRACK",entityId:String(track.id)})).parentChain.map(v=>v.type)).toEqual(["MUSIC_RELEASE","ARTIST"]);
  });
 
- it("keeps Campaign schema absent and promoted type closed",async()=>{
-   const campaign=await sql.unsafe("select to_regclass('public.campaigns') as table_name");
+ it("keeps promoted object type closed after Campaign Core introduction",async()=>{
    expect(campaign[0].table_name).toBeNull();
    const enumValues=await sql.unsafe("select enumlabel from pg_enum join pg_type on pg_type.oid=pg_enum.enumtypid where typname='promoted_object_type' order by enumsortorder");
    expect(enumValues.map(v=>v.enumlabel)).not.toContain("OTHER");
