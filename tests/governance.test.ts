@@ -19,10 +19,28 @@ describe("main-only repository governance", () => {
     expect(existsSync(".github/dependabot.yml")).toBe(false);
   });
 
-  it("prohibits Vercel and requires visual deployment for user-visible stages", () => {
+  it("prohibits Vercel and preserves owner-controlled infrastructure decisions", () => {
     const policy = readFileSync("VISUAL-DEVELOPMENT-POLICY.md", "utf8");
     expect(policy).toContain("**Vercel is prohibited.**");
-    expect(policy).toContain("exact validated \`main\` commit");
-    expect(policy).toContain("IMPLEMENTATION_COMPLETE_VISUAL_DEPLOYMENT_BLOCKED");
+    expect(policy).toContain("Only GitHub, GitHub Actions");
+    expect(policy).toContain("OWNER_APPROVAL_REQUIRED");
+  });
+
+  it("keeps visual inspection GitHub-only and downstream of validation", () => {
+    const workflow = readFileSync(".github/workflows/ci.yml", "utf8");
+    expect(workflow).toContain("visual_inspection:");
+    expect(workflow).toContain("needs: validate");
+    expect(workflow).toContain("if: github.ref == 'refs/heads/main'");
+    expect(workflow).toContain("lander-creators-visual-inspection");
+    expect(workflow).toContain("actions/upload-artifact@v4");
+    expect(workflow).not.toContain("pull_request:");
+    expect(workflow.toLowerCase()).not.toContain("vercel");
+    expect(workflow.toLowerCase()).not.toContain("railway");
+  });
+
+  it("contains no known external deployment configuration", () => {
+    expect(existsSync("vercel.json")).toBe(false);
+    expect(existsSync("railway.json")).toBe(false);
+    expect(existsSync("railway.toml")).toBe(false);
   });
 });
