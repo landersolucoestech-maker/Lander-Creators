@@ -335,7 +335,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await capture(page,project,"catalog-import-success","/music-catalog","Confirmed import creates the catalog graph only after preview and explicit duplicate resolution.");
 
   await page.goto("/promoted-entities");
-  await expect(page.getByRole("heading",{name:"Objetos promovidos"})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Entidades promovidas"})).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"promoted-entities-empty","/promoted-entities","Commercial promoted entities start empty and Campaign remains unavailable.");
 
