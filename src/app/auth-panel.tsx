@@ -2,9 +2,11 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 export function AuthPanel() {
+  const router = useRouter();
   const [message, setMessage] = useState("");
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
@@ -18,7 +20,8 @@ export function AuthPanel() {
       setMessage("E-mail, senha ou verificação inválidos.");
       return;
     }
-    window.location.assign("/");
+    router.push("/");
+    router.refresh();
   }
 
   async function signUp(event: FormEvent<HTMLFormElement>) {

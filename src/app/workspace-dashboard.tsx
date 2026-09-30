@@ -143,7 +143,8 @@ export function WorkspaceDashboard({
             type="button"
             onClick={async () => {
               await authClient.signOut();
-              window.location.assign("/");
+              router.push("/");
+              router.refresh();
             }}
           >
             Sair
