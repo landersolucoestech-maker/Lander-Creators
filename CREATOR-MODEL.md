@@ -58,6 +58,9 @@ Creator portfolio is deferred until a concrete product need justifies the additi
 ## Rate Card
 Deferred in Etapa 5A. No contractual or financial meaning has been introduced.
 
+## Operational context
+A User may operate in both Workspace and Creator contexts without selecting a permanent persona. The current V1 UX uses an explicit route switch: the Workspace surface links to `/creator`, and the Creator surface links back to the Workspace area. Creator self-service is not derived from the active Workspace preference.
+
 ## Authorization
 Workspace actions: Membership + Role + Permission.
 Creator self-service: authenticated User + CreatorProfile ownership.

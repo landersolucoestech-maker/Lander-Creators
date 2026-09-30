@@ -111,6 +111,14 @@ describe("Creator foundation",()=>{
   await expect(setMarketplaceVisibility(sql,{userId:u,creatorProfileId:id,visibility:"VISIBLE"})).rejects.toMatchObject({code:"CREATOR_NOT_MARKETPLACE_ELIGIBLE"});
  });
 
+ it("rejects invalid submit transition from a non-reviewable status",async()=>{
+  const u=await user("status@example.com");const p=await profile(u);const id=String((p as Record<string,unknown>).id);
+  await addCreatorTaxonomyValue(sql,{userId:u,creatorProfileId:id,taxonomyValueId:await taxonomyId("MUSIC"),kind:"NICHE",primary:true});
+  await addDeclaredSocialProfile(sql,{userId:u,creatorProfileId:id,platform:"INSTAGRAM",handle:"status",profileUrl:"https://instagram.com/status"});
+  await sql.unsafe("update creator_profiles set status='ACTIVE' where id=$1::uuid",[id]);
+  await expect(submitCreatorProfileForReview(sql,{userId:u,creatorProfileId:id})).rejects.toMatchObject({code:"INVALID_CREATOR_STATUS_TRANSITION"});
+ });
+
  it("keeps availability independent from lifecycle",async()=>{
   const u=await user("availability@example.com");const p=await profile(u);const id=String((p as Record<string,unknown>).id);
   expect(await setCreatorAvailability(sql,{userId:u,creatorProfileId:id,availability:"UNAVAILABLE"})).toMatchObject({availability:"UNAVAILABLE"});
