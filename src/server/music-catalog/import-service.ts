@@ -66,11 +66,11 @@ async function resolveGenre(sql:QueryExecutor,label:string,parentId?:string|null
 async function classifyArtist(sql:QueryExecutor,workspaceId:string,name:string):Promise<ArtistResolution>{
   const normalizedName=normalizeCatalogText(name);
   const assigned=await sql.unsafe(
-    "select a.id::text,a.artistic_name from artists a join workspace_artist_access waa on waa.artist_id=a.id where waa.workspace_id=$1::uuid and a.normalized_artistic_name=$2",
+    "select a.id::text,a.artistic_name,waa.access_level::text from artists a join workspace_artist_access waa on waa.artist_id=a.id where waa.workspace_id=$1::uuid and a.normalized_artistic_name=$2",
     [workspaceId,normalizedName]
   );
-  if(assigned.length===1)return{name,normalizedName,kind:"EXISTING",artistId:String(assigned[0].id)};
-  if(assigned.length>1)return{name,normalizedName,kind:"POSSIBLE_DUPLICATE",candidates:assigned.map(r=>({id:String(r.id),artisticName:String(r.artistic_name)}))};
+  if(assigned.length===1&&assigned[0].access_level==="MANAGE")return{name,normalizedName,kind:"EXISTING",artistId:String(assigned[0].id)};
+  if(assigned.length>0)return{name,normalizedName,kind:"POSSIBLE_DUPLICATE",candidates:assigned.map(r=>({id:String(r.id),artisticName:String(r.artistic_name)}))};
   const global=await sql.unsafe("select id::text,artistic_name from artists where normalized_artistic_name=$1",[normalizedName]);
   if(global.length)return{name,normalizedName,kind:"POSSIBLE_DUPLICATE",candidates:global.map(r=>({id:String(r.id),artisticName:String(r.artistic_name)}))};
   return{name,normalizedName,kind:"NEW"};
@@ -168,19 +168,22 @@ export async function resolveMusicImportRow(sql:Sql,input:{userId:string;workspa
   await sql.unsafe("update music_import_sessions set status=case when $2::int=0 then 'READY'::music_import_status else 'RESOLUTION_REQUIRED'::music_import_status end,updated_at=now() where id=$1::uuid",[input.sessionId,Number(unresolved[0].count)]);
   return getMusicCatalogImport(sql,input);
 }
-async function resolveArtistId(tx:TransactionSql,input:{workspaceId:string;userId:string;artist:ArtistResolution;resolution?:Record<string,string>}){
-  if(input.artist.kind==="EXISTING"&&input.artist.artistId)return input.artist.artistId;
+async function resolveArtistId(tx:TransactionSql,input:{workspaceId:string;userId:string;artist:ArtistResolution;resolution?:Record<string,string>;cache:Map<string,string>}){
+  const cached=input.cache.get(input.artist.normalizedName);if(cached)return cached;
+  if(input.artist.kind==="EXISTING"&&input.artist.artistId){input.cache.set(input.artist.normalizedName,input.artist.artistId);return input.artist.artistId;}
   if(input.artist.kind==="POSSIBLE_DUPLICATE"){
     const choice=input.resolution?.[input.artist.normalizedName];
     if(!choice)throw new DomainError("MUSIC_IMPORT_DUPLICATE_RESOLUTION_REQUIRED","Artist duplicate resolution is required",409);
     if(choice!=="CREATE_NEW"){
       const candidate=input.artist.candidates?.find(c=>c.id===choice);if(!candidate)throw new DomainError("MUSIC_IMPORT_INVALID","Artist resolution is invalid",400);
+      await authorizeWorkspacePermission(tx,{userId:input.userId,workspaceId:input.workspaceId,permission:"artist.manage"});
       await tx.unsafe("insert into workspace_artist_access(workspace_id,artist_id,access_level,granted_by_user_id) values($1::uuid,$2::uuid,'MANAGE',$3) on conflict(workspace_id,artist_id) do update set access_level='MANAGE',updated_at=now()",[input.workspaceId,choice,input.userId]);
-      return choice;
+      input.cache.set(input.artist.normalizedName,choice);return choice;
     }
   }
+  await authorizeWorkspacePermission(tx,{userId:input.userId,workspaceId:input.workspaceId,permission:"artist.manage"});
   const created=await tx.unsafe("insert into artists(artistic_name,normalized_artistic_name,status) values($1,$2,'DRAFT') returning id::text",[input.artist.name,input.artist.normalizedName]);
-  const id=String(created[0].id);await tx.unsafe("insert into workspace_artist_access(workspace_id,artist_id,access_level,granted_by_user_id) values($1::uuid,$2::uuid,'MANAGE',$3)",[input.workspaceId,id,input.userId]);return id;
+  const id=String(created[0].id);await tx.unsafe("insert into workspace_artist_access(workspace_id,artist_id,access_level,granted_by_user_id) values($1::uuid,$2::uuid,'MANAGE',$3)",[input.workspaceId,id,input.userId]);input.cache.set(input.artist.normalizedName,id);return id;
 }
 export async function confirmMusicCatalogImport(sql:Sql,input:{userId:string;workspaceId:string;sessionId:string}){
   await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"music_catalog.import"});
@@ -190,13 +193,13 @@ export async function confirmMusicCatalogImport(sql:Sql,input:{userId:string;wor
     if(sessions[0].status==="IMPORTED")return getMusicCatalogImport(tx,input);
     if(sessions[0].status!=="READY")throw new DomainError("MUSIC_IMPORT_DUPLICATE_RESOLUTION_REQUIRED","Import is not ready for confirmation",409);
     const rows=await tx.unsafe("select id::text,row_number,classification::text,normalized_data,resolution,created_entity_ids from music_import_rows where session_id=$1::uuid order by row_number for update",[input.sessionId]);
-    const releaseCache=new Map<string,string>();
+    const releaseCache=new Map<string,string>();const artistCache=new Map<string,string>();
     for(const row of rows){
       if(row.created_entity_ids)continue;
       const data=jsonValue<NormalizedRow>(row.normalized_data);const resolution=(row.resolution==null?null:jsonValue<{artistResolutions?:Record<string,string>}>(row.resolution))?.artistResolutions;
       if(data.existingTrackId){await tx.unsafe("update music_import_rows set created_entity_ids=$2::jsonb where id=$1::uuid",[String(row.id),JSON.stringify({trackId:data.existingTrackId,releaseId:data.existingReleaseId,matched:true})]);continue;}
-      const primaryIds=[];for(const artist of data.primaryArtists)primaryIds.push(await resolveArtistId(tx,{workspaceId:input.workspaceId,userId:input.userId,artist,resolution}));
-      const featuredIds=[];for(const artist of data.featuredArtists)featuredIds.push(await resolveArtistId(tx,{workspaceId:input.workspaceId,userId:input.userId,artist,resolution}));
+      const primaryIds=[];for(const artist of data.primaryArtists)primaryIds.push(await resolveArtistId(tx,{workspaceId:input.workspaceId,userId:input.userId,artist,resolution,cache:artistCache}));
+      const featuredIds=[];for(const artist of data.featuredArtists)featuredIds.push(await resolveArtistId(tx,{workspaceId:input.workspaceId,userId:input.userId,artist,resolution,cache:artistCache}));
       const releaseKey=rowHash({title:normalizeCatalogText(data.releaseTitle),type:data.releaseType,primary:primaryIds[0],date:data.releaseDate});
       let releaseId=releaseCache.get(releaseKey)??null;
       if(!releaseId){

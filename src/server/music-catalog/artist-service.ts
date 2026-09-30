@@ -66,8 +66,8 @@ export async function updateArtist(sql:Sql,input:{
   const name=input.artisticName.trim();
   if(!name)throw new DomainError("ARTIST_INVALID","Artist name is required",400);
   const rows=await sql.unsafe(
-    "update artists set artistic_name=$4,normalized_artistic_name=$5,civil_name=$6,normalized_civil_name=$7,bio=$8,country_code=$9,language_code=$10,avatar_media_asset_id=$11::uuid,status=coalesce($12::artist_status,status),updated_at=now() where id=$1::uuid returning id::text,artistic_name,civil_name,bio,country_code,language_code,avatar_media_asset_id::text,status::text",
-    [input.artistId,input.userId,input.workspaceId,name,normalizeCatalogText(name),input.civilName?.trim()||null,input.civilName?.trim()?normalizeCatalogText(input.civilName):null,input.bio?.trim()||null,input.countryCode||null,input.languageCode||null,input.avatarMediaAssetId||null,input.status||null]
+    "update artists set artistic_name=$2,normalized_artistic_name=$3,civil_name=$4,normalized_civil_name=$5,bio=$6,country_code=$7,language_code=$8,avatar_media_asset_id=$9::uuid,status=coalesce($10::artist_status,status),updated_at=now() where id=$1::uuid returning id::text,artistic_name,civil_name,bio,country_code,language_code,avatar_media_asset_id::text,status::text",
+    [input.artistId,name,normalizeCatalogText(name),input.civilName?.trim()||null,input.civilName?.trim()?normalizeCatalogText(input.civilName):null,input.bio?.trim()||null,input.countryCode||null,input.languageCode||null,input.avatarMediaAssetId||null,input.status||null]
   );
   if(!rows[0])throw new DomainError("ARTIST_NOT_FOUND","Artist not found",404);
   await sql.unsafe("insert into audit_logs(actor_type,actor_id,workspace_id,action,entity_type,entity_id,origin) values('USER',$1,$2::uuid,'artist.updated','artist',$3,'API')",[input.userId,input.workspaceId,input.artistId]);
