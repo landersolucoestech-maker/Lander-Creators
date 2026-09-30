@@ -141,7 +141,7 @@ jobs:
           grep -q '"status":"ok"' /tmp/health.json
           curl --fail --silent http://127.0.0.1:3000/ > /tmp/root.html
       - name: Browser visual inspection
-        run: npx playwright test --config=playwright.visual.config.ts
+        run: npx playwright test --config=playwright.visual.config.mjs
       - name: Generate visual report
         if: always()
         run: node scripts/generate-visual-report.mjs
