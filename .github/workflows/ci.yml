@@ -21,6 +21,12 @@ jobs:
           node-version: 24
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Export lockfile evidence
+        run: |
+          echo LOCKFILE_B64_BEGIN
+          gzip -c package-lock.json | base64 -w0
+          echo
+          echo LOCKFILE_B64_END
       - name: Lint
         run: npm run lint
       - name: Typecheck
