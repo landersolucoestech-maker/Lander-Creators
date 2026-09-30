@@ -435,7 +435,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
 
   await page.goto("/");
   await expect(page.getByRole("heading",{name:"Dashboard"})).toBeVisible();
-  await expect(page.getByText("Artistas").first()).toBeVisible();
+  await expect(page.getByRole("link",{name:/Artistas \d+ artistas acessíveis/})).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"dashboard-populated","/","Dashboard reflects real ephemeral Artist, Release, Track, commercial entity, media and team data.");
 
