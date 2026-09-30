@@ -149,7 +149,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await workspaceForm.getByRole("button", { name: "Criar workspace" }).click();
 
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-  await expect(page.getByText(`Visual Workspace ${project}`, { exact: false }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: `Workspace: Visual Workspace ${project}` })).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(page, project, "dashboard-empty", "/", "Dashboard renders real zero-state counts for a new Workspace.");
   await capture(page, project, "shell-context-switcher", "/", "Shell makes Workspace and Creator contexts explicit.");
@@ -172,7 +172,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await capture(page, project, "module-team", "/team", "Team management is a dedicated permission-authorized module inside the shared shell.");
 
   await page.goto("/media");
-  await expect(page.getByRole("heading", { name: "Mídia" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mídia", exact: true, level: 1 })).toBeVisible();
   await expect(page.getByText("Nenhuma mídia enviada")).toBeVisible();
   await capture(page, project, "module-media-empty", "/media", "Shared Media has a product-oriented empty state inside the shared shell.");
 
