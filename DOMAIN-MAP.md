@@ -8,7 +8,7 @@
 - Security Audit foundation
 
 ## Not implemented yet
-Promoted Entities, Campaign, Participation, Engagement, Terms, Finance, Content, Publication, Analytics, Reporting, Matching, Disputes, downstream Integrations business domains, Music Intelligence, AI Operations and Platform Operations remain intentionally unimplemented.
+Campaign, Participation, Engagement, Terms, Finance, Content, Publication, Analytics, Reporting, Matching, Disputes, downstream Integrations business domains, Music Intelligence, AI Operations and Platform Operations remain intentionally unimplemented.
 
 Logical domain boundaries do not imply one package or service per domain.
 
