@@ -6,6 +6,7 @@ export type AuthEmail = {
   kind: AuthEmailKind;
   to: string;
   url: string;
+  token?: string;
 };
 
 export interface AuthEmailSender {

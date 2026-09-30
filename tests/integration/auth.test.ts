@@ -29,8 +29,8 @@ async function signUpAndVerify(email: string) {
   );
   if (!verification) throw new Error("Verification email was not captured");
 
-  const token = new URL(verification.url).searchParams.get("token");
-  if (!token) throw new Error("Verification token missing from captured URL");
+  const token = verification.token;
+  if (!token) throw new Error("Verification token missing from test email capture");
 
   await auth.api.verifyEmail({ query: { token } });
 }
@@ -126,8 +126,8 @@ describe("Better Auth identity integration", () => {
     );
     if (!recovery) throw new Error("Password reset email was not captured");
 
-    const token = new URL(recovery.url).searchParams.get("token");
-    if (!token) throw new Error("Password reset token missing from captured URL");
+    const token = recovery.token;
+    if (!token) throw new Error("Password reset token missing from test email capture");
 
     await auth.api.resetPassword({
       body: { token, newPassword: "NewSecurePassword123!" }
