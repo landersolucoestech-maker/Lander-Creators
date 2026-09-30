@@ -262,14 +262,14 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await artistForm.getByLabel("Imagem do artista").selectOption({label:"visual.png"});
   await artistForm.getByRole("button",{name:"Criar artista"}).click();
   await expect(page.getByText("Artista criado.")).toBeVisible();
-  await expect(page.getByText("Artista Visual",{exact:true})).toBeVisible();
+  await expect(page.locator(".catalog-row strong").filter({hasText:"Artista Visual"}).first()).toBeVisible();
   await page.getByText("Editar artista",{exact:true}).click();
   await capture(page,project,"catalog-artist-detail","/music-catalog","Artist detail/edit state is Workspace-authorized and uses PT-BR labels.");
 
   const secondArtistForm=page.locator("form").filter({hasText:"Criar artista"}).last();
   await secondArtistForm.getByLabel("Nome artístico").fill("Feat Visual");
   await secondArtistForm.getByRole("button",{name:"Criar artista"}).click();
-  await expect(page.getByText("Feat Visual",{exact:true})).toBeVisible();
+  await expect(page.locator(".catalog-row strong").filter({hasText:"Feat Visual"}).first()).toBeVisible();
 
   const releaseForm=page.locator("form").filter({hasText:"Criar lançamento"});
   await releaseForm.getByLabel("Artista principal").selectOption({label:"Artista Visual"});
@@ -280,7 +280,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await releaseForm.getByLabel("Arte do lançamento").selectOption({label:"visual.png"});
   await releaseForm.getByRole("button",{name:"Criar lançamento"}).click();
   await expect(page.getByText("Lançamento criado.")).toBeVisible();
-  await expect(page.getByText("Single Visual",{exact:true})).toBeVisible();
+  await expect(page.locator(".catalog-row strong").filter({hasText:"Single Visual"}).first()).toBeVisible();
 
   const trackForm=page.locator("form").filter({hasText:"Criar música"});
   await trackForm.getByLabel("Lançamento").selectOption({label:"Single Visual"});
@@ -294,7 +294,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await trackForm.getByLabel("Áudio privado").selectOption({label:"visual.wav"});
   await trackForm.getByRole("button",{name:"Criar música"}).click();
   await expect(page.getByText("Música criada.")).toBeVisible();
-  await expect(page.getByText("Música Visual",{exact:true})).toBeVisible();
+  await expect(page.getByRole("cell",{name:/Música Visual/}).first()).toBeVisible();
   await capture(page,project,"catalog-release-track","/music-catalog","Release and Track render with ordered marketing-catalog metadata and private Shared Media audio.");
 
   await page.getByText("Editar música",{exact:true}).click();
@@ -308,7 +308,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await segmentForm.getByText("Recomendado").click();
   await segmentForm.getByRole("button",{name:"Adicionar trecho"}).click();
   await expect(page.getByText("Trecho adicionado.")).toBeVisible();
-  await expect(page.getByText("Refrão",{exact:true})).toBeVisible();
+  await expect(page.locator(".catalog-row strong").filter({hasText:"Refrão"}).first()).toBeVisible();
   await capture(page,project,"catalog-segment","/music-catalog","TrackSegment keeps recommended and authorized as separate user-visible decisions.");
 
   const importForm=page.locator("form").filter({hasText:"Gerar prévia"});
@@ -335,7 +335,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await page.getByRole("button",{name:"Confirmar importação"}).click();
   await expect(page.getByText("Importação concluída.")).toBeVisible();
   await expect(page.getByText("Importado",{exact:true})).toBeVisible();
-  await expect(page.getByText("Importada Visual",{exact:true})).toBeVisible();
+  await expect(page.getByRole("cell",{name:"Importada Visual"}).first()).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"catalog-import-success","/music-catalog","Confirmed import creates the catalog graph only after preview and explicit duplicate resolution.");
 
