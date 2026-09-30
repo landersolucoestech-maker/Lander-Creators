@@ -133,6 +133,8 @@ describe("Creator foundation",()=>{
    const media=await uploadMediaAsset(sql,storage,{userId:a,workspaceId:String(workspace.id),originalFileName:"avatar.png",declaredMime:"image/png",bytes:png});
    await expect(setCreatorAvatar(sql,{userId:b,creatorProfileId:String((pb as Record<string,unknown>).id),mediaAssetId:media.id})).rejects.toMatchObject({code:"CREATOR_MEDIA_ACCESS_DENIED"});
    expect(await setCreatorAvatar(sql,{userId:a,creatorProfileId:String((pa as Record<string,unknown>).id),mediaAssetId:media.id})).toMatchObject({avatar_media_asset_id:media.id});
+   await sql.unsafe("update workspaces set status='SUSPENDED' where id=$1::uuid",[String(workspace.id)]);
+   await expect(setCreatorAvatar(sql,{userId:a,creatorProfileId:String((pa as Record<string,unknown>).id),mediaAssetId:media.id})).rejects.toMatchObject({code:"CREATOR_MEDIA_ACCESS_DENIED"});
   }finally{await rm(root,{recursive:true,force:true});}
  });
 });

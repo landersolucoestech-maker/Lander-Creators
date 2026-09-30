@@ -42,6 +42,6 @@ Never log passwords, session tokens, verification tokens, invitation secrets, me
 - Social links require HTTPS and supported platform hosts; javascript and malformed URLs are rejected.
 - Public self-service SocialProfiles are DECLARED and NOT_CONNECTED; no provider verification is faked.
 - Creator taxonomy relations validate taxonomy family and reject deprecated values for new associations.
-- Creator avatar attachment reuses Shared Media and rejects foreign assets.
+- Creator avatar attachment reuses Shared Media authorization, rejects foreign assets and revalidates current User/Workspace/Membership/permission state before attachment.
 - User-provided bio is stored as text and rendered through React escaping; arbitrary HTML is not accepted.
 - Creator marketplace visibility is enforced server-side and cannot become VISIBLE before ACTIVE status.
