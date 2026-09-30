@@ -17,6 +17,7 @@ const sectionOrder = [
   "Creator",
   "Music Catalog",
   "Promoted Entities",
+  "Campaigns",
   "Media",
   "Workspace & Team",
   "Responsive",
@@ -31,6 +32,7 @@ function sectionFor(item) {
   if (route === "/creator" || screen.startsWith("creator")) return "Creator";
   if (route === "/music-catalog" || screen.startsWith("catalog")) return "Music Catalog";
   if (route === "/promoted-entities" || screen.startsWith("promoted")) return "Promoted Entities";
+  if (route.startsWith("/campaigns") || screen.startsWith("campaign")) return "Campaigns";
   if (route === "/media" || screen.includes("media")) return "Media";
   if (route === "/team" || route === "/workspace" || screen.includes("workspace") || screen.includes("team")) return "Workspace & Team";
   if (screen.startsWith("shell-")) return "Responsive";
