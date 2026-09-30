@@ -1,6 +1,6 @@
 "use client";
 import type { FormEvent } from "react";
-import { useMemo,useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -34,7 +34,6 @@ export function MusicCatalogPanel({workspaceId,artists,catalog,taxonomies,refere
   const router=useRouter();const[message,setMessage]=useState("");const[importState,setImportState]=useState<ImportState>(null);const[importBusy,setImportBusy]=useState(false);
   const genres=taxonomies.find(t=>t.code==="MUSIC_GENRE")?.values.filter(v=>v.status==="ACTIVE")??[];
   const rootGenres=genres.filter(g=>!g.parentId);const images=media.filter(m=>m.mediaKind==="IMAGE"&&m.status==="READY");const audios=media.filter(m=>m.mediaKind==="AUDIO"&&m.status==="READY");
-  const releasesByArtist=useMemo(()=>new Map(artists.map(a=>[a.id,catalog.releases.filter(r=>r.primary_artist_id===a.id)])),[artists,catalog.releases]);
   async function run(url:string,body:unknown,success:string){try{await jsonApi(url,{method:"POST",body:JSON.stringify(body)});setMessage(success);router.refresh();}catch(e){setMessage(e instanceof Error?e.message:"Não foi possível concluir a operação.");}}
   async function createArtist(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=e.currentTarget,d=new FormData(f);try{await jsonApi(`/api/workspaces/${workspaceId}/artists`,{method:"POST",body:JSON.stringify({artisticName:String(d.get("artisticName")??""),civilName:String(d.get("civilName")??"")||null,bio:String(d.get("bio")??"")||null,countryCode:String(d.get("countryCode")??"")||null,languageCode:String(d.get("languageCode")??"")||null,avatarMediaAssetId:String(d.get("avatarMediaAssetId")??"")||null})});f.reset();setMessage("Artista criado.");router.refresh();}catch(e){setMessage(e instanceof Error?e.message:"Não foi possível criar o artista.");}}
   async function createRelease(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=e.currentTarget,d=new FormData(f);try{await jsonApi(`/api/workspaces/${workspaceId}/releases`,{method:"POST",body:JSON.stringify({primaryArtistId:String(d.get("primaryArtistId")),title:String(d.get("title")),type:String(d.get("type")),releaseDate:String(d.get("releaseDate"))||null,languageCode:String(d.get("languageCode"))||null,genreTaxonomyValueId:String(d.get("genreTaxonomyValueId"))||null,artworkMediaAssetId:String(d.get("artworkMediaAssetId"))||null})});f.reset();setMessage("Lançamento criado.");router.refresh();}catch(e){setMessage(e instanceof Error?e.message:"Não foi possível criar o lançamento.");}}
