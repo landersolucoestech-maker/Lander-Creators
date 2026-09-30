@@ -7,6 +7,7 @@ import { listWorkspaceMembers } from "@/server/workspace/membership-service";
 import { listTaxonomies } from "@/server/taxonomy/taxonomy-service";
 import { getReferenceData } from "@/server/reference-data/reference-data-service";
 import { listMediaAssets } from "@/server/media/media-service";
+import { authorizeWorkspacePermission } from "@/server/authorization/authorization-service";
 import { FoundationPanel } from "./foundation-panel";
 import { AuthPanel } from "./auth-panel";
 import {
@@ -33,6 +34,13 @@ export default async function HomePage() {
         })) as unknown as MemberView[])
       : [];
 
+    if (active) {
+      await authorizeWorkspacePermission(client, {
+        userId: session.user.id,
+        workspaceId: active.id,
+        permission: "taxonomy.view"
+      });
+    }
     const taxonomies = active ? await listTaxonomies(client) : [];
     const referenceData = active ? await getReferenceData(client) : { languages: [], countries: [], currencies: [], timezones: [] };
     const media = active ? await listMediaAssets(client,{ userId: session.user.id, workspaceId: active.id }) : [];

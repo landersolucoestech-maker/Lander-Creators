@@ -22,6 +22,7 @@ const messages: Record<string, string> = {
   INVALID_MEDIA_TYPE: "O tipo do arquivo não é permitido ou não corresponde ao conteúdo.",
   MEDIA_TOO_LARGE: "O arquivo excede o limite técnico permitido.",
   MEDIA_NOT_FOUND: "Arquivo não encontrado.",
+  MEDIA_ACCESS_DENIED: "O acesso temporário a este arquivo é inválido ou expirou.",
   MEDIA_STORAGE_UNAVAILABLE: "O arquivo está temporariamente indisponível."
 };
 

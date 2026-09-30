@@ -6,6 +6,7 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(32),
   AUTH_BASE_URL: z.string().url().default("http://localhost:3000"),
   EMAIL_DELIVERY_MODE: z.enum(["disabled", "safe-log"]).default("disabled"),
+  MEDIA_STORAGE_MODE: z.enum(["disabled", "ephemeral"]).default("disabled"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info")
 });
 

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import path from "node:path";
 import { DomainError } from "@/server/shared/domain-error";
 
 export const DEFAULT_MEDIA_MAX_BYTES = 10 * 1024 * 1024;
@@ -11,21 +12,12 @@ function detect(bytes: Buffer) {
     return { mime: "image/png", kind: "IMAGE" as const, extension: "png" };
   }
 
-  if (
-    bytes.length >= 3 &&
-    bytes[0] === 255 &&
-    bytes[1] === 216 &&
-    bytes[2] === 255
-  ) {
+  if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) {
     return { mime: "image/jpeg", kind: "IMAGE" as const, extension: "jpg" };
   }
 
   if (bytes.length >= 4 && bytes.subarray(0, 4).toString() === "%PDF") {
-    return {
-      mime: "application/pdf",
-      kind: "DOCUMENT" as const,
-      extension: "pdf"
-    };
+    return { mime: "application/pdf", kind: "DOCUMENT" as const, extension: "pdf" };
   }
 
   if (
@@ -41,6 +33,17 @@ function detect(bytes: Buffer) {
   }
 
   return null;
+}
+
+function sanitizeOriginalFileName(value: string, fallbackExtension: string) {
+  const base = path.posix.basename(value.replaceAll("\\", "/"));
+  const cleaned = base
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .replace(/[<>:"|?*]/g, "_")
+    .trim()
+    .slice(0, 255);
+
+  return cleaned || `arquivo.${fallbackExtension}`;
 }
 
 export function validateMedia(input: {
@@ -80,6 +83,10 @@ export function validateMedia(input: {
   return {
     ...detected,
     fileName: `media.${detected.extension}`,
+    originalFileName: sanitizeOriginalFileName(
+      input.originalFileName,
+      detected.extension
+    ),
     checksumSha256: createHash("sha256").update(input.bytes).digest("hex"),
     sizeBytes: input.bytes.length
   };

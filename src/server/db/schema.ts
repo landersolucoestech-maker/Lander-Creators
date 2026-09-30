@@ -213,10 +213,13 @@ export const taxonomyValues = pgTable("taxonomy_values", {
 
 export const taxonomyAliases = pgTable("taxonomy_aliases", {
   id: uuid("id").primaryKey().defaultRandom(),
+  taxonomyDefinitionId: uuid("taxonomy_definition_id").notNull().references(()=>taxonomyDefinitions.id,{onDelete:"cascade"}),
   taxonomyValueId: uuid("taxonomy_value_id").notNull().references(()=>taxonomyValues.id,{onDelete:"cascade"}),
   normalizedAlias: text("normalized_alias").notNull(),
   createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow()
-}, t => ({ aliasUnique: uniqueIndex("taxonomy_aliases_value_unique").on(t.taxonomyValueId,t.normalizedAlias) }));
+}, t => ({
+  aliasUnique: uniqueIndex("taxonomy_aliases_definition_alias_unique").on(t.taxonomyDefinitionId,t.normalizedAlias)
+}));
 
 export const referenceLanguages = pgTable("reference_languages",{code:text("code").primaryKey(),displayNamePtBr:text("display_name_pt_br").notNull(),active:boolean("active").notNull().default(true)});
 export const referenceCountries = pgTable("reference_countries",{code:text("code").primaryKey(),displayNamePtBr:text("display_name_pt_br").notNull(),active:boolean("active").notNull().default(true)});

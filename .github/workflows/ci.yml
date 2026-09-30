@@ -105,6 +105,7 @@ jobs:
       AUTH_SECRET: ci-only-visual-secret-0123456789abcdef
       AUTH_BASE_URL: http://127.0.0.1:3000
       EMAIL_DELIVERY_MODE: safe-log
+      MEDIA_STORAGE_MODE: ephemeral
       LOG_LEVEL: info
     steps:
       - name: Checkout exact validated SHA
