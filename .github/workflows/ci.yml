@@ -148,7 +148,12 @@ jobs:
           grep -q '"status":"ok"' /tmp/health.json
           curl --fail --silent http://127.0.0.1:3000/ > /tmp/root.html
       - name: Browser visual inspection
-        run: npx playwright test --config=playwright.visual.config.mjs
+        run: |
+          if ! npx playwright test --config=playwright.visual.config.mjs; then
+            echo "Visual inspection failed; application diagnostics follow."
+            cat /tmp/lander-creators-visual.log
+            exit 1
+          fi
       - name: Generate visual report
         if: always()
         run: node scripts/generate-visual-report.mjs
