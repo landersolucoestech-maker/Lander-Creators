@@ -140,7 +140,15 @@ export async function getMusicCatalogImport(sql:QueryExecutor,input:{userId:stri
   const s=await sql.unsafe("select id::text,source_filename,status::text,row_count,created_at,imported_at from music_import_sessions where id=$1::uuid and workspace_id=$2::uuid",[input.sessionId,input.workspaceId]);
   if(!s[0])throw new DomainError("MUSIC_IMPORT_INVALID","Import session not found",404);
   const rows=await sql.unsafe("select id::text,row_number,classification::text,normalized_data,error_codes,resolution,created_entity_ids from music_import_rows where session_id=$1::uuid order by row_number",[input.sessionId]);
-  return{session:s[0],rows:rows.map(row=>({...row,normalized_data:jsonValue<NormalizedRow>(row.normalized_data),error_codes:jsonValue<string[]>(row.error_codes),resolution:row.resolution==null?null:jsonValue<Record<string,unknown>>(row.resolution),created_entity_ids:row.created_entity_ids==null?null:jsonValue<Record<string,unknown>>(row.created_entity_ids)}))};
+  return{session:s[0],rows:rows.map(row=>({
+    id:String(row.id),
+    row_number:Number(row.row_number),
+    classification:String(row.classification),
+    normalized_data:jsonValue<NormalizedRow>(row.normalized_data),
+    error_codes:jsonValue<string[]>(row.error_codes),
+    resolution:row.resolution==null?null:jsonValue<Record<string,unknown>>(row.resolution),
+    created_entity_ids:row.created_entity_ids==null?null:jsonValue<Record<string,unknown>>(row.created_entity_ids)
+  }))};
 }
 
 export async function resolveMusicImportRow(sql:Sql,input:{userId:string;workspaceId:string;sessionId:string;rowId:string;artistResolutions:Record<string,string>}){
