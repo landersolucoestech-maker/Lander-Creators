@@ -49,7 +49,7 @@ describe("Commercial promoted entities foundation",()=>{
    const x=await setup("dup@commercial.test");
    const first=await createCompany(sql,{...x,tradeName:"Mesmo Nome",website:"https://same.example"});
    expect(first.duplicateClassification).toBe("NEW");
-   await expect(createCompany(sql,{...x,tradeName:"Mesmo Nome"})).rejects.toMatchObject({code:"POSSIBLE_DUPLICATE_REQUIRES_RESOLUTION"});
+   await expect(createCompany(sql,{...x,tradeName:"Mesmo Nome"})).rejects.toMatchObject({code:"POSSIBLE_DUPLICATE_REQUIRES_RESOLUTION",publicDetails:{candidateIds:[String(first.id)]}});
    const existing=await createCompany(sql,{...x,tradeName:"Mesmo Nome",existingEntityId:String(first.id)});
    expect(existing).toMatchObject({id:String(first.id),duplicateClassification:"EXISTING"});
    const second=await createCompany(sql,{...x,tradeName:"Outro Nome",website:"https://same.example",confirmDuplicate:true});
