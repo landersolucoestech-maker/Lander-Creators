@@ -208,6 +208,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await socialForm.getByLabel("URL HTTPS").fill("https://instagram.com/creatorvisual");
   await socialForm.getByRole("button",{name:"Adicionar rede social"}).click();
   await expect(page.getByText("Rede social adicionada.")).toBeVisible();
+  await page.reload();
   await expect(page.getByText(/Instagram · @creatorvisual/)).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(page, project, "creator-social", "/creator", "Declared social profile is clearly marked as manual and not provider-connected.");
