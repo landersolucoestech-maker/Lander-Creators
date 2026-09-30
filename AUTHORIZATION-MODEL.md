@@ -46,3 +46,8 @@ Permissions alone do not grant access to unassigned Artists. Artist access alone
 
 ## Commercial promoted entity path
 Authenticated User → active Workspace → active Membership → Workspace Permission → explicit WorkspacePromotedEntityAccess → entity state → action. There is no Company-to-child access inheritance and Workspace ADMIN does not bypass entity assignment.
+
+
+# Authorization Model
+
+Campaign authorization is server-authoritative: authenticated User → active Workspace → active Membership → explicit Campaign permission → Workspace-owned Campaign → promoted-object access/readiness where required → action. Runtime authorization never uses role-name checks. Viewer is read-only; Campaign Manager receives Campaign capabilities through role permissions; Finance receives no Campaign management merely because Campaign has planning budget.

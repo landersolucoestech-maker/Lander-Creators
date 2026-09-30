@@ -51,3 +51,9 @@ Commercial promoted entities are global catalog/business records distinct from W
 The existing domains are consolidated by a reusable authenticated application shell. The shell owns navigation composition, responsive desktop/mobile layout and explicit Workspace/Creator context presentation; it does not own business authorization. Workspace capability checks remain server-authoritative, Creator ownership stays separate, and Artist/promoted-entity lists preserve their explicit access models.
 
 The authenticated root is the real Dashboard when an active Workspace exists. Dashboard queries are read-only, access-filtered and use only implemented data. No new business-domain tables or external providers were introduced.
+
+
+# LANDER CREATORS Architecture
+
+## Etapa 6 — Campaign Core
+Campaign is the Workspace-scoped generic orchestration domain over exactly one registry-resolved Promoted Object. The 10-step builder persists typed configuration, readiness and lifecycle state. Shared Media, Taxonomy and Reference Data remain separate sources of truth. Participation, Engagement, Finance, Content, Publication, Analytics metrics, Reporting, Matching and AI remain downstream.

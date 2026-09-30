@@ -48,3 +48,24 @@ Better Auth owns passwords, credential accounts, sessions and verification token
 | Country / language / timezone | Reference Data |
 | Workspace commercial entity access | Promoted Entity Access + Authorization |
 | Promoted-object type resolution | Promoted Object Registry |
+
+
+# Data Ownership
+
+| Responsibility | Source of truth |
+|---|---|
+| Campaign | Campaign Core |
+| Campaign promoted-object reference | Campaign Core + Promoted Object Registry |
+| Promoted-object source data | Owning promoted-object domain |
+| Campaign object snapshot | Campaign Core |
+| Campaign targeting | Campaign Core |
+| Campaign content requirements | Campaign Core |
+| Campaign brief | Campaign Core |
+| Campaign schedule | Campaign Core |
+| Campaign planning budget | Campaign Core |
+| Campaign rights requirements | Campaign Core |
+| Campaign tracking config | Campaign Core |
+| Campaign media bytes | Shared Media |
+| Creator | Creator domain |
+| Artist/Release/Track | Music Catalog |
+| Commercial promoted entities | Commercial domain |

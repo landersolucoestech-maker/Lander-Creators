@@ -39,3 +39,8 @@
 
 ## Etapa 5C
 Migration 0007 is additive. Known parent relations use real foreign keys. WorkspacePromotedEntityAccess uses the controlled promoted_object_type + entity_id pair because PostgreSQL cannot express one FK across multiple target tables; typed services validate every reference before mutation. No Campaign table exists.
+
+
+# Database Conventions
+
+Etapa 6 appends immutable migration `0008_campaign_core.sql`. Campaign IDs are UUIDs, status/mode/visibility/recruitment/platform/format values are closed PostgreSQL enums, planning budget uses BRL integer minor units, and revision provides optimistic concurrency. Business-critical builder data is normalized into typed tables; the builder is not persisted as a generic JSON dump. Promoted-object polymorphic references are validated centrally through the registry because a cross-table FK is not possible.

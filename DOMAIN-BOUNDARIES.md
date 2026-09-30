@@ -45,3 +45,8 @@ Identity, Workspace, Membership, active Workspace context, authorization and the
 - Parent relationships never implicitly grant Workspace access.
 - Music and Commercial converge only through typed adapters/registry.
 - Campaign is a separate future domain.
+
+
+# Domain Boundaries
+
+Campaign is generic Creator Marketing orchestration and owns campaign configuration only. It references exactly one Promoted Object through the registry. Campaign targeting is not Matching. Content requirements are not Deliverables or Publications. Rights requirements are not Engagement Terms. Planning budget is not Finance. Tracking intent is not Analytics metrics. Participation and Engagement remain separate future domains.

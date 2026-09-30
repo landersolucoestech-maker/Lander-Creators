@@ -41,3 +41,12 @@ Implemented: Company, Brand, Product, Service, PromotedPlatform, PromotedEvent, 
 
 ## Application experience layer
 Etapa 5D adds an application-experience layer above the existing domains: authenticated shell, Dashboard, navigation registry, Media, Team, Workspace and Settings surfaces. This layer does not create a new business domain and does not own Identity, Creator, Music Catalog, Shared Media or Commercial Promoted Entity persistence.
+
+
+# Domain Map
+
+## Implemented
+Identity, Workspace, Authorization, Taxonomy, Reference Data, Shared Media, Creator, Music Catalog, Commercial Promoted Entities, Promoted Object Registry, Application Shell, Dashboard and Campaign Core with the 10-step Campaign Builder.
+
+## Not implemented
+Participation, Engagement, Proposal, Engagement Terms, Finance, Content, Publication, Analytics metrics, Reporting, Matching, Music Intelligence, AI Runtime and Distribution.
