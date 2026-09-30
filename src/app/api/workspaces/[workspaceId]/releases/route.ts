@@ -1,0 +1,8 @@
+import { z } from "zod";
+import { parseEnv } from "@/server/config/env";
+import { createDatabaseClient } from "@/server/db/client";
+import { apiErrorResponse, requireAuthenticatedUser } from "@/server/http/api";
+
+import { createRelease } from "@/server/music-catalog/catalog-service";
+const schema=z.object({primaryArtistId:z.string().uuid(),title:z.string().trim().min(1).max(200),type:z.enum(["SINGLE","EP","ALBUM"]),releaseDate:z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),languageCode:z.string().max(16).nullable().optional(),genreTaxonomyValueId:z.string().uuid().nullable().optional(),subgenreTaxonomyValueId:z.string().uuid().nullable().optional(),artworkMediaAssetId:z.string().uuid().nullable().optional(),upc:z.string().trim().max(30).nullable().optional(),preSaveUrl:z.string().nullable().optional(),spotifyUrl:z.string().nullable().optional(),appleMusicUrl:z.string().nullable().optional(),deezerUrl:z.string().nullable().optional(),youtubeUrl:z.string().nullable().optional()});
+export async function POST(request:Request,{params}:{params:Promise<{workspaceId:string}>}){const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);try{const user=await requireAuthenticatedUser(request);const{workspaceId}=await params;const body=schema.parse(await request.json());return Response.json({release:await createRelease(client,{userId:user.id,workspaceId,...body})},{status:201});}catch(error){return apiErrorResponse(error);}finally{await client.end();}}

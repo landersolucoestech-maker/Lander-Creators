@@ -124,3 +124,28 @@ export async function createTrackSegment(sql:Sql,input:{userId:string;workspaceI
   await sql.unsafe("insert into audit_logs(actor_type,actor_id,workspace_id,action,entity_type,entity_id,delta,origin) values('USER',$1,$2::uuid,'track_segment.created','track_segment',$3,$4::jsonb,'API')",[input.userId,input.workspaceId,String(rows[0].id),JSON.stringify({authorized:input.authorized??false,recommended:input.recommended??false})]);
   return rows[0];
 }
+
+
+export async function updateTrack(sql:Sql,input:{
+  userId:string;workspaceId:string;trackId:string;title:string;trackNumber:number;
+  explicitContent?:boolean|null;version?:"ORIGINAL"|"REMIX"|"ACOUSTIC"|"LIVE"|"SPED_UP"|"SLOWED"|"CLEAN"|"EXTENDED"|"RADIO_EDIT"|"OTHER";
+  versionLabel?:string|null;durationMs?:number|null;isrc?:string|null;preSaveUrl?:string|null;spotifyUrl?:string|null;appleMusicUrl?:string|null;deezerUrl?:string|null;youtubeUrl?:string|null;notes?:string|null;audioMediaAssetId?:string|null;
+}){
+  await authorizeTrackAccess(sql,{userId:input.userId,workspaceId:input.workspaceId,trackId:input.trackId,manage:true});
+  const title=input.title.trim();if(!title)throw new DomainError("TRACK_INVALID","Track title is required",400);
+  if(!Number.isInteger(input.trackNumber)||input.trackNumber<1)throw new DomainError("TRACK_INVALID","Track number is invalid",400);
+  if(input.durationMs!=null&&(!Number.isInteger(input.durationMs)||input.durationMs<0))throw new DomainError("DURATION_INVALID","Track duration is invalid",400);
+  if(input.audioMediaAssetId){
+    await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"media.view"});
+    await assertCatalogMedia(sql,{workspaceId:input.workspaceId,mediaAssetId:input.audioMediaAssetId,kind:"AUDIO"});
+  }
+  const link=urls(input as unknown as Record<string,unknown>);
+  const rows=await sql.unsafe(
+    "update tracks set title=$2,normalized_title=$3,track_number=$4,explicit_content=$5,version=$6::track_version,version_label=$7,duration_ms=$8,isrc=$9,pre_save_url=$10,spotify_url=$11,apple_music_url=$12,deezer_url=$13,youtube_url=$14,notes=$15,audio_media_asset_id=$16::uuid,updated_at=now() where id=$1::uuid returning id::text,release_id::text,title,track_number,version::text,duration_ms,isrc,audio_media_asset_id::text",
+    [input.trackId,title,normalizeCatalogText(title),input.trackNumber,input.explicitContent??null,input.version??"ORIGINAL",input.versionLabel?.trim()||null,input.durationMs??null,normalizeIsrc(input.isrc),link.preSaveUrl,link.spotifyUrl,link.appleMusicUrl,link.deezerUrl,link.youtubeUrl,input.notes?.trim()||null,input.audioMediaAssetId||null]
+  );
+  if(!rows[0])throw new DomainError("TRACK_NOT_FOUND","Track not found",404);
+  if(input.audioMediaAssetId)await sql.unsafe("update media_assets set visibility='PRIVATE',updated_at=now() where id=$1::uuid",[input.audioMediaAssetId]);
+  await sql.unsafe("insert into audit_logs(actor_type,actor_id,workspace_id,action,entity_type,entity_id,origin) values('USER',$1,$2::uuid,'track.updated','track',$3,'API')",[input.userId,input.workspaceId,input.trackId]);
+  return rows[0];
+}
