@@ -24,14 +24,22 @@ export type MemberView = {
 };
 
 const roles = [
-  "OWNER",
-  "ADMIN",
-  "CAMPAIGN_MANAGER",
-  "MARKETING",
-  "SOCIAL_MEDIA",
-  "FINANCE",
-  "VIEWER"
+  { value: "OWNER", label: "Proprietário" },
+  { value: "ADMIN", label: "Administrador" },
+  { value: "CAMPAIGN_MANAGER", label: "Gestor de campanhas" },
+  { value: "MARKETING", label: "Marketing" },
+  { value: "SOCIAL_MEDIA", label: "Mídias sociais" },
+  { value: "FINANCE", label: "Financeiro" },
+  { value: "VIEWER", label: "Visualizador" }
 ];
+
+const workspaceTypeLabels: Record<string, string> = {
+  LABEL: "Gravadora",
+  MANAGEMENT: "Gestão",
+  COMPANY: "Empresa",
+  AGENCY: "Agência",
+  INTERNAL: "Interno"
+};
 
 async function api(url: string, init?: RequestInit) {
   const response = await fetch(url, {
@@ -167,7 +175,11 @@ export function WorkspaceDashboard({
                 onClick={() => void switchWorkspace(workspace.id)}
               >
                 <strong>{workspace.name}</strong>
-                <span>{workspace.type} · {workspace.role_code}</span>
+                <span>
+                  {workspaceTypeLabels[workspace.type] ?? workspace.type} ·{" "}
+                  {roles.find((role) => role.value === workspace.role_code)?.label ??
+                    workspace.role_code}
+                </span>
               </button>
             ))}
           </div>
@@ -212,7 +224,9 @@ export function WorkspaceDashboard({
                       }
                     >
                       {roles.map((role) => (
-                        <option key={role}>{role}</option>
+                        <option key={role.value} value={role.value}>
+                          {role.label}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -227,7 +241,9 @@ export function WorkspaceDashboard({
                   Função
                   <select name="role" defaultValue="VIEWER">
                     {roles.map((role) => (
-                      <option key={role}>{role}</option>
+                      <option key={role.value} value={role.value}>
+                        {role.label}
+                      </option>
                     ))}
                   </select>
                 </label>
