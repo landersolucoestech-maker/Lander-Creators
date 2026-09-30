@@ -14,8 +14,8 @@ function state(capabilities: ApplicationShellState["capabilities"]): Application
 
 describe("application navigation",()=>{
  it("filters Workspace navigation by capabilities instead of role names",()=>{
-  const nav=workspaceNavigation(state({workspace:true,team:false,media:true,music:false,promoted:true,workspaceSettings:false}));
-  expect(nav.map(item=>item.label)).toEqual(["Dashboard","Creators","Entidades promovidas","Mídia","Workspace","Configurações"]);
+  const nav=workspaceNavigation(state({workspace:true,team:false,media:true,music:false,promoted:true,workspaceSettings:false,campaign:true}));
+  expect(nav.map(item=>item.label)).toEqual(["Dashboard","Creators","Campanhas","Entidades promovidas","Mídia","Workspace","Configurações"]);
   expect(nav.map(item=>item.label)).not.toContain("Equipe");
   expect(nav.map(item=>item.label)).not.toContain("Catálogo musical");
  });
@@ -23,7 +23,7 @@ describe("application navigation",()=>{
   expect(creatorNavigation().map(item=>item.href)).toEqual(["/creator"]);
  });
  it("does not expose future modules",()=>{
-  const labels=workspaceNavigation(state({workspace:true,team:true,media:true,music:true,promoted:true,workspaceSettings:true})).map(item=>item.label);
-  for(const forbidden of ["Campanhas","Financeiro","Conteúdo","Publicações","Analytics","Relatórios","Matching","AI"])expect(labels).not.toContain(forbidden);
+  const labels=workspaceNavigation(state({workspace:true,team:true,media:true,music:true,promoted:true,workspaceSettings:true,campaign:true})).map(item=>item.label);
+  for(const forbidden of ["Financeiro","Conteúdo","Publicações","Analytics","Relatórios","Matching","AI"])expect(labels).not.toContain(forbidden);
  });
 });
