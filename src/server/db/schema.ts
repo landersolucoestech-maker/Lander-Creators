@@ -326,3 +326,142 @@ export const socialMetricsSnapshots = pgTable("social_metrics_snapshots",{
   engagementRateBasisPoints:integer("engagement_rate_basis_points"),
   createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()
 },t=>({capturedIndex:index("social_metrics_snapshots_profile_captured_idx_drizzle").on(t.socialProfileId,t.capturedAt)}));
+
+
+export const artistStatus = pgEnum("artist_status", ["DRAFT","ACTIVE","ARCHIVED"]);
+export const artistAccessLevel = pgEnum("artist_access_level", ["VIEW","MANAGE"]);
+export const releaseType = pgEnum("release_type", ["SINGLE","EP","ALBUM"]);
+export const catalogStatus = pgEnum("catalog_status", ["DRAFT","ACTIVE","ARCHIVED"]);
+export const trackVersion = pgEnum("track_version", ["ORIGINAL","REMIX","ACOUSTIC","LIVE","SPED_UP","SLOWED","CLEAN","EXTENDED","RADIO_EDIT","OTHER"]);
+export const artistCreditRole = pgEnum("artist_credit_role", ["PRIMARY_ARTIST","FEATURED_ARTIST"]);
+export const musicImportStatus = pgEnum("music_import_status", ["UPLOADED","VALIDATED","RESOLUTION_REQUIRED","READY","IMPORTED","FAILED"]);
+export const musicImportRowClass = pgEnum("music_import_row_class", ["NEW","EXISTING","POSSIBLE_DUPLICATE","INVALID"]);
+
+export const artists = pgTable("artists",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  artisticName:text("artistic_name").notNull(),
+  normalizedArtisticName:text("normalized_artistic_name").notNull(),
+  civilName:text("civil_name"),
+  normalizedCivilName:text("normalized_civil_name"),
+  bio:text("bio"),
+  countryCode:text("country_code").references(()=>referenceCountries.code),
+  languageCode:text("language_code").references(()=>referenceLanguages.code),
+  avatarMediaAssetId:uuid("avatar_media_asset_id").references(()=>mediaAssets.id,{onDelete:"set null"}),
+  status:artistStatus("status").notNull().default("DRAFT"),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({
+  artisticNameIndex:index("artists_artistic_name_idx_drizzle").on(t.normalizedArtisticName),
+  civilNameIndex:index("artists_civil_name_idx_drizzle").on(t.normalizedCivilName)
+}));
+
+export const workspaceArtistAccess = pgTable("workspace_artist_access",{
+  workspaceId:uuid("workspace_id").notNull().references(()=>workspaces.id,{onDelete:"cascade"}),
+  artistId:uuid("artist_id").notNull().references(()=>artists.id,{onDelete:"cascade"}),
+  accessLevel:artistAccessLevel("access_level").notNull(),
+  grantedByUserId:text("granted_by_user_id").notNull().references(()=>user.id),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({uniqueAccess:uniqueIndex("workspace_artist_access_unique_drizzle").on(t.workspaceId,t.artistId)}));
+
+export const releases = pgTable("releases",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  primaryArtistId:uuid("primary_artist_id").notNull().references(()=>artists.id),
+  title:text("title").notNull(),
+  normalizedTitle:text("normalized_title").notNull(),
+  type:releaseType("type").notNull(),
+  releaseDate:timestamp("release_date",{mode:"string"}),
+  languageCode:text("language_code").references(()=>referenceLanguages.code),
+  genreTaxonomyValueId:uuid("genre_taxonomy_value_id").references(()=>taxonomyValues.id),
+  subgenreTaxonomyValueId:uuid("subgenre_taxonomy_value_id").references(()=>taxonomyValues.id),
+  artworkMediaAssetId:uuid("artwork_media_asset_id").references(()=>mediaAssets.id,{onDelete:"set null"}),
+  upc:text("upc"),
+  preSaveUrl:text("pre_save_url"),
+  spotifyUrl:text("spotify_url"),
+  appleMusicUrl:text("apple_music_url"),
+  deezerUrl:text("deezer_url"),
+  youtubeUrl:text("youtube_url"),
+  status:catalogStatus("status").notNull().default("DRAFT"),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()
+});
+
+export const tracks = pgTable("tracks",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  releaseId:uuid("release_id").notNull().references(()=>releases.id,{onDelete:"cascade"}),
+  title:text("title").notNull(),
+  normalizedTitle:text("normalized_title").notNull(),
+  trackNumber:integer("track_number").notNull(),
+  releaseDate:timestamp("release_date",{mode:"string"}),
+  languageCode:text("language_code").references(()=>referenceLanguages.code),
+  genreTaxonomyValueId:uuid("genre_taxonomy_value_id").references(()=>taxonomyValues.id),
+  subgenreTaxonomyValueId:uuid("subgenre_taxonomy_value_id").references(()=>taxonomyValues.id),
+  explicitContent:boolean("explicit_content"),
+  version:trackVersion("version").notNull().default("ORIGINAL"),
+  versionLabel:text("version_label"),
+  durationMs:integer("duration_ms"),
+  isrc:text("isrc"),
+  preSaveUrl:text("pre_save_url"),
+  spotifyUrl:text("spotify_url"),
+  appleMusicUrl:text("apple_music_url"),
+  deezerUrl:text("deezer_url"),
+  youtubeUrl:text("youtube_url"),
+  notes:text("notes"),
+  audioMediaAssetId:uuid("audio_media_asset_id").references(()=>mediaAssets.id,{onDelete:"set null"}),
+  sourceTrackId:uuid("source_track_id"),
+  status:catalogStatus("status").notNull().default("DRAFT"),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({
+  releaseTrackUnique:uniqueIndex("tracks_release_track_unique_drizzle").on(t.releaseId,t.trackNumber),
+  isrcIndex:index("tracks_isrc_idx_drizzle").on(t.isrc)
+}));
+
+export const trackArtistCredits = pgTable("track_artist_credits",{
+  trackId:uuid("track_id").notNull().references(()=>tracks.id,{onDelete:"cascade"}),
+  artistId:uuid("artist_id").notNull().references(()=>artists.id),
+  role:artistCreditRole("role").notNull(),
+  position:integer("position").notNull(),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({
+  creditUnique:uniqueIndex("track_artist_credits_unique_drizzle").on(t.trackId,t.artistId,t.role),
+  positionUnique:uniqueIndex("track_artist_credits_position_unique_drizzle").on(t.trackId,t.role,t.position)
+}));
+
+export const trackSegments = pgTable("track_segments",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  trackId:uuid("track_id").notNull().references(()=>tracks.id,{onDelete:"cascade"}),
+  startMs:integer("start_ms").notNull(),
+  endMs:integer("end_ms").notNull(),
+  label:text("label"),
+  recommended:boolean("recommended").notNull().default(false),
+  authorized:boolean("authorized").notNull().default(false),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()
+});
+
+export const musicImportSessions = pgTable("music_import_sessions",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  workspaceId:uuid("workspace_id").notNull().references(()=>workspaces.id,{onDelete:"cascade"}),
+  createdByUserId:text("created_by_user_id").notNull().references(()=>user.id),
+  sourceFilename:text("source_filename").notNull(),
+  sourceFingerprint:text("source_fingerprint").notNull(),
+  status:musicImportStatus("status").notNull().default("UPLOADED"),
+  rowCount:integer("row_count").notNull().default(0),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
+  importedAt:timestamp("imported_at",{withTimezone:true})
+},t=>({fileUnique:uniqueIndex("music_import_sessions_file_unique_drizzle").on(t.workspaceId,t.sourceFingerprint)}));
+
+export const musicImportRows = pgTable("music_import_rows",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  sessionId:uuid("session_id").notNull().references(()=>musicImportSessions.id,{onDelete:"cascade"}),
+  rowNumber:integer("row_number").notNull(),
+  rowFingerprint:text("row_fingerprint").notNull(),
+  classification:musicImportRowClass("classification").notNull(),
+  normalizedData:jsonb("normalized_data").notNull(),
+  errorCodes:jsonb("error_codes").notNull(),
+  resolution:jsonb("resolution"),
+  createdEntityIds:jsonb("created_entity_ids"),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({rowUnique:uniqueIndex("music_import_rows_session_row_unique_drizzle").on(t.sessionId,t.rowNumber)}));

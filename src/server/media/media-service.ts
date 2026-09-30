@@ -3,6 +3,7 @@ import { authorizeWorkspacePermission } from "@/server/authorization/authorizati
 import { DomainError } from "@/server/shared/domain-error";
 import { validateMedia } from "./media-validation";
 import type { MediaStorageAdapter } from "./storage";
+import { authorizeTrackBoundMediaRead } from "@/server/music-catalog/catalog-media-guard";
 
 function safe(row: Record<string, unknown>) {
   return {
@@ -107,6 +108,8 @@ export async function readMediaAsset(
     workspaceId: input.workspaceId,
     permission: "media.view"
   });
+
+  await authorizeTrackBoundMediaRead(sql, input);
 
   const rows = await sql.unsafe(
     "select mime_type,file_name,storage_key,status::text from media_assets where id=$1::uuid and workspace_id=$2::uuid",
