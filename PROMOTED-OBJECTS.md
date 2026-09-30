@@ -32,7 +32,7 @@ Platform/Event/Project/Institutional Initiative may reference Company and/or Bra
 Commercial media reuses Shared Media. Commercial categories use Taxonomy. Country, language and timezone use Reference Data. No separate storage or hardcoded canonical category source exists.
 
 ## Duplicate policy
-Normalized identity and context are duplicate signals only. POSSIBLE_DUPLICATE never auto-merges. Creating a separate record in the presence of a candidate requires explicit confirmation.
+Creation classification is explicit: NEW, POSSIBLE_DUPLICATE or EXISTING. Deterministic matching uses normalized identity plus the entity-specific commercial context; Company and Platform may also use canonical website/domain evidence. POSSIBLE_DUPLICATE never auto-merges. An authorized actor must either explicitly confirm a separate new record or select an accessible matching existing entity. Selecting EXISTING returns the existing entity and creates no new commercial record.
 
 ## Adapter contract
 The registry resolves display identity, parent/context chain, access, structured readiness and available asset references from existing source-of-truth entities. It does not fabricate Campaign goals, analytics or matching information.
