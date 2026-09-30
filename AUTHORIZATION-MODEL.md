@@ -25,7 +25,7 @@ The server is authoritative at every layer. A client-provided Workspace ID is on
 
 ## Future layers
 
-Resource scopes for assigned Artist, assigned Promoted Entity, assigned Campaign and own resources are typed seams only. Entitlements, policy evaluation, separation-of-duties policy engines and domain-state guards will be added by the domains that own those concepts.
+Assigned Artist access is implemented in Etapa 5B through WorkspaceArtistAccess plus current Workspace permissions. Assigned Promoted Entity, assigned Campaign and other future resource scopes remain typed seams. Entitlements, policy evaluation, separation-of-duties policy engines and domain-state guards will be added by the domains that own those concepts.
 
 Possessing a permission does not imply that one actor may complete both sides of a future sensitive bilateral action.
 

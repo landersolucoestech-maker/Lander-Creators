@@ -20,6 +20,7 @@ LANDER CREATORS is a TypeScript modular monolith delivered through a Next.js ful
 - Reference Data: standards-oriented language, country, currency and timezone registries.
 - Shared Media: Workspace-scoped technical media metadata, validation, checksum, provider-neutral storage and authorized access.
 - Creator: global professional CreatorProfile, taxonomy preferences, declared SocialProfile, provenance-aware metric snapshots, readiness and ownership-based self-service authorization.
+- Music Catalog: global Artist → Release → Track marketing catalog with explicit WorkspaceArtistAccess, ordered Artist credits, TrackSegment and one-sheet XLSX import.
 
 ## Tenant strategy
 Application-layer tenant enforcement remains authoritative. Every Workspace-bound service resolves current User, Membership, Workspace state and required permission from the database. Client Workspace identifiers never authorize by themselves.
