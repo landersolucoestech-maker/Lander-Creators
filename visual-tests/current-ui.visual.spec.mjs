@@ -337,7 +337,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await page.goto("/promoted-entities");
   await expect(page.getByRole("heading",{name:"Entidades promovidas"})).toBeVisible();
   await verifyNoHorizontalOverflow(page);
-  await capture(page,project,"promoted-entities-empty","/promoted-entities","Commercial promoted entities start empty and Campaign remains unavailable.");
+  await capture(page,project,"promoted-entities-empty","/promoted-entities","Commercial promoted entities start empty and remain independent from Campaign Core.");
 
   const companyName=`Empresa Visual ${project}`;
   const brandName=`Marca Visual ${project}`;
@@ -400,7 +400,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await platformForm.getByLabel("Site HTTPS").fill(`https://platform-${project}.example.com`);
   await platformForm.getByRole("button",{name:"Criar plataforma"}).click();
   await expect(page.locator(".catalog-row strong").filter({hasText:platformName}).first()).toBeVisible();
-  await capture(page,project,"promoted-platform","/promoted-entities","Promoted Platform renders independently from infrastructure providers and Campaign.");
+  await capture(page,project,"promoted-platform","/promoted-entities","Promoted Platform renders independently from infrastructure providers and is available to Campaign Core through the registry.");
 
   const eventForm=page.locator("form").filter({hasText:"Criar evento"});
   await eventForm.getByLabel("Nome").fill(eventName);
@@ -429,9 +429,29 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await initiativeForm.getByRole("button",{name:"Criar iniciativa institucional"}).click();
 
   await expect(page.locator(".catalog-row strong").filter({hasText:initiativeName}).first()).toBeVisible();
-  await capture(page,project,"promoted-institutional-initiative","/promoted-entities","Institutional Initiative uses the canonical terminology and remains distinct from Campaign.");
+  await capture(page,project,"promoted-institutional-initiative","/promoted-entities","Institutional Initiative uses canonical terminology and remains an independent promoted-object source domain.");
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"promoted-platform-event-project-initiative","/promoted-entities","Platform, Event, Project and Institutional Initiative render in the same coherent commercial area with no Campaign UI.");
+
+  await page.goto("/campaigns");
+  await expect(page.getByRole("heading",{name:"Campanhas"})).toBeVisible();
+  await capture(page,project,"campaign-empty","/campaigns","Campaign module starts with a real Workspace-scoped empty state.");
+  const campaignForm=page.locator("form").filter({hasText:"Criar campanha"});
+  await campaignForm.getByLabel("Nome da campanha").fill("Campanha Visual "+project);
+  await campaignForm.getByRole("button",{name:"Criar campanha"}).click();
+  await expect(page.getByRole("heading",{name:"Campanha Visual "+project})).toBeVisible();
+  await capture(page,project,"campaign-builder-step-1","/campaigns/[campaignId]/builder","Campaign Builder starts at the promoted-object step with accessible objects only.");
+  for(const [step,label] of [[2,"Objetivo e contexto"],[3,"Creators e público"],[4,"Conteúdo e publicações"],[5,"Briefing e arquivos"],[6,"Período"],[7,"Orçamento e capacidade"],[8,"Direitos e termos"],[9,"Analytics e rastreamento"],[10,"Revisão e ativação"]]){
+    await page.getByRole("button",{name:new RegExp("^"+step+" "+label)}).click();
+    await expect(page.getByRole("heading",{name:label})).toBeVisible();
+    if(project==="desktop"||[3,6,10].includes(step))await capture(page,project,"campaign-builder-step-"+step,"/campaigns/[campaignId]/builder","Campaign Builder renders step "+step+" responsively without downstream-domain implementation.");
+  }
+  await page.getByRole("link",{name:"Salvar e sair"}).click();
+  await expect(page.getByText("Esta campanha ainda não pode ser ativada.")).toBeVisible();
+  await capture(page,project,"campaign-blocked-activation","/campaigns/[campaignId]","Incomplete Campaign shows structured activation blockers.");
+  await page.goto("/campaigns");
+  await expect(page.getByText("Campanha Visual "+project)).toBeVisible();
+  await capture(page,project,"campaign-list","/campaigns","Campaign list shows real status, goal and promoted-object state.");
 
   await page.goto("/");
   await expect(page.getByRole("heading",{name:"Dashboard"})).toBeVisible();
