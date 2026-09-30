@@ -2,7 +2,9 @@
   "name": "lander-creators",
   "version": "0.0.0",
   "private": true,
-  "engines": {"node": ">=24.0.0 <25"},
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -19,7 +21,7 @@
   },
   "dependencies": {
     "better-auth": "^1.7.6",
-    "drizzle-orm": "^0.44.5",
+    "drizzle-orm": "^0.45.3",
     "next": "16.3.6",
     "postgres": "^3.4.7",
     "react": "19.3.0",
