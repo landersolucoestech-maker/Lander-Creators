@@ -354,7 +354,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   const initiativeName=`Iniciativa Visual ${project}`;
   const companyForm=page.locator("form").filter({hasText:"Criar empresa"});
   await companyForm.getByLabel("Nome comercial").fill(companyName);
-  await companyForm.getByLabel("Site HTTPS").fill("https://example.com");
+  await companyForm.getByLabel("Site HTTPS").fill(`https://${project}.example.com`);
   await companyForm.getByLabel("País").selectOption("BR");
   await companyForm.getByLabel("Idioma").selectOption("pt-BR");
   await companyForm.getByLabel("Logo").selectOption({label:"visual.png"});
