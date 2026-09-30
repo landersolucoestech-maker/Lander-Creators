@@ -1,0 +1,93 @@
+"use client";
+import { useState,type FormEvent } from "react";
+import Link from "next/link";
+
+type Entity={id:string;name:string;status:string;access_level:string;access_status:string};
+type Props={
+  workspaceId:string;
+  initialEntities:Record<string,Entity[]>;
+  taxonomies:Array<{code:string;values:Array<{id:string;label:string}>}>;
+  referenceData:{countries:Array<{code:string;label:string}>;languages:Array<{code:string;label:string}>;timezones:Array<{code:string;label:string}>};
+  media:Array<{id:string;originalFileName:string;mediaKind:string}>;
+};
+const labels:Record<string,string>={COMPANY:"Empresas",BRAND:"Marcas",PRODUCT:"Produtos",SERVICE:"Serviços",PLATFORM:"Plataformas",EVENT:"Eventos",PROJECT:"Projetos",INSTITUTIONAL_INITIATIVE:"Iniciativas institucionais"};
+
+async function api(url:string,init?:RequestInit){
+  const r=await fetch(url,{...init,headers:{"Content-Type":"application/json",...(init?.headers??{})}});
+  const p=await r.json();
+  if(!r.ok)throw new Error(p?.error?.message??"Não foi possível concluir a operação.");
+  return p;
+}
+
+export function PromotedEntitiesPanel({workspaceId,initialEntities,taxonomies,referenceData,media}:Props){
+  const[entities,setEntities]=useState(initialEntities);
+  const[message,setMessage]=useState("");
+  const images=media.filter(x=>x.mediaKind==="IMAGE");
+  const productCategories=taxonomies.find(x=>x.code==="PRODUCT_CATEGORY")?.values??[];
+  const serviceCategories=taxonomies.find(x=>x.code==="SERVICE_CATEGORY")?.values??[];
+  const companies=entities.COMPANY??[];
+  const brands=entities.BRAND??[];
+
+  async function refresh(){
+    const p=await api(`/api/workspaces/${workspaceId}/promoted-entities`);
+    setEntities(p.entities);
+  }
+
+  async function submit(path:string,event:FormEvent<HTMLFormElement>,payload:Record<string,unknown>){
+    event.preventDefault();
+    const form=event.currentTarget;
+    try{
+      await api(`/api/workspaces/${workspaceId}/${path}`,{method:"POST",body:JSON.stringify(payload)});
+      form.reset();
+      await refresh();
+      setMessage("Objeto promovido criado.");
+    }catch(error){
+      setMessage(error instanceof Error?error.message:"Não foi possível criar o objeto promovido.");
+    }
+  }
+
+  return <main className="app-shell">
+    <header className="topbar">
+      <div><p className="eyebrow">CREATOR MARKETING</p><h1>Objetos promovidos</h1><p>Catálogo comercial para futuras campanhas. Campanha ainda não foi implementada.</p></div>
+      <div className="account"><Link className="link-button" href="/">Workspace</Link><Link className="link-button" href="/music-catalog">Catálogo musical</Link></div>
+    </header>
+    {message?<p className="notice" role="status">{message}</p>:null}
+    <section className="catalog-grid">
+      {Object.entries(labels).map(([type,label])=><article className="card" key={type}>
+        <p className="eyebrow">{label.toUpperCase()}</p><h2>{label}</h2>
+        {(entities[type]??[]).length===0?<p>Nenhum registro acessível neste workspace.</p>:<div className="stack">{(entities[type]??[]).map(entity=><div className="catalog-row" key={entity.id}><strong>{entity.name}</strong><span>{entity.status==="ACTIVE"?"Ativo":entity.status==="DRAFT"?"Rascunho":entity.status==="ARCHIVED"?"Arquivado":"Suspenso"} · {entity.access_level==="OWNER"?"Proprietário":entity.access_level}</span></div>)}</div>}
+      </article>)}
+    </section>
+    <section className="catalog-grid">
+      <article className="card"><h2>Nova empresa</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("companies",event,{tradeName:String(data.get("tradeName")??""),legalName:String(data.get("legalName")??"")||null,description:String(data.get("description")??"")||null,website:String(data.get("website")??"")||null,countryCode:String(data.get("countryCode")??"")||null,languageCode:String(data.get("languageCode")??"")||null,logoMediaAssetId:String(data.get("mediaId")??"")||null,confirmDuplicate:data.get("confirmDuplicate")==="on"});}}>
+        <label>Nome comercial<input name="tradeName" required/></label><label>Razão social<input name="legalName"/></label><label>Site HTTPS<input name="website" type="url"/></label>
+        <label>País<select name="countryCode" defaultValue=""><option value="">Não informado</option>{referenceData.countries.map(item=><option key={item.code} value={item.code}>{item.label}</option>)}</select></label>
+        <label>Idioma<select name="languageCode" defaultValue=""><option value="">Não informado</option>{referenceData.languages.map(item=><option key={item.code} value={item.code}>{item.label}</option>)}</select></label>
+        <label>Logo<select name="mediaId" defaultValue=""><option value="">Sem logo</option>{images.map(item=><option key={item.id} value={item.id}>{item.originalFileName}</option>)}</select></label>
+        <label>Descrição<textarea name="description"/></label><label className="checkbox-field"><input type="checkbox" name="confirmDuplicate"/> Confirmar novo registro se houver possível duplicado</label><button type="submit">Criar empresa</button>
+      </form></article>
+
+      <article className="card"><h2>Nova marca</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("brands",event,{name:String(data.get("name")??""),companyId:String(data.get("companyId")??"")||null,description:String(data.get("description")??"")||null,website:String(data.get("website")??"")||null,logoMediaAssetId:String(data.get("mediaId")??"")||null});}}>
+        <label>Nome<input name="name" required/></label><label>Empresa<select name="companyId" defaultValue=""><option value="">Sem empresa</option>{companies.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>Site HTTPS<input name="website" type="url"/></label><label>Logo<select name="mediaId" defaultValue=""><option value="">Sem logo</option>{images.map(item=><option key={item.id} value={item.id}>{item.originalFileName}</option>)}</select></label><label>Descrição<textarea name="description"/></label><button type="submit">Criar marca</button>
+      </form></article>
+
+      <article className="card"><h2>Novo produto</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("products",event,{name:String(data.get("name")??""),companyId:String(data.get("companyId")??"")||null,brandId:String(data.get("brandId")??"")||null,categoryTaxonomyValueId:String(data.get("category")??""),primaryMediaAssetId:String(data.get("mediaId")??"")||null});}}>
+        <label>Nome<input name="name" required/></label><label>Empresa<select name="companyId" defaultValue=""><option value="">Sem empresa</option>{companies.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>Marca<select name="brandId" defaultValue=""><option value="">Sem marca</option>{brands.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>Categoria<select name="category" required defaultValue=""><option value="" disabled>Selecione</option>{productCategories.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select></label><label>Imagem<select name="mediaId" defaultValue=""><option value="">Sem imagem</option>{images.map(item=><option key={item.id} value={item.id}>{item.originalFileName}</option>)}</select></label><button type="submit">Criar produto</button>
+      </form></article>
+
+      <article className="card"><h2>Novo serviço</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("services",event,{companyId:String(data.get("companyId")??""),name:String(data.get("name")??""),categoryTaxonomyValueId:String(data.get("category")??"")});}}>
+        <label>Empresa<select name="companyId" required defaultValue=""><option value="" disabled>Selecione</option>{companies.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>Nome<input name="name" required/></label><label>Categoria<select name="category" required defaultValue=""><option value="" disabled>Selecione</option>{serviceCategories.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select></label><button type="submit">Criar serviço</button>
+      </form></article>
+
+      <article className="card"><h2>Nova plataforma</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("platforms",event,{name:String(data.get("name")??""),companyId:String(data.get("companyId")??"")||null,website:String(data.get("website")??"")||null});}}><label>Nome<input name="name" required/></label><label>Empresa<select name="companyId" defaultValue=""><option value="">Sem empresa</option>{companies.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>Site HTTPS<input name="website" type="url"/></label><button type="submit">Criar plataforma</button></form></article>
+
+      <article className="card"><h2>Novo evento</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("events",event,{name:String(data.get("name")??""),eventMode:String(data.get("eventMode")??"PHYSICAL"),startsAt:String(data.get("startsAt")??""),endsAt:String(data.get("endsAt")??"")||null,timezoneCode:String(data.get("timezoneCode")??""),locationText:String(data.get("locationText")??"")||null,onlineUrl:String(data.get("onlineUrl")??"")||null});}}>
+        <label>Nome<input name="name" required/></label><label>Modo<select name="eventMode"><option value="PHYSICAL">Presencial</option><option value="ONLINE">Online</option><option value="HYBRID">Híbrido</option></select></label><label>Início<input name="startsAt" type="datetime-local" required/></label><label>Fim<input name="endsAt" type="datetime-local"/></label><label>Fuso horário<select name="timezoneCode" defaultValue="America/Sao_Paulo">{referenceData.timezones.map(item=><option key={item.code} value={item.code}>{item.label}</option>)}</select></label><label>Local<input name="locationText"/></label><label>URL online<input name="onlineUrl" type="url"/></label><button type="submit">Criar evento</button>
+      </form></article>
+
+      <article className="card"><h2>Novo projeto</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("projects",event,{name:String(data.get("name")??""),companyId:String(data.get("companyId")??"")||null,website:String(data.get("website")??"")||null});}}><label>Nome<input name="name" required/></label><label>Empresa<select name="companyId" defaultValue=""><option value="">Sem empresa</option>{companies.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>URL de referência<input name="website" type="url"/></label><button type="submit">Criar projeto</button></form></article>
+
+      <article className="card"><h2>Nova iniciativa institucional</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("initiatives",event,{name:String(data.get("name")??""),companyId:String(data.get("companyId")??"")||null,website:String(data.get("website")??"")||null});}}><label>Nome<input name="name" required/></label><label>Empresa<select name="companyId" defaultValue=""><option value="">Sem empresa</option>{companies.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>URL de referência<input name="website" type="url"/></label><button type="submit">Criar iniciativa institucional</button></form></article>
+    </section>
+  </main>;
+}

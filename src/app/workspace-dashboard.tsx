@@ -147,7 +147,7 @@ export function WorkspaceDashboard({
           <h1>Fundação de acesso</h1>
         </div>
         <div className="account">
-          {activeWorkspace ? <Link className="link-button" href="/music-catalog">Catálogo musical</Link> : null}
+          {activeWorkspace ? <><Link className="link-button" href="/promoted-entities">Objetos promovidos</Link><Link className="link-button" href="/music-catalog">Catálogo musical</Link></> : null}
           <Link className="link-button" href="/creator">Área do Creator</Link>
           <span>{userName}</span>
           <button

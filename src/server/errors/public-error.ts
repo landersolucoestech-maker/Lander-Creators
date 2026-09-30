@@ -51,6 +51,14 @@ const messages: Record<string, string> = {
   URL_INVALID: "Uma das URLs informadas não é válida.",
   MUSIC_IMPORT_INVALID: "A planilha contém dados inválidos ou não segue o modelo.",
   MUSIC_IMPORT_DUPLICATE_RESOLUTION_REQUIRED: "Resolva as possíveis duplicidades antes de confirmar a importação.",
+  PROMOTED_ENTITY_NOT_FOUND: "Objeto promovido não encontrado.",
+  PROMOTED_ENTITY_ACCESS_DENIED: "Você não tem acesso a este objeto promovido.",
+  PROMOTED_ENTITY_NOT_READY: "Este objeto ainda não está pronto para uso.",
+  PROMOTED_ENTITY_ARCHIVED: "Este objeto está arquivado.",
+  COMPANY_REQUIRED: "Selecione uma empresa válida.",
+  PARENT_ENTITY_INVALID: "O contexto comercial informado não é válido.",
+  POSSIBLE_DUPLICATE_REQUIRES_RESOLUTION: "Há um possível duplicado. Confirme como deseja continuar.",
+  PROMOTED_ENTITY_MEDIA_ACCESS_DENIED: "Este arquivo não pode ser vinculado ao objeto promovido.",
 };
 
 const fallback: PublicError = {
