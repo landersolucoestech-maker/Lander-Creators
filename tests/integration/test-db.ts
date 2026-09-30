@@ -10,7 +10,17 @@ export function createTestSql() {
 }
 
 export async function resetSecurityData(sql: ReturnType<typeof createTestSql>) {
-  await sql.unsafe(
-    "truncate table audit_logs,workspace_creation_requests,membership_grants,workspace_invitations,user_context_preferences,memberships,workspaces,account,session,verification,identity_profiles,\"user\" restart identity cascade"
-  );
+  await sql.unsafe("delete from audit_logs");
+  await sql.unsafe("delete from workspace_creation_requests");
+  await sql.unsafe("delete from membership_grants");
+  await sql.unsafe("delete from workspace_invitations");
+  await sql.unsafe("delete from user_context_preferences");
+  await sql.unsafe("delete from memberships");
+  await sql.unsafe("delete from roles where workspace_id is not null");
+  await sql.unsafe("delete from workspaces");
+  await sql.unsafe("delete from account");
+  await sql.unsafe("delete from session");
+  await sql.unsafe("delete from verification");
+  await sql.unsafe("delete from identity_profiles");
+  await sql.unsafe('delete from "user"');
 }
