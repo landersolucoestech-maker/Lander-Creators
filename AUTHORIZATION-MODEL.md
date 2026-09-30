@@ -28,3 +28,10 @@ The server is authoritative at every layer. A client-provided Workspace ID is on
 Resource scopes for assigned Artist, assigned Promoted Entity, assigned Campaign and own resources are typed seams only. Entitlements, policy evaluation, separation-of-duties policy engines and domain-state guards will be added by the domains that own those concepts.
 
 Possessing a permission does not imply that one actor may complete both sides of a future sensitive bilateral action.
+
+## Creator ownership path
+Creator self-service is separate from organization RBAC:
+
+Authenticated User → owned CreatorProfile → Creator domain action.
+
+A Workspace role, including ADMIN or OWNER, never implies ownership of another User's CreatorProfile. Media attachment is additionally validated through Shared Media authorization rules.

@@ -247,3 +247,82 @@ export const mediaAssets = pgTable("media_assets",{
   workspaceIndex:index("media_assets_workspace_idx_drizzle").on(t.workspaceId),
   checksumIndex:index("media_assets_checksum_idx_drizzle").on(t.checksumSha256)
 }));
+
+
+export const creatorStatus = pgEnum("creator_status", ["DRAFT","UNDER_REVIEW","ACTIVE","LIMITED","SUSPENDED","DISABLED"]);
+export const creatorMarketplaceVisibility = pgEnum("creator_marketplace_visibility", ["VISIBLE","HIDDEN"]);
+export const creatorAvailability = pgEnum("creator_availability", ["AVAILABLE","LIMITED_AVAILABILITY","UNAVAILABLE"]);
+export const socialPlatform = pgEnum("social_platform", ["TIKTOK","INSTAGRAM","YOUTUBE"]);
+export const socialProfileProvenance = pgEnum("social_profile_provenance", ["DECLARED","MANUAL_VERIFIED","PROVIDER"]);
+export const socialConnectionStatus = pgEnum("social_connection_status", ["NOT_CONNECTED","CONNECTED","REAUTH_REQUIRED","PERMISSION_LIMITED","ERROR","REVOKED"]);
+export const socialMetricsSource = pgEnum("social_metrics_source", ["MANUAL_DECLARED","PROVIDER"]);
+
+export const creatorProfiles = pgTable("creator_profiles",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  userId:text("user_id").notNull().references(()=>user.id),
+  displayName:text("display_name").notNull(),
+  bio:text("bio"),
+  countryCode:text("country_code").notNull().references(()=>referenceCountries.code),
+  languageCode:text("language_code").notNull().references(()=>referenceLanguages.code),
+  timezoneCode:text("timezone_code").notNull().references(()=>referenceTimezones.code),
+  region:text("region"),
+  city:text("city"),
+  status:creatorStatus("status").notNull().default("DRAFT"),
+  marketplaceVisibility:creatorMarketplaceVisibility("marketplace_visibility").notNull().default("HIDDEN"),
+  availability:creatorAvailability("availability").notNull().default("AVAILABLE"),
+  avatarMediaAssetId:uuid("avatar_media_asset_id").references(()=>mediaAssets.id,{onDelete:"set null"}),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({
+  userUnique:uniqueIndex("creator_profiles_user_unique").on(t.userId),
+  discoveryIndex:index("creator_profiles_status_idx_drizzle").on(t.status,t.marketplaceVisibility,t.availability)
+}));
+
+export const creatorProfileNiches = pgTable("creator_profile_niches",{
+  creatorProfileId:uuid("creator_profile_id").notNull().references(()=>creatorProfiles.id,{onDelete:"cascade"}),
+  taxonomyValueId:uuid("taxonomy_value_id").notNull().references(()=>taxonomyValues.id,{onDelete:"restrict"}),
+  isPrimary:boolean("is_primary").notNull().default(false),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({uniqueRelation:uniqueIndex("creator_profile_niches_unique").on(t.creatorProfileId,t.taxonomyValueId)}));
+
+export const creatorProfileContentStyles = pgTable("creator_profile_content_styles",{
+  creatorProfileId:uuid("creator_profile_id").notNull().references(()=>creatorProfiles.id,{onDelete:"cascade"}),
+  taxonomyValueId:uuid("taxonomy_value_id").notNull().references(()=>taxonomyValues.id,{onDelete:"restrict"}),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({uniqueRelation:uniqueIndex("creator_profile_content_styles_unique").on(t.creatorProfileId,t.taxonomyValueId)}));
+
+export const creatorMusicGenres = pgTable("creator_music_genres",{
+  creatorProfileId:uuid("creator_profile_id").notNull().references(()=>creatorProfiles.id,{onDelete:"cascade"}),
+  taxonomyValueId:uuid("taxonomy_value_id").notNull().references(()=>taxonomyValues.id,{onDelete:"restrict"}),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({uniqueRelation:uniqueIndex("creator_music_genres_unique").on(t.creatorProfileId,t.taxonomyValueId)}));
+
+export const socialProfiles = pgTable("social_profiles",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  creatorProfileId:uuid("creator_profile_id").notNull().references(()=>creatorProfiles.id,{onDelete:"cascade"}),
+  platform:socialPlatform("platform").notNull(),
+  externalAccountId:text("external_account_id"),
+  handle:text("handle").notNull(),
+  normalizedHandle:text("normalized_handle").notNull(),
+  profileUrl:text("profile_url"),
+  displayName:text("display_name"),
+  provenance:socialProfileProvenance("provenance").notNull().default("DECLARED"),
+  connectionStatus:socialConnectionStatus("connection_status").notNull().default("NOT_CONNECTED"),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+  updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({
+  creatorHandleUnique:uniqueIndex("social_profiles_creator_platform_handle_unique").on(t.creatorProfileId,t.platform,t.normalizedHandle)
+}));
+
+export const socialMetricsSnapshots = pgTable("social_metrics_snapshots",{
+  id:uuid("id").primaryKey().defaultRandom(),
+  socialProfileId:uuid("social_profile_id").notNull().references(()=>socialProfiles.id,{onDelete:"cascade"}),
+  capturedAt:timestamp("captured_at",{withTimezone:true}).notNull(),
+  source:socialMetricsSource("source").notNull(),
+  followers:bigint("followers",{mode:"number"}),
+  following:bigint("following",{mode:"number"}),
+  totalLikes:bigint("total_likes",{mode:"number"}),
+  averageViews:bigint("average_views",{mode:"number"}),
+  engagementRateBasisPoints:integer("engagement_rate_basis_points"),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()
+},t=>({capturedIndex:index("social_metrics_snapshots_profile_captured_idx_drizzle").on(t.socialProfileId,t.capturedAt)}));

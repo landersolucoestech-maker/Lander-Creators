@@ -13,3 +13,6 @@
 - GitHub Actions Playwright visual inspection covers authentication, Workspace, taxonomy/reference data and Shared Media states on desktop/mobile.
 - Axe runs against captured visual states and blocks serious/critical violations.
 - Every defect fix adds regression coverage when practical.
+
+- Etapa 5A Creator tests cover one-profile-per-User, ownership IDOR, Workspace ADMIN separation, taxonomy substitution/deprecation, SocialProfile URL/provenance/uniqueness, metrics freshness/null semantics, readiness, status submission, visibility eligibility, availability independence and Shared Media attachment isolation.
+- Visual inspection covers Creator empty, form, validation error, populated, social and availability states on desktop/mobile.

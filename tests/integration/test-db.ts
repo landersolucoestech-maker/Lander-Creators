@@ -11,6 +11,12 @@ export function createTestSql() {
 
 export async function resetSecurityData(sql: ReturnType<typeof createTestSql>) {
   await sql.unsafe("delete from audit_logs");
+  await sql.unsafe("delete from social_metrics_snapshots");
+  await sql.unsafe("delete from social_profiles");
+  await sql.unsafe("delete from creator_music_genres");
+  await sql.unsafe("delete from creator_profile_content_styles");
+  await sql.unsafe("delete from creator_profile_niches");
+  await sql.unsafe("delete from creator_profiles");
   await sql.unsafe("delete from media_assets");
   await sql.unsafe("delete from workspace_creation_requests");
   await sql.unsafe("delete from membership_grants");

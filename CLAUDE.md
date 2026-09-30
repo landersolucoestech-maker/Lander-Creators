@@ -38,3 +38,6 @@ Under the current owner-authorized policy, a user-visible stage is complete only
 
 ## Etapa 4 specialists
 Use `taxonomy-engineer` for governed classification/reference boundaries and `shared-media-engineer` for provider-neutral media metadata, validation, tenant access and storage seams. Do not introduce downstream-domain specialists or external infrastructure without owner approval.
+
+## Etapa 5A Creator specialist
+Use `creator-engineer` and Creator skills for CreatorProfile, SocialProfile, readiness, ownership security and Creator taxonomy/media relationships. Do not introduce Campaign, Matching, Finance or external social providers.

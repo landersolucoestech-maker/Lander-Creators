@@ -3,6 +3,7 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 
 export type WorkspaceView = {
@@ -146,6 +147,7 @@ export function WorkspaceDashboard({
           <h1>Fundação de acesso</h1>
         </div>
         <div className="account">
+          <Link className="link-button" href="/creator">Área do Creator</Link>
           <span>{userName}</span>
           <button
             type="button"

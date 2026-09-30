@@ -23,7 +23,19 @@ const messages: Record<string, string> = {
   MEDIA_TOO_LARGE: "O arquivo excede o limite técnico permitido.",
   MEDIA_NOT_FOUND: "Arquivo não encontrado.",
   MEDIA_ACCESS_DENIED: "O acesso temporário a este arquivo é inválido ou expirou.",
-  MEDIA_STORAGE_UNAVAILABLE: "O arquivo está temporariamente indisponível."
+  MEDIA_STORAGE_UNAVAILABLE: "O arquivo está temporariamente indisponível.",
+  CREATOR_PROFILE_NOT_FOUND: "Perfil de Creator não encontrado.",
+  CREATOR_PROFILE_ALREADY_EXISTS: "Você já possui um perfil de Creator.",
+  CREATOR_PROFILE_ACCESS_DENIED: "Você não tem acesso a este perfil de Creator.",
+  CREATOR_PROFILE_INCOMPLETE: "Complete os dados obrigatórios antes de enviar o perfil para análise.",
+  CREATOR_TAXONOMY_INVALID: "A classificação selecionada não é válida para este campo.",
+  SOCIAL_PROFILE_ALREADY_LINKED: "Esta rede social já está vinculada.",
+  SOCIAL_PROFILE_INVALID: "A rede social informada não é válida.",
+  SOCIAL_PROFILE_NOT_FOUND: "Rede social não encontrada.",
+  CREATOR_NOT_MARKETPLACE_ELIGIBLE: "Este perfil ainda não pode ficar visível.",
+  CREATOR_MEDIA_ACCESS_DENIED: "Este arquivo não pode ser vinculado ao perfil de Creator.",
+  INVALID_REFERENCE_DATA: "A opção selecionada não é válida.",
+  INVALID_CREATOR_STATUS_TRANSITION: "Esta mudança de situação do Creator não é permitida.",
 };
 
 const fallback: PublicError = {

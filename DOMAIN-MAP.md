@@ -17,3 +17,10 @@ Logical domain boundaries do not imply one package or service per domain.
 - Taxonomy
 - Reference Data
 - Shared Media foundation
+
+## Implemented in Etapa 5A
+- CreatorProfile
+- Creator taxonomy relationships
+- declared SocialProfile foundation
+- provenance-aware SocialMetricsSnapshot
+- Creator readiness and self-service ownership authorization

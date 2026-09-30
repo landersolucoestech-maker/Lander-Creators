@@ -36,3 +36,12 @@
 - Persistent production media storage. No external storage provider is authorized.
 
 Never log passwords, session tokens, verification tokens, invitation secrets, media access tokens or auth secrets.
+
+## Etapa 5A Creator
+- Creator self-service requires CreatorProfile ownership and does not inherit Workspace ADMIN authority.
+- Social links require HTTPS and supported platform hosts; javascript and malformed URLs are rejected.
+- Public self-service SocialProfiles are DECLARED and NOT_CONNECTED; no provider verification is faked.
+- Creator taxonomy relations validate taxonomy family and reject deprecated values for new associations.
+- Creator avatar attachment reuses Shared Media and rejects foreign assets.
+- User-provided bio is stored as text and rendered through React escaping; arbitrary HTML is not accepted.
+- Creator marketplace visibility is enforced server-side and cannot become VISIBLE before ACTIVE status.

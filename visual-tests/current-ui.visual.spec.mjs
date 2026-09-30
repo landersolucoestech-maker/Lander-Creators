@@ -172,6 +172,52 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await expect(page.getByText("O tipo do arquivo não é permitido ou não corresponde ao conteúdo.")).toBeVisible();
   await capture(page, project, "media-validation-error", "/", "Invalid media content is rejected with safe PT-BR copy.");
 
+
+  await page.goto("/creator");
+  await expect(page.getByRole("heading", { name: "Perfil de Creator" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Criar perfil de Creator" })).toBeVisible();
+  await verifyNoHorizontalOverflow(page);
+  await capture(page, project, "creator-empty", "/creator", "Creator empty state requires explicit user action and does not auto-create a profile.");
+
+  const creatorForm=page.locator("form").filter({hasText:"Criar perfil"});
+  await creatorForm.getByLabel("Nome de exibição").fill("Creator Visual");
+  await creatorForm.getByLabel("País").selectOption("BR");
+  await creatorForm.getByLabel("Idioma principal").selectOption("pt-BR");
+  await creatorForm.getByLabel("Fuso horário").selectOption("America/Sao_Paulo");
+  await creatorForm.getByLabel("Estado/região").fill("MG");
+  await creatorForm.getByLabel("Cidade").fill("Governador Valadares");
+  await creatorForm.getByLabel("Bio").fill("Creator de música e conteúdo.");
+  await capture(page, project, "creator-profile-form", "/creator", "Creator profile form uses Reference Data and PT-BR labels.");
+  await creatorForm.getByRole("button",{name:"Criar perfil"}).click();
+  await expect(page.getByText("Perfil de Creator criado.")).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Dados do Creator"})).toBeVisible();
+
+  await page.getByLabel("Adicionar nicho").selectOption({label:"Música"});
+  await expect(page.getByText("Classificação adicionada.")).toBeVisible();
+  await page.getByLabel("Adicionar estilo de conteúdo").selectOption({label:"Tutorial"});
+  await page.getByLabel("Adicionar preferência musical").selectOption({label:"Pop"});
+
+  const socialForm=page.locator("form").filter({hasText:"Adicionar rede social"});
+  await socialForm.getByLabel("Plataforma").selectOption("INSTAGRAM");
+  await socialForm.getByLabel("Usuário/handle").fill("@creatorvisual");
+  await socialForm.getByLabel("URL HTTPS").fill("http://instagram.com/creatorvisual");
+  await socialForm.getByRole("button",{name:"Adicionar rede social"}).click();
+  await expect(page.getByText("A rede social informada não é válida.")).toBeVisible();
+  await capture(page, project, "creator-validation-error", "/creator", "Unsafe social URL is rejected with safe PT-BR copy.");
+
+  await socialForm.getByLabel("URL HTTPS").fill("https://instagram.com/creatorvisual");
+  await socialForm.getByRole("button",{name:"Adicionar rede social"}).click();
+  await expect(page.getByText("Rede social adicionada.")).toBeVisible();
+  await expect(page.getByText(/Instagram · @creatorvisual/)).toBeVisible();
+  await verifyNoHorizontalOverflow(page);
+  await capture(page, project, "creator-social", "/creator", "Declared social profile is clearly marked as manual and not provider-connected.");
+
+  await expect(page.getByText("Perfil tecnicamente pronto para análise.")).toBeVisible();
+  await capture(page, project, "creator-populated", "/creator", "Creator profile shows taxonomy, readiness, social and independent availability/visibility state.");
+  await page.getByLabel("Disponibilidade").selectOption("LIMITED_AVAILABILITY");
+  await expect(page.getByText("Disponibilidade atualizada.")).toBeVisible();
+  await capture(page, project, "creator-availability", "/creator", "Availability is independent from lifecycle and marketplace visibility.");
+
   await page.goto("/reset-password?token=visual-inspection-placeholder");
   await expect(page.getByRole("heading", { name: "Definir nova senha" })).toBeVisible();
   await verifyNoHorizontalOverflow(page);

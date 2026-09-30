@@ -21,3 +21,10 @@ Better Auth owns passwords, credential accounts, sessions and verification token
 | Media metadata | Shared Media module |
 | Media bytes | MediaStorageAdapter implementation; local/ephemeral only in Etapa 4 |
 | Tenant media authorization | Authorization + Shared Media modules |
+
+| Creator professional profile | Creator module |
+| Creator niche/style/music preferences | Creator module + Taxonomy references |
+| Social account metadata | Creator SocialProfile |
+| Social metrics snapshots | Creator social metrics persistence |
+| Creator avatar bytes | Shared Media |
+| Creator self-service authorization | CreatorProfile ownership |

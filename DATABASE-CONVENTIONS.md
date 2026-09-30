@@ -20,3 +20,8 @@
 - Reference registries use stable standard codes.
 - Media storage keys are opaque and never public API contracts.
 - Media checksum uses SHA-256.
+
+- CreatorProfile is global and has a database-enforced one-profile-per-User V1 invariant.
+- Creator taxonomy joins use canonical taxonomy_value IDs and unique composite relations.
+- Social metrics are append-only snapshots with explicit captured_at and provenance; unknown values are NULL.
+- Social counts use non-negative PostgreSQL bigint; money is not introduced by Etapa 5A.

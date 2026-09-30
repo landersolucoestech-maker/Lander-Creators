@@ -25,3 +25,8 @@ Identity, Workspace, Membership, active Workspace context, authorization and the
 17. Taxonomy is global governed classification, not Workspace-owned business data.
 18. Reference Data is standards-oriented and separate from taxonomy.
 19. Shared Media owns technical file concerns only; downstream domains reference MediaAsset.
+
+20. CreatorProfile is global and distinct from User, Workspace and Artist.
+21. Creator self-service authorization derives from CreatorProfile ownership, not Workspace RBAC.
+22. SocialProfile provider connectivity must never be inferred from declared/manual data.
+23. Creator readiness is technical while Creator Terms remain deferred; no fake legal gate is accepted.
