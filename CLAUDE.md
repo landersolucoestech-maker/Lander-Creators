@@ -34,3 +34,7 @@ For any stage that changes user-visible application behavior, read and enforce `
 A user-visible stage is not complete until the exact CI-green `main` commit is deployed to the configured non-Vercel visual environment, smoke-tested, visually inspected and returned with an accessible URL.
 
 **Vercel is prohibited for this project.**
+
+
+## Etapa 4 specialists
+Use `taxonomy-engineer` for governed classification/reference boundaries and `shared-media-engineer` for provider-neutral media metadata, validation, tenant access and storage seams. Do not introduce downstream-domain specialists or external infrastructure without owner approval.

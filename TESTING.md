@@ -11,3 +11,6 @@
 - Playwright remains deferred until broader end-user product workflows exist.
 - Every defect fix adds regression coverage when practical.
 - CI must pass deterministic install, migration, lint, typecheck, tests, build and runtime smoke on `main`.
+
+- Etapa 4 tests cover taxonomy alias/hierarchy/deprecation, deterministic reference lookup, media validation/checksum, archive behavior, cross-tenant denial and local adapter isolation.
+- Playwright visual inspection covers taxonomy/reference and Shared Media states on desktop/mobile.

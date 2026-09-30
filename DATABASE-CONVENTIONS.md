@@ -15,3 +15,8 @@
 - Owner mutations lock the Workspace before checking the final-Owner invariant.
 - External money operations will require idempotency.
 - The future ledger will be immutable/double-entry by design.
+
+- Taxonomy codes are stable English machine identifiers; PT-BR labels are display data.
+- Reference registries use stable standard codes.
+- Media storage keys are opaque and never public API contracts.
+- Media checksum uses SHA-256.

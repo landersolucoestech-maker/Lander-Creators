@@ -21,3 +21,7 @@
 ## Etapa 3 implemented security root
 
 Identity, Workspace, Membership, active Workspace context, authorization and their security audit foundation are now real implemented domains. This does not change the immutable boundaries above and does not authorize creation of downstream Campaign, Creator, Artist, Finance, Content, Publication, Analytics or AI Runtime models.
+
+17. Taxonomy is global governed classification, not Workspace-owned business data.
+18. Reference Data is standards-oriented and separate from taxonomy.
+19. Shared Media owns technical file concerns only; downstream domains reference MediaAsset.

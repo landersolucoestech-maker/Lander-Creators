@@ -15,3 +15,9 @@
 | Security action history | `audit_logs` |
 
 Better Auth owns passwords, credential accounts, sessions and verification tokens. LANDER CREATORS does not duplicate those values in application identity tables.
+
+| Taxonomy definitions/values/aliases | Taxonomy module |
+| Countries/languages/currencies/timezones | Reference Data module |
+| Media metadata | Shared Media module |
+| Media bytes | MediaStorageAdapter implementation; local/ephemeral only in Etapa 4 |
+| Tenant media authorization | Authorization + Shared Media modules |

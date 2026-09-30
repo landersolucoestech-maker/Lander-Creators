@@ -22,3 +22,7 @@ A change is complete only when:
 - desktop/mobile visual QA is performed where applicable;
 - the owner receives the accessible deployment URL;
 - if deployment is unavailable, the stage reports `IMPLEMENTATION_COMPLETE_VISUAL_DEPLOYMENT_BLOCKED` instead of complete.
+
+- taxonomy integrity and reference bootstrap are validated when changed;
+- media changes require MIME/content, tenant-isolation and storage-boundary tests;
+- for current owner policy, user-visible completion uses the exact CI-green main SHA and GitHub Actions visual artifact; no external deployment is implied.

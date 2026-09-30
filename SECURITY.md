@@ -23,3 +23,12 @@
 - Future domain separation-of-duties policies.
 
 Never log passwords, session tokens, verification tokens, invitation secrets or auth secrets.
+
+
+## Etapa 4
+- Media upload validates content signature, declared MIME, extension and size.
+- SVG and archives are rejected by the foundation.
+- Private media content is served through authenticated Workspace-authorized routes only.
+- Storage keys and filesystem paths are not returned to clients.
+- Cross-tenant media access is integration-tested.
+- External malware scanning is not implemented.

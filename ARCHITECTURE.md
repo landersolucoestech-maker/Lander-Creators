@@ -34,3 +34,7 @@ The application remains deployable as OCI-compatible containers. Hosting is an o
 Vercel is permanently prohibited.
 
 A persistent non-Vercel visual/development environment must consume only the exact CI-green `main` commit. User-visible stages are not complete until that commit is deployed, reachable and visually verified.
+
+
+## Etapa 4 shared foundations
+Taxonomy and Reference Data are platform-level governed registries. Shared Media stores metadata in PostgreSQL and delegates bytes through a provider-neutral MediaStorageAdapter. The current LocalEphemeralStorageAdapter exists only for CI/test and GitHub visual inspection; no production storage provider is selected or authorized.
