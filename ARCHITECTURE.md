@@ -1,21 +1,32 @@
 # LANDER CREATORS Architecture
 
 ## Style
-LANDER CREATORS starts as a TypeScript modular monolith delivered through a Next.js full-stack web application. Domain ownership will be explicit while deployment remains simple until operational evidence justifies extraction.
+LANDER CREATORS is a TypeScript modular monolith delivered through a Next.js full-stack web application. Domain ownership is explicit while deployment remains simple until operational evidence justifies extraction.
 
 ## Runtime boundaries
 - Web: Next.js App Router on Node.js 24 LTS.
-- Database: PostgreSQL with Drizzle ORM and explicit transactions.
-- Background work: PostgreSQL-backed durable jobs are planned through pg-boss; a dedicated worker process may be introduced without splitting domain ownership.
-- Object storage: S3-compatible private object storage behind an application interface; provider deferred.
-- Email: provider adapter behind an application interface; provider deferred.
-- Authentication: Better Auth, server-authoritative sessions; user flows deferred to Identity.
+- Database: PostgreSQL with Drizzle schema definitions and explicit transactional services.
+- Authentication: Better Auth with server-authoritative sessions.
+- Background work: PostgreSQL-backed durable jobs remain planned; no queue is installed yet.
+- Object storage: S3-compatible private object storage remains an interface-level future requirement.
+- Email: auth and Workspace invitation senders use an adapter seam. Production provider selection remains deferred.
 
-## Tenant context
-Future tenant context must be explicit and immutable per execution boundary. It propagates from request/session resolution to services, repositories, jobs and logs. No repository method may infer tenant scope from untrusted client input alone.
+## Implemented domain modules
+- Identity: Better Auth core identity plus application-owned identity status/profile.
+- Workspace: operational tenant, creation and active context.
+- Authorization: system roles, permission registry, additional grant schema, Workspace-scope enforcement.
+- Audit: security-critical Etapa 3 actions.
+
+## Tenant strategy
+Etapa 3 uses application-layer tenant enforcement rather than PostgreSQL RLS. Every Workspace-bound service resolves current User, Membership, Workspace state and required permission from the database. Client Workspace identifiers never authorize by themselves. PostgreSQL integration tests prove cross-tenant denial.
+
+RLS is intentionally deferred because the current Next.js/Drizzle/background-job architecture benefits from one explicit authorization service and transaction model. RLS can be reconsidered if future direct database access paths justify a second enforcement layer.
+
+## Session and authorization freshness
+Session identity is resolved by Better Auth. Workspace authorization is not cached as a long-lived permission snapshot: current identity, Workspace and Membership state is queried for each protected Workspace operation. Suspension/removal therefore invalidates effective Workspace authority immediately.
 
 ## Error boundary
-Technical diagnostics remain English and internal. User-visible messages are PT-BR and mapped from stable public error codes. Raw exceptions never render in the UI.
+Technical diagnostics remain English and internal. User-visible messages are PT-BR and mapped from stable public error codes. Raw Better Auth, Drizzle and PostgreSQL exceptions never render directly to users.
 
 ## Deployment
-The application remains deployable as OCI-compatible containers. Specific hosting vendors are deferred until operational, compliance and cost requirements are known.
+The application remains deployable as OCI-compatible containers. A specific hosting provider is still deferred.

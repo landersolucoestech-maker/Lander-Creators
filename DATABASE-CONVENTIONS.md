@@ -1,13 +1,17 @@
 # Database Conventions
 
 - PostgreSQL identifiers: `snake_case`.
-- Primary keys: UUIDv7 or database-supported time-sortable UUID strategy, finalized before first domain migration.
+- Auth core IDs are server-generated UUID strings stored as text because Better Auth owns their lifecycle.
+- Application tenant/security entity IDs use PostgreSQL UUID with `gen_random_uuid()`.
 - Timestamps: `timestamptz`, stored in UTC.
 - Money: integer minor units or exact decimal according to domain requirement; never floating point; currency is explicit.
-- Migrations: timestamp/order-prefixed, immutable after production application.
-- Soft delete: not default; only when domain semantics require retention.
-- Foreign keys: explicit and enforced unless a documented external-boundary reason exists.
-- Indexes: driven by access paths and uniqueness invariants.
-- Transactions: application services own transaction boundaries for multi-write invariants.
-- External money operations require idempotency.
-- The future ledger is immutable/double-entry by design.
+- Migrations are ordered SQL files and immutable after application; new changes append migrations.
+- Soft delete is not default. Identity/Workspace/Membership use explicit lifecycle states where security history must remain.
+- Foreign keys are explicit and enforced.
+- Indexes are driven by access paths and uniqueness invariants.
+- Application services own transaction boundaries for multi-write invariants.
+- Workspace creation + Owner Membership is atomic.
+- Invitation acceptance is transactional and single-use.
+- Owner mutations lock the Workspace before checking the final-Owner invariant.
+- External money operations will require idempotency.
+- The future ledger will be immutable/double-entry by design.

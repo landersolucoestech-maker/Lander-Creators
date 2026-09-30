@@ -7,7 +7,10 @@ import { createTestSql, resetSecurityData } from "./test-db";
 const sql = createTestSql();
 
 function cookieHeader(headers: Headers): Headers {
-  const cookies = headers.getSetCookie().map((value) => value.split(";")[0]).join("; ");
+  const cookies = headers
+    .getSetCookie()
+    .map((value) => value.split(";")[0])
+    .join("; ");
   return new Headers({ cookie: cookies });
 }
 
@@ -21,7 +24,9 @@ async function signUpAndVerify(email: string) {
   });
 
   const messages = consumeCapturedAuthEmailsForTests();
-  const verification = messages.find((message) => message.kind === "EMAIL_VERIFICATION");
+  const verification = messages.find(
+    (message) => message.kind === "EMAIL_VERIFICATION"
+  );
   if (!verification) throw new Error("Verification email was not captured");
 
   const token = new URL(verification.url).searchParams.get("token");
@@ -48,7 +53,10 @@ describe("Better Auth identity integration", () => {
       "select ip.status::text as status, u.email_verified from identity_profiles ip join \"user\" u on u.id=ip.user_id where u.email=$1",
       [email]
     );
-    expect(profile[0]).toMatchObject({ status: "ACTIVE", email_verified: true });
+    expect(profile[0]).toMatchObject({
+      status: "ACTIVE",
+      email_verified: true
+    });
 
     const signedIn = await auth.api.signInEmail({
       returnHeaders: true,
@@ -62,6 +70,12 @@ describe("Better Auth identity integration", () => {
     await auth.api.signOut({ headers });
     const afterSignOut = await auth.api.getSession({ headers });
     expect(afterSignOut).toBeNull();
+  });
+
+  it("returns no session for an anonymous request", async () => {
+    await expect(
+      auth.api.getSession({ headers: new Headers() })
+    ).resolves.toBeNull();
   });
 
   it("rejects invalid credentials", async () => {
@@ -92,5 +106,43 @@ describe("Better Auth identity integration", () => {
         body: { email, password: "SecurePassword123!" }
       })
     ).rejects.toMatchObject({ message: "ACCOUNT_ACCESS_DENIED" });
+  });
+
+  it("resets a password with a single-use expiring Better Auth token", async () => {
+    const email = "recovery@example.com";
+    await signUpAndVerify(email);
+    consumeCapturedAuthEmailsForTests();
+
+    await auth.api.requestPasswordReset({
+      body: {
+        email,
+        redirectTo: "http://127.0.0.1:3000/reset-password"
+      }
+    });
+
+    const messages = consumeCapturedAuthEmailsForTests();
+    const recovery = messages.find(
+      (message) => message.kind === "PASSWORD_RESET"
+    );
+    if (!recovery) throw new Error("Password reset email was not captured");
+
+    const token = new URL(recovery.url).searchParams.get("token");
+    if (!token) throw new Error("Password reset token missing from captured URL");
+
+    await auth.api.resetPassword({
+      body: { token, newPassword: "NewSecurePassword123!" }
+    });
+
+    await expect(
+      auth.api.signInEmail({
+        body: { email, password: "NewSecurePassword123!" }
+      })
+    ).resolves.toBeDefined();
+
+    await expect(
+      auth.api.resetPassword({
+        body: { token, newPassword: "AnotherPassword123!" }
+      })
+    ).rejects.toBeDefined();
   });
 });

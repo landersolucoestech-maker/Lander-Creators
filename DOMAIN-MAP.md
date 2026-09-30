@@ -1,7 +1,13 @@
 # Domain Map
 
-Product domains are intentionally not implemented yet.
+## Implemented in Etapa 3
+- Identity
+- Workspace
+- Membership
+- Authorization foundation
+- Security Audit foundation
 
-Future bounded areas include Identity, Workspace, Authorization, Creator, Artist, Music Catalog, Promoted Entities, Campaign, Participation, Engagement, Terms, Content, Publication, Finance, Analytics, Reporting, Disputes, Integrations, AI Operations and Platform Operations.
+## Not implemented yet
+Creator, Artist, Music Catalog, Promoted Entities, Campaign, Participation, Engagement, Terms, Finance, Content, Publication, Analytics, Reporting, Disputes, Integrations business domains, AI Operations and Platform Operations remain intentionally unimplemented.
 
-Logical boundaries do not imply one package or service per domain.
+Logical domain boundaries do not imply one package or service per domain.

@@ -1,7 +1,13 @@
 # Testing Strategy
 
-- Vitest: unit and lightweight integration tests.
-- PostgreSQL integration tests: introduced with the first persistence-owning domain using isolated test databases.
-- Playwright: introduced when real end-user flows exist; no ceremonial E2E job exists yet.
-- Every defect fix must add a regression test when practical.
-- CI must pass lint, typecheck, tests and build before merge.
+- Vitest: unit and integration tests.
+- PostgreSQL 16: real CI integration database for migrations, authentication persistence, tenancy, authorization and concurrency.
+- CI applies all migrations from zero and reruns the migrator to prove repeatability.
+- Authentication tests cover signup, verification, signin, invalid credentials, anonymous session, suspension, signout and password recovery.
+- Workspace tests cover atomic Owner creation and retry idempotency.
+- Tenant tests cover guessed Workspace IDs, foreign member listing and invalid context switching.
+- Team/security tests cover invitation recipient binding, expiration, replay, Owner privilege escalation, suspension and removal effects.
+- Concurrency tests protect the final Owner and invitation single-use behavior.
+- Playwright remains deferred until broader end-user product workflows exist.
+- Every defect fix adds regression coverage when practical.
+- CI must pass deterministic install, migration, lint, typecheck, tests, build and runtime smoke on `main`.
