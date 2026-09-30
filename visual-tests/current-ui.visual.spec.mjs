@@ -362,6 +362,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await expect(page.getByText("Objeto promovido criado.")).toBeVisible();
   await expect(page.locator(".catalog-row strong").filter({hasText:companyName}).first()).toBeVisible();
   await capture(page,project,"promoted-company","/promoted-entities","Company remains separate from Workspace and exposes explicit promoted-entity access.");
+  await capture(page,project,"promoted-access-state","/promoted-entities","Workspace promoted-entity access is explicit and the created Company renders Proprietário access.");
 
   await companyForm.getByLabel("Nome comercial").fill(companyName);
   await companyForm.getByRole("button",{name:"Criar empresa"}).click();
@@ -383,6 +384,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await productForm.getByLabel("Imagem").selectOption({label:"visual.png"});
   await productForm.getByRole("button",{name:"Criar produto"}).click();
   await expect(page.locator(".catalog-row strong").filter({hasText:productName}).first()).toBeVisible();
+  await capture(page,project,"promoted-product","/promoted-entities","Product renders with governed category, explicit commercial parent context and Shared Media.");
 
   const serviceForm=page.locator("form").filter({hasText:"Criar serviço"});
   await serviceForm.getByLabel("Empresa").selectOption({label:companyName});
@@ -390,6 +392,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await serviceForm.getByLabel("Categoria").selectOption({label:"Consultoria"});
   await serviceForm.getByRole("button",{name:"Criar serviço"}).click();
   await expect(page.locator(".catalog-row strong").filter({hasText:serviceName}).first()).toBeVisible();
+  await capture(page,project,"promoted-service","/promoted-entities","Service renders with mandatory Company context and governed service category.");
   await capture(page,project,"promoted-product-service","/promoted-entities","Product and Service use governed commercial taxonomies and explicit parent context.");
 
   const platformForm=page.locator("form").filter({hasText:"Criar plataforma"});
@@ -398,28 +401,36 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await platformForm.getByLabel("Site HTTPS").fill("https://example.com/platform");
   await platformForm.getByRole("button",{name:"Criar plataforma"}).click();
   await expect(page.locator(".catalog-row strong").filter({hasText:platformName}).first()).toBeVisible();
+  await capture(page,project,"promoted-platform","/promoted-entities","Promoted Platform renders independently from infrastructure providers and Campaign.");
 
   const eventForm=page.locator("form").filter({hasText:"Criar evento"});
   await eventForm.getByLabel("Nome").fill(eventName);
   await eventForm.getByLabel("Modo").selectOption("PHYSICAL");
-  await eventForm.getByLabel("Início").fill("2026-10-10T12:00");
-  await eventForm.getByLabel("Fim").fill("2026-10-10T13:00");
+  await eventForm.getByLabel("Início").fill("2026-10-10T13:00");
+  await eventForm.getByLabel("Fim").fill("2026-10-10T12:00");
   await eventForm.getByLabel("Local").fill("Governador Valadares");
   await eventForm.getByRole("button",{name:"Criar evento"}).click();
+  await expect(page.getByText("Verifique os dados informados e tente novamente.")).toBeVisible();
+  await capture(page,project,"promoted-validation-error","/promoted-entities","Invalid Event date ordering is rejected and mapped to PT-BR without leaking technical errors.");
+  await eventForm.getByLabel("Fim").fill("2026-10-10T14:00");
+  await eventForm.getByRole("button",{name:"Criar evento"}).click();
   await expect(page.locator(".catalog-row strong").filter({hasText:eventName}).first()).toBeVisible();
+  await capture(page,project,"promoted-event","/promoted-entities","Promoted Event renders physical mode, dates, timezone and location after server validation.");
 
   const projectForm=page.locator("form").filter({hasText:"Criar projeto"});
   await projectForm.getByLabel("Nome").fill(projectName);
   await projectForm.getByLabel("Empresa").selectOption({label:companyName});
   await projectForm.getByRole("button",{name:"Criar projeto"}).click();
+  await expect(page.locator(".catalog-row strong").filter({hasText:projectName}).first()).toBeVisible();
+  await capture(page,project,"promoted-project","/promoted-entities","Promoted Project renders as a promoted business/creative context without project-management functionality.");
 
   const initiativeForm=page.locator("form").filter({hasText:"Criar iniciativa institucional"});
   await initiativeForm.getByLabel("Nome").fill(initiativeName);
   await initiativeForm.getByLabel("Empresa").selectOption({label:companyName});
   await initiativeForm.getByRole("button",{name:"Criar iniciativa institucional"}).click();
 
-  await expect(page.locator(".catalog-row strong").filter({hasText:projectName}).first()).toBeVisible();
   await expect(page.locator(".catalog-row strong").filter({hasText:initiativeName}).first()).toBeVisible();
+  await capture(page,project,"promoted-institutional-initiative","/promoted-entities","Institutional Initiative uses the canonical terminology and remains distinct from Campaign.");
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"promoted-platform-event-project-initiative","/promoted-entities","Platform, Event, Project and Institutional Initiative render in the same coherent commercial area with no Campaign UI.");
 
