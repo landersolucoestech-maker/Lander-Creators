@@ -11,6 +11,7 @@ import { listTaxonomies } from "@/server/taxonomy/taxonomy-service";
 import { getReferenceData } from "@/server/reference-data/reference-data-service";
 import { listMediaAssets } from "@/server/media/media-service";
 import { ApplicationShell } from "../application-shell";
+import { AccessDeniedState } from "../access-denied-state";
 import { workspaceNavigation } from "../application-navigation";
 import { MusicCatalogPanel } from "./music-catalog-panel";
 
@@ -20,6 +21,7 @@ export default async function MusicCatalogPage(){
  try{
   const state=await getApplicationShellState(client,{id:session.user.id,name:session.user.name,email:session.user.email});
   const active=await resolveActiveWorkspace(client,{userId:session.user.id});if(!active)redirect("/workspace");
+  if(!state.capabilities.music)return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><AccessDeniedState/></ApplicationShell>;
   const[artists,catalog,taxonomies,referenceData,media]=await Promise.all([
    listWorkspaceArtists(client,{userId:session.user.id,workspaceId:active.workspaceId}),
    listCatalog(client,{userId:session.user.id,workspaceId:active.workspaceId}),
