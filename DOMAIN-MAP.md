@@ -37,3 +37,7 @@ Logical domain boundaries do not imply one package or service per domain.
 
 ## Etapa 5C
 Implemented: Company, Brand, Product, Service, PromotedPlatform, PromotedEvent, PromotedProject, InstitutionalInitiative, WorkspacePromotedEntityAccess and the typed Promoted Object Registry across Music + Commercial types.
+
+
+## Application experience layer
+Etapa 5D adds an application-experience layer above the existing domains: authenticated shell, Dashboard, navigation registry, Media, Team, Workspace and Settings surfaces. This layer does not create a new business domain and does not own Identity, Creator, Music Catalog, Shared Media or Commercial Promoted Entity persistence.
