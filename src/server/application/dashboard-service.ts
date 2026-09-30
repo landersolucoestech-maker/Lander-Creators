@@ -20,7 +20,7 @@ async function permitted(sql: Sql, userId: string, workspaceId: string, permissi
     await authorizeWorkspacePermission(sql, { userId, workspaceId, permission });
     return true;
   } catch (error) {
-    if (error instanceof DomainError && error.httpStatus === 403) return false;
+    if (error instanceof DomainError && error.status === 403) return false;
     throw error;
   }
 }
