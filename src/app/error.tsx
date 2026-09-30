@@ -1,0 +1,2 @@
+"use client";
+export default function ErrorState({reset}:{error:Error&{digest?:string};reset:()=>void}){return <main className="shell"><section className="card compact-card"><p className="eyebrow">LANDER CREATORS</p><h1>Não foi possível carregar esta área</h1><p>Tente novamente. Se o problema continuar, volte ao Dashboard.</p><button type="button" onClick={()=>reset()}>Tentar novamente</button></section></main>;}
