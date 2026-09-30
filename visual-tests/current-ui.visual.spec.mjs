@@ -439,6 +439,26 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"dashboard-populated","/","Dashboard reflects real ephemeral Artist, Release, Track, commercial entity, media and team data.");
 
+  const accessSql=postgres(process.env.DATABASE_URL,{max:1,prepare:false});
+  try{
+    await accessSql.unsafe(
+      "update memberships set role_id=(select id from roles where workspace_id is null and code='VIEWER' limit 1),updated_at=now() where user_id=(select id from \"user\" where email=$1)",
+      [email]
+    );
+  }finally{await accessSql.end();}
+  await page.goto("/team");
+  await expect(page.getByRole("heading",{name:"Acesso não disponível"})).toBeVisible();
+  await verifyNoHorizontalOverflow(page);
+  await capture(page,project,"access-denied","/team","Direct route access remains server-authorized even when Team navigation is unavailable.");
+
+  const restoreSql=postgres(process.env.DATABASE_URL,{max:1,prepare:false});
+  try{
+    await restoreSql.unsafe(
+      "update memberships set role_id=(select id from roles where workspace_id is null and code='OWNER' limit 1),updated_at=now() where user_id=(select id from \"user\" where email=$1)",
+      [email]
+    );
+  }finally{await restoreSql.end();}
+
   await page.goto("/reset-password?token=visual-inspection-placeholder");
   await expect(page.getByRole("heading", { name: "Definir nova senha" })).toBeVisible();
   await verifyNoHorizontalOverflow(page);
