@@ -207,7 +207,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
 
   await socialForm.getByLabel("URL HTTPS").fill("https://instagram.com/creatorvisual");
   await socialForm.getByRole("button",{name:"Adicionar rede social"}).click();
-  await expect(page.getByText("Rede social adicionada.")).toBeVisible();
+  await expect(page.getByText("Rede social adicionada.", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByText(/Instagram · @creatorvisual/)).toBeVisible();
   await verifyNoHorizontalOverflow(page);
