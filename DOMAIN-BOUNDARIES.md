@@ -30,3 +30,11 @@ Identity, Workspace, Membership, active Workspace context, authorization and the
 21. Creator self-service authorization derives from CreatorProfile ownership, not Workspace RBAC.
 22. SocialProfile provider connectivity must never be inferred from declared/manual data.
 23. Creator readiness is technical while Creator Terms remain deferred; no fake legal gate is accepted.
+
+
+24. Artist is distinct from CreatorProfile, User and Workspace.
+25. Music Catalog is Artist → Release → Track for marketing operations, not rights administration.
+26. Workspace catalog authority requires both Workspace permission and explicit Artist access.
+27. Track audio is private Shared Media and cannot be reached around catalog authorization.
+28. Catalog import is preview/resolution-first and never auto-merges possible duplicates.
+29. Work, Phonogram, Publishing, Rights, Royalties and Distribution remain outside LANDER CREATORS Music Catalog.

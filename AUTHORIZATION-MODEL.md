@@ -35,3 +35,11 @@ Creator self-service is separate from organization RBAC:
 Authenticated User → owned CreatorProfile → Creator domain action.
 
 A Workspace role, including ADMIN or OWNER, never implies ownership of another User's CreatorProfile. Media attachment is additionally validated through Shared Media authorization rules.
+
+
+## Artist and Music Catalog access path
+Catalog resources are global, but access is Workspace-scoped:
+
+Authenticated User → active Workspace Membership → required catalog permission → WorkspaceArtistAccess → Artist/Release/Track action.
+
+Permissions alone do not grant access to unassigned Artists. Artist access alone does not bypass missing Workspace permissions. Release and Track authorization resolve their primary Artist and re-evaluate the same chain. Track-bound audio adds this catalog check on top of Shared Media authorization.

@@ -25,3 +25,14 @@
 - Creator taxonomy joins use canonical taxonomy_value IDs and unique composite relations.
 - Social metrics are append-only snapshots with explicit captured_at and provenance; unknown values are NULL.
 - Social counts use non-negative PostgreSQL bigint; money is not introduced by Etapa 5A.
+
+
+- Artist/Release/Track are global catalog entities and are not duplicated per Workspace.
+- WorkspaceArtistAccess is the explicit Workspace-to-Artist access edge.
+- Release dates use PostgreSQL date semantics; no timezone conversion is applied.
+- Track duration and TrackSegment boundaries use integer milliseconds.
+- Track numbers are unique within Release in V1; multi-disc modeling is deferred.
+- Artist credits persist explicit role and position.
+- ISRC is normalized locally; it is indexed as duplicate evidence rather than destructive global identity.
+- Music import sessions are idempotent by Workspace + SHA-256 source fingerprint.
+- Import rows persist normalized provenance and explicit duplicate resolution; raw XLSX bytes are not retained.

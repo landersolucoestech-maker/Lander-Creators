@@ -45,3 +45,14 @@ Never log passwords, session tokens, verification tokens, invitation secrets, me
 - Creator avatar attachment reuses Shared Media authorization, rejects foreign assets and revalidates current User/Workspace/Membership/permission state before attachment.
 - User-provided bio is stored as text and rendered through React escaping; arbitrary HTML is not accepted.
 - Creator marketplace visibility is enforced server-side and cannot become VISIBLE before ACTIVE status.
+
+
+## Etapa 5B Artist + Music Catalog
+- Catalog access requires both current Workspace permission and WorkspaceArtistAccess.
+- Guessed Artist/Release/Track IDs cannot bypass the Artist access edge.
+- Revoking WorkspaceArtistAccess takes effect on subsequent authorization checks.
+- Track audio remains PRIVATE and generic Shared Media reads add catalog authorization for Track-bound audio.
+- Artist artwork/audio attachment requires Shared Media permission, same-Workspace MediaAsset, READY status and expected media kind.
+- Catalog URLs require HTTPS; raw parser/database errors remain behind stable PT-BR public errors.
+- XLSX parsing is local: no formula execution, external links, extra/hidden sheets, malformed archives, unbounded rows or unbounded entry expansion.
+- Possible Artist duplicates are never auto-merged.

@@ -41,3 +41,7 @@ Use `taxonomy-engineer` for governed classification/reference boundaries and `sh
 
 ## Etapa 5A Creator specialist
 Use `creator-engineer` and Creator skills for CreatorProfile, SocialProfile, readiness, ownership security and Creator taxonomy/media relationships. Do not introduce Campaign, Matching, Finance or external social providers.
+
+
+## Etapa 5B Music Catalog specialists
+Use `artist-engineer` for Artist identity/access, `music-catalog-engineer` for Release/Track/credits/TrackSegment and `catalog-import-engineer` for the canonical one-sheet XLSX pipeline. Do not introduce Work, Phonogram, rights, distribution, Campaign, Finance or AI Music Intelligence.

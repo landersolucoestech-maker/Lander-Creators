@@ -16,3 +16,8 @@
 
 - Etapa 5A Creator tests cover one-profile-per-User, ownership IDOR, Workspace ADMIN separation, taxonomy substitution/deprecation, SocialProfile URL/provenance/uniqueness, metrics freshness/null semantics, readiness, status submission, visibility eligibility, availability independence and Shared Media attachment isolation.
 - Visual inspection covers Creator empty, form, validation error, populated, social and availability states on desktop/mobile.
+
+
+- Etapa 5B tests cover Artist Workspace access, permission+relationship conjunction, Release/Track creation, ordered primary/featured credits, TrackVersion, TrackSegment bounds, access revocation and Track audio bypass protection.
+- XLSX tests cover exact template columns, SINGLE defaults, EP grouping, semicolon credits, explicit duplicate resolution, ISRC/URL/track-number conflicts, idempotent confirmation, malformed workbook, unexpected/extra sheets, formula-as-data behavior and row limit.
+- Visual inspection covers Music Catalog empty, Artist detail/edit, Release/Track, Track editing, TrackSegment, import upload/error/preview/duplicate resolution/success on desktop and mobile.

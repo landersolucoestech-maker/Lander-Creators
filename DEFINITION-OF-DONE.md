@@ -27,3 +27,7 @@ External infrastructure is never selected or introduced without explicit owner a
 - Creator changes prove ownership isolation independently from Workspace RBAC.
 - Social provider claims require actual provider evidence; declared data remains explicitly manual/not connected.
 - Creator readiness remains explainable and does not claim deferred Terms/legal gates are satisfied.
+
+- Music Catalog changes prove Workspace permission + Artist access authorization, Track audio protection and access-revocation behavior.
+- XLSX changes prove canonical columns, preview-before-write, duplicate resolution, idempotency, no silent overwrite, parser security limits and transactional confirmation.
+- Music Catalog completion must preserve the no-Work/no-Phonogram/no-Rights/no-Distribution boundary.

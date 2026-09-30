@@ -37,3 +37,7 @@ Technical diagnostics remain English and internal. User-visible messages are PT-
 The current owner-authorized visual model is GitHub-only: GitHub Actions starts the exact validated `main` SHA with ephemeral PostgreSQL and local browser tooling, captures desktop/mobile screenshots, runs accessibility checks and uploads the visual artifact.
 
 No external hosting, storage, database, CDN or deployment provider is authorized. Vercel is prohibited. If a future capability requires external infrastructure, it requires explicit owner approval before selection or introduction.
+
+
+## Etapa 5B Music Catalog
+Music Catalog is a global marketing catalog with explicit Workspace access: Artist → Release → Track. Artist access is granted through WorkspaceArtistAccess and combines with current Workspace permission checks. Track audio remains Shared Media and private. XLSX catalog import is repository-local, one-sheet, preview-first, resolution-aware and transactional. No rights, publishing, royalties, distribution or Campaign domain is introduced.

@@ -24,3 +24,13 @@ Logical domain boundaries do not imply one package or service per domain.
 - declared SocialProfile foundation
 - provenance-aware SocialMetricsSnapshot
 - Creator readiness and self-service ownership authorization
+
+
+## Implemented in Etapa 5B
+- Artist
+- WorkspaceArtistAccess
+- Release
+- Track
+- Track Artist Credits
+- TrackSegment
+- Music Catalog XLSX Import

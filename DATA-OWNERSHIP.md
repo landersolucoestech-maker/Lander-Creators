@@ -28,3 +28,15 @@ Better Auth owns passwords, credential accounts, sessions and verification token
 | Social metrics snapshots | Creator social metrics persistence |
 | Creator avatar bytes | Shared Media |
 | Creator self-service authorization | CreatorProfile ownership |
+
+
+| Artist identity/catalog profile | Music Catalog |
+| Release | Music Catalog |
+| Track | Music Catalog |
+| Track Artist Credits | Music Catalog |
+| TrackSegment | Music Catalog |
+| Audio/artwork bytes | Shared Media |
+| Genre hierarchy | Taxonomy |
+| Language/country | Reference Data |
+| Workspace catalog access | Authorization + WorkspaceArtistAccess |
+| XLSX import decisions/provenance | Catalog Import |
