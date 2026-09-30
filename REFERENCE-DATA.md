@@ -8,6 +8,16 @@ Etapa 4 implements deterministic registries for:
 - currencies;
 - IANA timezone identifiers.
 
-Bootstrap is idempotent and safe to rerun.
+The current seed is intentionally a minimal deterministic bootstrap proving the registry and lookup model; it is not represented as a complete worldwide standards catalogue.
 
-The currency registry includes BRL, USD and EUR as standard reference codes. This does not implement product-level multicurrency. V1 financial business semantics remain BRL until a later explicit product decision changes them.
+Current bootstrap includes:
+- languages: pt-BR, en, es;
+- countries: BR, US, AR;
+- currencies: BRL, USD, EUR;
+- timezones: America/Sao_Paulo, America/New_York, UTC.
+
+Bootstrap is idempotent and safe to rerun. CI executes it twice.
+
+The currency registry supporting multiple standard codes does not implement product-level multicurrency. V1 financial business semantics remain BRL until a later explicit product decision changes them.
+
+Reference mutation remains system/governed and is not exposed through ordinary Workspace UI in Etapa 4.

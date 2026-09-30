@@ -8,12 +8,23 @@
 - Workspace tenant isolation enforced in server application services.
 - Active Membership required for Workspace authorization.
 - No `is_admin` authorization bypass.
-- Owner-only nondelegable authority enforced for assigning OWNER.
+- Owner-only nondelegable authority enforced for assigning or mutating OWNER.
 - Final active Owner cannot be removed, suspended or demoted.
-- Invitation secrets are generated cryptographically, stored only as SHA-256 hashes in Workspace invitation persistence, expire and are single-use.
-- Active Workspace preferences are revalidated against current authorization and cleared on Membership suspension/removal.
-- Security-sensitive Workspace/Membership actions write safe audit events.
+- Invitation secrets are cryptographically generated, stored only as hashes, expire and are single-use.
+- Active Workspace preferences are revalidated and cleared on Membership suspension/removal.
+- Security-sensitive Workspace/Membership and Shared Media mutations write safe audit events.
 - Raw provider/database exceptions are mapped before user-facing responses.
+
+## Etapa 4 Shared Media
+- Upload validates detected content signature, declared MIME, extension and size.
+- Original filenames are sanitized and are never used as filesystem paths.
+- Storage keys are opaque UUIDs and are never exposed by public media representations.
+- SVG and archives are rejected by the current foundation.
+- Private content requires authentication, current Workspace `media.view` authorization and a short-lived HMAC access token bound to user, Workspace, MediaAsset and expiration.
+- Token verification rejects tampering, expiry and context mismatch.
+- The local filesystem adapter is disabled by default and is available only when `MEDIA_STORAGE_MODE=ephemeral` is explicitly configured for CI/test visual execution.
+- Cross-tenant access, guessed MediaAsset IDs, suspended Membership access and local storage isolation are integration-tested.
+- Responses use `X-Content-Type-Options: nosniff` and private/no-store caching for media bytes.
 
 ## Deferred
 - MFA user experience.
@@ -21,14 +32,7 @@
 - Production email provider.
 - PostgreSQL RLS; current isolation is application-enforced and integration-tested.
 - Future domain separation-of-duties policies.
+- Malware scanning. No repository-local scanner exists and no external scanning service is authorized.
+- Persistent production media storage. No external storage provider is authorized.
 
-Never log passwords, session tokens, verification tokens, invitation secrets or auth secrets.
-
-
-## Etapa 4
-- Media upload validates content signature, declared MIME, extension and size.
-- SVG and archives are rejected by the foundation.
-- Private media content is served through authenticated Workspace-authorized routes only.
-- Storage keys and filesystem paths are not returned to clients.
-- Cross-tenant media access is integration-tested.
-- External malware scanning is not implemented.
+Never log passwords, session tokens, verification tokens, invitation secrets, media access tokens or auth secrets.
