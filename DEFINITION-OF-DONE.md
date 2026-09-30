@@ -31,3 +31,6 @@ External infrastructure is never selected or introduced without explicit owner a
 - Music Catalog changes prove Workspace permission + Artist access authorization, Track audio protection and access-revocation behavior.
 - XLSX changes prove canonical columns, preview-before-write, duplicate resolution, idempotency, no silent overwrite, parser security limits and transactional confirmation.
 - Music Catalog completion must preserve the no-Work/no-Phonogram/no-Rights/no-Distribution boundary.
+
+## Etapa 5C addition
+Commercial Promoted Entities require additive migrations from zero, explicit authorization, all canonical registry adapters, structured readiness, real PT-BR UI, full tests/build/runtime, desktop/mobile evidence, axe without serious/critical issues, exact-SHA artifact and GitHub-native publication. Campaign must remain absent.

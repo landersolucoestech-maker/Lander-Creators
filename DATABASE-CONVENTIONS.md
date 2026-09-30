@@ -36,3 +36,6 @@
 - ISRC is normalized locally; it is indexed as duplicate evidence rather than destructive global identity.
 - Music import sessions are idempotent by Workspace + SHA-256 source fingerprint.
 - Import rows persist normalized provenance and explicit duplicate resolution; raw XLSX bytes are not retained.
+
+## Etapa 5C
+Migration 0007 is additive. Known parent relations use real foreign keys. WorkspacePromotedEntityAccess uses the controlled promoted_object_type + entity_id pair because PostgreSQL cannot express one FK across multiple target tables; typed services validate every reference before mutation. No Campaign table exists.

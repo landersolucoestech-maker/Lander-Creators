@@ -1,0 +1,2 @@
+# promoted-entity-access-audit
+Verify the complete authorization chain: authenticated active identity, active Workspace membership, Workspace permission, exact WorkspacePromotedEntityAccess type/id, ACTIVE non-expired relationship and entity state. Test foreign IDs, revoked/suspended/expired relationships, ADMIN bypass attempts, foreign media and absence of implicit parent inheritance. Block completion on HIGH/CRITICAL findings.

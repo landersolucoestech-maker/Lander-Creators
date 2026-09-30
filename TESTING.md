@@ -21,3 +21,6 @@
 - Etapa 5B tests cover Artist Workspace access, permission+relationship conjunction, Release/Track creation, ordered primary/featured credits, TrackVersion, TrackSegment bounds, access revocation and Track audio bypass protection.
 - XLSX tests cover exact template columns, SINGLE defaults, EP grouping, semicolon credits, explicit duplicate resolution, ISRC/URL/track-number conflicts, idempotent confirmation, malformed workbook, unexpected/extra sheets, formula-as-data behavior and row limit.
 - Visual inspection covers Music Catalog empty, Artist detail/edit, Release/Track, Track editing, TrackSegment, import upload/error/preview/duplicate resolution/success on desktop and mobile.
+
+## Etapa 5C coverage
+Commercial integration tests cover every canonical commercial type, parent consistency, explicit Workspace access, revocation, duplicate non-merge, foreign-media denial, event validation, registry completeness and adapter resolution. Existing Music Catalog tests remain regression gates. Visual coverage runs desktop/mobile plus axe.

@@ -1,0 +1,2 @@
+# promoted-object-registry-audit
+Assert the registry contains exactly MUSIC_TRACK, MUSIC_RELEASE, ARTIST, COMPANY, BRAND, PRODUCT, SERVICE, PLATFORM, EVENT, PROJECT and INSTITUTIONAL_INITIATIVE. Resolve each through its real source of truth, verify display/context/access/readiness/assets, reject type/entity mismatches and confirm there is no OTHER or Campaign persistence.

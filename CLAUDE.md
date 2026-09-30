@@ -45,3 +45,6 @@ Use `creator-engineer` and Creator skills for CreatorProfile, SocialProfile, rea
 
 ## Etapa 5B Music Catalog specialists
 Use `artist-engineer` for Artist identity/access, `music-catalog-engineer` for Release/Track/credits/TrackSegment and `catalog-import-engineer` for the canonical one-sheet XLSX pipeline. Do not introduce Work, Phonogram, rights, distribution, Campaign, Finance or AI Music Intelligence.
+
+## Etapa 5C boundary
+Commercial promoted entities are Company/Brand/Product/Service/Platform/Event/Project/InstitutionalInitiative. Keep Workspace separate from Company, require explicit per-entity access, reuse Shared Media/Taxonomy/Reference Data and route promoted-object polymorphism through the typed registry. Do not implement Campaign until Etapa 6.
