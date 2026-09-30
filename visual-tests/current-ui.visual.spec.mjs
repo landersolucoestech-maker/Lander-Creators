@@ -4,6 +4,26 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import postgres from "postgres";
 
+
+const CATALOG_HEADERS=["Música","Nome do Lançamento","Tipo de Lançamento","Número da Faixa","Artista Principal","Participação / Feat","Data de Lançamento","Idioma","Gênero","Subgênero","Explícita","Versão","Duração","ISRC","Pré-save","Spotify","Apple Music","Deezer","YouTube","Observações"];
+const crcTable=Array.from({length:256},(_,n)=>{let c=n;for(let k=0;k<8;k++)c=(c&1)?0xedb88320^(c>>>1):c>>>1;return c>>>0;});
+function visualCrc32(bytes){let c=0xffffffff;for(const b of bytes)c=crcTable[(c^b)&255]^(c>>>8);return(c^0xffffffff)>>>0;}
+function visualU16(n){const b=Buffer.alloc(2);b.writeUInt16LE(n);return b;}function visualU32(n){const b=Buffer.alloc(4);b.writeUInt32LE(n>>>0);return b;}
+function visualEsc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function catalogWorkbook(row){
+  const values=CATALOG_HEADERS.map(h=>row[h]??"");const rows=[CATALOG_HEADERS,values].map((r,ri)=>`<row r="${ri+1}">${r.map((cell,ci)=>`<c r="${String.fromCharCode(65+ci)}${ri+1}" t="inlineStr"><is><t>${visualEsc(cell)}</t></is></c>`).join("")}</row>`).join("");
+  const entries=[
+    ["[Content_Types].xml",'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'],
+    ["_rels/.rels",'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ["xl/workbook.xml",'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Catálogo" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ["xl/_rels/workbook.xml.rels",'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'],
+    ["xl/worksheets/sheet1.xml",`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${rows}</sheetData></worksheet>`]
+  ];
+  let offset=0;const locals=[],centrals=[];
+  for(const [nameText,body] of entries){const name=Buffer.from(nameText),bytes=Buffer.from(body),crc=visualCrc32(bytes);const local=Buffer.concat([Buffer.from([0x50,0x4b,0x03,0x04]),visualU16(20),visualU16(0),visualU16(0),visualU16(0),visualU16(0),visualU32(crc),visualU32(bytes.length),visualU32(bytes.length),visualU16(name.length),visualU16(0),name,bytes]);locals.push(local);centrals.push(Buffer.concat([Buffer.from([0x50,0x4b,0x01,0x02]),visualU16(20),visualU16(20),visualU16(0),visualU16(0),visualU16(0),visualU16(0),visualU32(crc),visualU32(bytes.length),visualU32(bytes.length),visualU16(name.length),visualU16(0),visualU16(0),visualU16(0),visualU16(0),visualU32(0),visualU32(offset),name]));offset+=local.length;}
+  const central=Buffer.concat(centrals);return Buffer.concat([...locals,central,Buffer.concat([Buffer.from([0x50,0x4b,0x05,0x06]),visualU16(0),visualU16(0),visualU16(entries.length),visualU16(entries.length),visualU32(central.length),visualU32(offset),visualU16(0)])]);
+}
+
 function record(input) {
   mkdirSync("visual", { recursive: true });
   appendFileSync(
@@ -165,7 +185,10 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await mediaForm.getByRole("button", { name: "Adicionar arquivo" }).click();
   await expect(page.getByText("Arquivo validado e adicionado.")).toBeVisible();
   await expect(page.getByText("visual.png")).toBeVisible();
-  await capture(page, project, "media-list", "/", "Validated Workspace media renders from PostgreSQL metadata and ephemeral CI storage.");
+  await mediaForm.locator('input[type="file"]').setInputFiles({name:"visual.wav",mimeType:"audio/wav",buffer:Buffer.concat([Buffer.from("RIFF"),Buffer.alloc(4),Buffer.from("WAVEfmt "),Buffer.alloc(24)])});
+  await mediaForm.getByRole("button", { name: "Adicionar arquivo" }).click();
+  await expect(page.getByText("visual.wav")).toBeVisible();
+  await capture(page, project, "media-list", "/", "Validated Workspace image and private-audio candidates render from Shared Media.");
 
   await mediaForm.locator('input[type="file"]').setInputFiles({name:"fake.jpg",mimeType:"image/jpeg",buffer:Buffer.from("not-a-jpeg")});
   await mediaForm.getByRole("button", { name: "Adicionar arquivo" }).click();
@@ -223,6 +246,98 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await page.getByLabel("Disponibilidade").selectOption("LIMITED_AVAILABILITY");
   await expect(page.getByText("Disponibilidade atualizada.")).toBeVisible();
   await capture(page, project, "creator-availability", "/creator", "Availability is independent from lifecycle and marketplace visibility.");
+
+
+  await page.goto("/music-catalog");
+  await expect(page.getByRole("heading",{name:"Catálogo musical"})).toBeVisible();
+  await expect(page.getByText("Nenhum artista acessível neste workspace.")).toBeVisible();
+  await verifyNoHorizontalOverflow(page);
+  await capture(page,project,"catalog-empty","/music-catalog","Music Catalog starts empty without fake Artist, Release or Track data.");
+
+  const artistForm=page.locator("form").filter({hasText:"Criar artista"}).first();
+  await artistForm.getByLabel("Nome artístico").fill("Artista Visual");
+  await artistForm.getByLabel("Nome civil").fill("Nome Civil Visual");
+  await artistForm.getByLabel("País").selectOption("BR");
+  await artistForm.getByLabel("Idioma").selectOption("pt-BR");
+  await artistForm.getByLabel("Imagem do artista").selectOption({label:"visual.png"});
+  await artistForm.getByRole("button",{name:"Criar artista"}).click();
+  await expect(page.getByText("Artista criado.")).toBeVisible();
+  await expect(page.getByText("Artista Visual",{exact:true})).toBeVisible();
+  await page.getByText("Editar artista",{exact:true}).click();
+  await capture(page,project,"catalog-artist-detail","/music-catalog","Artist detail/edit state is Workspace-authorized and uses PT-BR labels.");
+
+  const secondArtistForm=page.locator("form").filter({hasText:"Criar artista"}).last();
+  await secondArtistForm.getByLabel("Nome artístico").fill("Feat Visual");
+  await secondArtistForm.getByRole("button",{name:"Criar artista"}).click();
+  await expect(page.getByText("Feat Visual",{exact:true})).toBeVisible();
+
+  const releaseForm=page.locator("form").filter({hasText:"Criar lançamento"});
+  await releaseForm.getByLabel("Artista principal").selectOption({label:"Artista Visual"});
+  await releaseForm.getByLabel("Nome do lançamento").fill("Single Visual");
+  await releaseForm.getByLabel("Tipo").selectOption("SINGLE");
+  await releaseForm.getByLabel("Idioma").selectOption("pt-BR");
+  await releaseForm.getByLabel("Gênero").selectOption({label:"Pop"});
+  await releaseForm.getByLabel("Arte do lançamento").selectOption({label:"visual.png"});
+  await releaseForm.getByRole("button",{name:"Criar lançamento"}).click();
+  await expect(page.getByText("Lançamento criado.")).toBeVisible();
+  await expect(page.getByText("Single Visual",{exact:true})).toBeVisible();
+
+  const trackForm=page.locator("form").filter({hasText:"Criar música"});
+  await trackForm.getByLabel("Lançamento").selectOption({label:"Single Visual"});
+  await trackForm.getByLabel("Música").fill("Música Visual");
+  await trackForm.getByLabel("Número da faixa").fill("1");
+  await trackForm.getByLabel("Artista principal").selectOption({label:"Artista Visual"});
+  await trackForm.getByLabel("Participação / Feat").selectOption({label:"Feat Visual"});
+  await trackForm.getByLabel("Versão").selectOption("REMIX");
+  await trackForm.getByLabel("Duração (Min:Seg)").fill("3:10");
+  await trackForm.getByLabel("ISRC").fill("BRABC2600099");
+  await trackForm.getByLabel("Áudio privado").selectOption({label:"visual.wav"});
+  await trackForm.getByRole("button",{name:"Criar música"}).click();
+  await expect(page.getByText("Música criada.")).toBeVisible();
+  await expect(page.getByText("Música Visual",{exact:true})).toBeVisible();
+  await capture(page,project,"catalog-release-track","/music-catalog","Release and Track render with ordered marketing-catalog metadata and private Shared Media audio.");
+
+  await page.getByText("Editar música",{exact:true}).click();
+  await capture(page,project,"catalog-track-detail","/music-catalog","Track edit surface uses Música terminology while preserving internal Track model.");
+
+  const segmentForm=page.locator("form").filter({hasText:"Adicionar trecho"});
+  await segmentForm.getByLabel("Música").selectOption({label:"Música Visual"});
+  await segmentForm.getByLabel("Início (Min:Seg)").fill("0:15");
+  await segmentForm.getByLabel("Fim (Min:Seg)").fill("0:30");
+  await segmentForm.getByLabel("Rótulo").fill("Refrão");
+  await segmentForm.getByText("Recomendado").click();
+  await segmentForm.getByRole("button",{name:"Adicionar trecho"}).click();
+  await expect(page.getByText("Trecho adicionado.")).toBeVisible();
+  await expect(page.getByText("Refrão",{exact:true})).toBeVisible();
+  await capture(page,project,"catalog-segment","/music-catalog","TrackSegment keeps recommended and authorized as separate user-visible decisions.");
+
+  const importForm=page.locator("form").filter({hasText:"Gerar prévia"});
+  await importForm.locator('input[type="file"]').setInputFiles({name:"invalido.xlsx",mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",buffer:Buffer.from("invalid-xlsx")});
+  await importForm.getByRole("button",{name:"Gerar prévia"}).click();
+  await expect(page.getByText("A planilha contém dados inválidos ou não segue o modelo.")).toBeVisible();
+  await capture(page,project,"catalog-import-error","/music-catalog","Malformed XLSX is rejected with safe PT-BR copy and no parser internals.");
+
+  const catalogSql=postgres(process.env.DATABASE_URL,{max:1,prepare:false});
+  try{await catalogSql.unsafe("insert into artists(artistic_name,normalized_artistic_name,status) values('Duplicado Visual','duplicado visual','DRAFT')");}finally{await catalogSql.end();}
+  const workbook=catalogWorkbook({"Música":"Importada Visual","Tipo de Lançamento":"Single","Artista Principal":"Duplicado Visual","Idioma":"Português (Brasil)","Gênero":"Pop","Explícita":"Não","Versão":"Original","Duração":"2:45","ISRC":"BRABC2600100"});
+  await importForm.locator('input[type="file"]').setInputFiles({name:"catalogo-visual.xlsx",mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",buffer:workbook});
+  await capture(page,project,"catalog-import-upload","/music-catalog","Canonical one-sheet XLSX upload control is accessible before any catalog write.");
+  await importForm.getByRole("button",{name:"Gerar prévia"}).click();
+  await expect(page.getByText("Prévia da importação gerada.")).toBeVisible();
+  await expect(page.getByText("Possível duplicado",{exact:true})).toBeVisible();
+  await capture(page,project,"catalog-import-preview","/music-catalog","Import preview exposes possible Artist duplicate without automatic merge.");
+
+  const resolution=page.locator("form").filter({hasText:"Resolver linha"});
+  await resolution.getByRole("combobox").selectOption("CREATE_NEW");
+  await capture(page,project,"catalog-import-duplicate","/music-catalog","Duplicate-resolution control requires an explicit decision.");
+  await resolution.getByRole("button",{name:"Resolver linha"}).click();
+  await expect(page.getByText("Duplicidade resolvida.")).toBeVisible();
+  await page.getByRole("button",{name:"Confirmar importação"}).click();
+  await expect(page.getByText("Importação concluída.")).toBeVisible();
+  await expect(page.getByText("Importado",{exact:true})).toBeVisible();
+  await expect(page.getByText("Importada Visual",{exact:true})).toBeVisible();
+  await verifyNoHorizontalOverflow(page);
+  await capture(page,project,"catalog-import-success","/music-catalog","Confirmed import creates the catalog graph only after preview and explicit duplicate resolution.");
 
   await page.goto("/reset-password?token=visual-inspection-placeholder");
   await expect(page.getByRole("heading", { name: "Definir nova senha" })).toBeVisible();
