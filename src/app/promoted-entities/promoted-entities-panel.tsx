@@ -59,11 +59,7 @@ export function PromotedEntitiesPanel({workspaceId,initialEntities,taxonomies,re
     }
   }
 
-  return <main className="app-shell">
-    <header className="topbar">
-      <div><p className="eyebrow">CREATOR MARKETING</p><h1>Objetos promovidos</h1><p>Catálogo comercial para futuras campanhas. Campanha ainda não foi implementada.</p></div>
-      <div className="account"><Link className="link-button" href="/">Workspace</Link><Link className="link-button" href="/music-catalog">Catálogo musical</Link></div>
-    </header>
+  return <div className="module-surface">\n    <header className="page-header">\n      <div><p className="eyebrow">OPERAÇÃO</p><h1>Entidades promovidas</h1><p>Empresas, marcas, produtos, serviços e demais contextos comerciais acessíveis neste workspace.</p></div>\n    </header>
     {message?<p className="notice" role="status">{message}</p>:null}
     <section className="catalog-grid">
       {Object.entries(labels).map(([type,label])=><article className="card" key={type}>
@@ -102,6 +98,4 @@ export function PromotedEntitiesPanel({workspaceId,initialEntities,taxonomies,re
       <article className="card"><h2>Novo projeto</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("projects",event,{name:String(data.get("name")??""),companyId:String(data.get("companyId")??"")||null,website:String(data.get("website")??"")||null,existingEntityId:String(data.get("existingEntityId")??"")||null,confirmDuplicate:data.get("confirmDuplicate")==="on"});}}><label>Nome<input name="name" required/></label><label>Empresa<select name="companyId" defaultValue=""><option value="">Sem empresa</option>{companies.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>URL de referência<input name="website" type="url"/></label>{duplicateResolution("PROJECT")}<button type="submit">Criar projeto</button></form></article>
 
       <article className="card"><h2>Nova iniciativa institucional</h2><form className="form" onSubmit={event=>{const data=new FormData(event.currentTarget);void submit("initiatives",event,{name:String(data.get("name")??""),companyId:String(data.get("companyId")??"")||null,website:String(data.get("website")??"")||null,existingEntityId:String(data.get("existingEntityId")??"")||null,confirmDuplicate:data.get("confirmDuplicate")==="on"});}}><label>Nome<input name="name" required/></label><label>Empresa<select name="companyId" defaultValue=""><option value="">Sem empresa</option>{companies.map(item=><option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>URL de referência<input name="website" type="url"/></label>{duplicateResolution("INSTITUTIONAL_INITIATIVE")}<button type="submit">Criar iniciativa institucional</button></form></article>
-    </section>
-  </main>;
-}
+    </section>\n  </div>;\n}\n
