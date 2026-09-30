@@ -14,7 +14,8 @@ const messages: Record<string, string> = {
   LAST_OWNER_PROTECTED: "O último proprietário ativo não pode ser removido, suspenso ou rebaixado.",
   INVITATION_EXPIRED: "Este convite é inválido, expirou ou já foi utilizado.",
   INVITATION_RECIPIENT_MISMATCH: "Este convite pertence a outro endereço de e-mail.",
-  INVALID_REQUEST: "Verifique os dados informados e tente novamente."
+  INVALID_REQUEST: "Verifique os dados informados e tente novamente.",
+  UNTRUSTED_ORIGIN: "A origem desta solicitação não é permitida."
 };
 
 const fallback: PublicError = {
@@ -30,7 +31,10 @@ export function toPublicError(error: unknown): PublicError {
     };
   }
 
-  if (error instanceof Error && error.name === "ValidationError") {
+  if (
+    error instanceof Error &&
+    (error.name === "ValidationError" || error.name === "ZodError")
+  ) {
     return { code: "INVALID_REQUEST", message: messages.INVALID_REQUEST };
   }
 
