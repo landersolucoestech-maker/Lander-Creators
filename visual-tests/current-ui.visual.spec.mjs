@@ -339,6 +339,82 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"catalog-import-success","/music-catalog","Confirmed import creates the catalog graph only after preview and explicit duplicate resolution.");
 
+  await page.goto("/promoted-entities");
+  await expect(page.getByRole("heading",{name:"Objetos promovidos"})).toBeVisible();
+  await verifyNoHorizontalOverflow(page);
+  await capture(page,project,"promoted-entities-empty","/promoted-entities","Commercial promoted entities start empty and Campaign remains unavailable.");
+
+  const companyForm=page.locator("form").filter({hasText:"Criar empresa"});
+  await companyForm.getByLabel("Nome comercial").fill("Empresa Visual");
+  await companyForm.getByLabel("Site HTTPS").fill("https://example.com");
+  await companyForm.getByLabel("País").selectOption("BR");
+  await companyForm.getByLabel("Idioma").selectOption("pt-BR");
+  await companyForm.getByLabel("Logo").selectOption({label:"visual.png"});
+  await companyForm.getByRole("button",{name:"Criar empresa"}).click();
+  await expect(page.getByText("Objeto promovido criado.")).toBeVisible();
+  await expect(page.getByText("Empresa Visual",{exact:true})).toBeVisible();
+  await capture(page,project,"promoted-company","/promoted-entities","Company remains separate from Workspace and exposes explicit promoted-entity access.");
+
+  await companyForm.getByLabel("Nome comercial").fill("Empresa Visual");
+  await companyForm.getByRole("button",{name:"Criar empresa"}).click();
+  await expect(page.getByText("Há um possível duplicado. Confirme como deseja continuar.")).toBeVisible();
+  await capture(page,project,"promoted-duplicate-warning","/promoted-entities","Possible duplicate is surfaced without automatic merge.");
+
+  const brandForm=page.locator("form").filter({hasText:"Criar marca"});
+  await brandForm.getByLabel("Nome").fill("Marca Visual");
+  await brandForm.getByLabel("Empresa").selectOption({label:"Empresa Visual"});
+  await brandForm.getByRole("button",{name:"Criar marca"}).click();
+  await expect(page.getByText("Marca Visual",{exact:true})).toBeVisible();
+  await capture(page,project,"promoted-brand","/promoted-entities","Brand can use explicit Company context without tenancy coupling.");
+
+  const productForm=page.locator("form").filter({hasText:"Criar produto"});
+  await productForm.getByLabel("Nome").fill("Produto Visual");
+  await productForm.getByLabel("Empresa").selectOption({label:"Empresa Visual"});
+  await productForm.getByLabel("Marca").selectOption({label:"Marca Visual"});
+  await productForm.getByLabel("Categoria").selectOption({label:"Produto digital"});
+  await productForm.getByLabel("Imagem").selectOption({label:"visual.png"});
+  await productForm.getByRole("button",{name:"Criar produto"}).click();
+  await expect(page.getByText("Produto Visual",{exact:true})).toBeVisible();
+
+  const serviceForm=page.locator("form").filter({hasText:"Criar serviço"});
+  await serviceForm.getByLabel("Empresa").selectOption({label:"Empresa Visual"});
+  await serviceForm.getByLabel("Nome").fill("Serviço Visual");
+  await serviceForm.getByLabel("Categoria").selectOption({label:"Consultoria"});
+  await serviceForm.getByRole("button",{name:"Criar serviço"}).click();
+  await expect(page.getByText("Serviço Visual",{exact:true})).toBeVisible();
+  await capture(page,project,"promoted-product-service","/promoted-entities","Product and Service use governed commercial taxonomies and explicit parent context.");
+
+  const platformForm=page.locator("form").filter({hasText:"Criar plataforma"});
+  await platformForm.getByLabel("Nome").fill("LANDER CREATORS Visual");
+  await platformForm.getByLabel("Empresa").selectOption({label:"Empresa Visual"});
+  await platformForm.getByLabel("Site HTTPS").fill("https://example.com/platform");
+  await platformForm.getByRole("button",{name:"Criar plataforma"}).click();
+  await expect(page.getByText("LANDER CREATORS Visual",{exact:true})).toBeVisible();
+
+  const eventForm=page.locator("form").filter({hasText:"Criar evento"});
+  await eventForm.getByLabel("Nome").fill("Evento Visual");
+  await eventForm.getByLabel("Modo").selectOption("PHYSICAL");
+  await eventForm.getByLabel("Início").fill("2026-10-10T12:00");
+  await eventForm.getByLabel("Fim").fill("2026-10-10T13:00");
+  await eventForm.getByLabel("Local").fill("Governador Valadares");
+  await eventForm.getByRole("button",{name:"Criar evento"}).click();
+  await expect(page.getByText("Evento Visual",{exact:true})).toBeVisible();
+
+  const projectForm=page.locator("form").filter({hasText:"Criar projeto"});
+  await projectForm.getByLabel("Nome").fill("Projeto Visual");
+  await projectForm.getByLabel("Empresa").selectOption({label:"Empresa Visual"});
+  await projectForm.getByRole("button",{name:"Criar projeto"}).click();
+
+  const initiativeForm=page.locator("form").filter({hasText:"Criar iniciativa institucional"});
+  await initiativeForm.getByLabel("Nome").fill("Iniciativa Visual");
+  await initiativeForm.getByLabel("Empresa").selectOption({label:"Empresa Visual"});
+  await initiativeForm.getByRole("button",{name:"Criar iniciativa institucional"}).click();
+
+  await expect(page.getByText("Projeto Visual",{exact:true})).toBeVisible();
+  await expect(page.getByText("Iniciativa Visual",{exact:true})).toBeVisible();
+  await verifyNoHorizontalOverflow(page);
+  await capture(page,project,"promoted-platform-event-project-initiative","/promoted-entities","Platform, Event, Project and Institutional Initiative render in the same coherent commercial area with no Campaign UI.");
+
   await page.goto("/reset-password?token=visual-inspection-placeholder");
   await expect(page.getByRole("heading", { name: "Definir nova senha" })).toBeVisible();
   await verifyNoHorizontalOverflow(page);
