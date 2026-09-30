@@ -1,3 +1,3 @@
 # /validate
 
-Run lint, formatting, typecheck, tests and build; report exact outcomes.
+Run lint, typecheck, tests and build; report exact outcomes.
