@@ -4,9 +4,9 @@ import { createTestSql,resetSecurityData } from "./test-db";
 import { createWorkspace } from "@/server/workspace/workspace-service";
 import { inviteWorkspaceMember,acceptWorkspaceInvitation } from "@/server/workspace/membership-service";
 import { createArtist,listWorkspaceArtists,revokeWorkspaceArtistAccess } from "@/server/music-catalog/artist-service";
-import { authorizeArtistAccess,authorizeTrackAccess } from "@/server/music-catalog/catalog-access";
+import { authorizeArtistAccess,authorizeReleaseAccess,authorizeTrackAccess } from "@/server/music-catalog/catalog-access";
 import { createRelease,createTrack,createTrackSegment,updateTrack } from "@/server/music-catalog/catalog-service";
-import { uploadMediaAsset,readMediaAsset } from "@/server/media/media-service";
+import { uploadMediaAsset,readMediaAsset,archiveMediaAsset } from "@/server/media/media-service";
 import { LocalEphemeralStorageAdapter } from "@/server/media/local-storage-adapter";
 import { mkdtemp,rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -26,6 +26,9 @@ describe("Artist and Music Catalog foundation",()=>{
   const artist=await createArtist(sql,{userId:a.userId,workspaceId:a.workspaceId,artisticName:"Artista Um",civilName:"Nome Civil",countryCode:"BR",languageCode:"pt-BR"});
   expect((await listWorkspaceArtists(sql,a))[0]).toMatchObject({artisticName:"Artista Um",accessLevel:"MANAGE"});
   await expect(authorizeArtistAccess(sql,{userId:b.userId,workspaceId:b.workspaceId,artistId:String(artist.id),permission:"artist.view"})).rejects.toMatchObject({code:"ARTIST_ACCESS_DENIED"});
+  const release=await createRelease(sql,{userId:a.userId,workspaceId:a.workspaceId,primaryArtistId:String(artist.id),title:"Privado",type:"SINGLE"});
+  await expect(authorizeReleaseAccess(sql,{userId:b.userId,workspaceId:b.workspaceId,releaseId:String(release.id)})).rejects.toMatchObject({code:"ARTIST_ACCESS_DENIED"});
+  await expect(createRelease(sql,{userId:b.userId,workspaceId:b.workspaceId,primaryArtistId:String(artist.id),title:"Ataque",type:"SINGLE"})).rejects.toMatchObject({code:"ARTIST_ACCESS_DENIED"});
  });
 
  it("requires both Workspace permission and Artist relationship",async()=>{
@@ -66,6 +69,8 @@ describe("Artist and Music Catalog foundation",()=>{
     const row=await sql.unsafe("select visibility::text from media_assets where id=$1::uuid",[media.id]);expect(row[0].visibility).toBe("PRIVATE");
     await expect(readMediaAsset(sql,storage,{userId:viewer,workspaceId:owner.workspaceId,mediaAssetId:media.id})).rejects.toMatchObject({code:"MISSING_PERMISSION"});
     expect((await readMediaAsset(sql,storage,{userId:owner.userId,workspaceId:owner.workspaceId,mediaAssetId:media.id})).bytes.length).toBeGreaterThan(0);
+    await archiveMediaAsset(sql,storage,{userId:owner.userId,workspaceId:owner.workspaceId,mediaAssetId:media.id});
+    await expect(readMediaAsset(sql,storage,{userId:owner.userId,workspaceId:owner.workspaceId,mediaAssetId:media.id})).rejects.toMatchObject({code:"MEDIA_NOT_FOUND"});
   }finally{await rm(root,{recursive:true,force:true});}
  });
 });
