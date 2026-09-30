@@ -402,7 +402,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   const platformForm=page.locator("form").filter({hasText:"Criar plataforma"});
   await platformForm.getByLabel("Nome").fill(platformName);
   await platformForm.getByLabel("Empresa").selectOption({label:companyName});
-  await platformForm.getByLabel("Site HTTPS").fill("https://example.com/platform");
+  await platformForm.getByLabel("Site HTTPS").fill(`https://platform-${project}.example.com`);
   await platformForm.getByRole("button",{name:"Criar plataforma"}).click();
   await expect(page.locator(".catalog-row strong").filter({hasText:platformName}).first()).toBeVisible();
   await capture(page,project,"promoted-platform","/promoted-entities","Promoted Platform renders independently from infrastructure providers and Campaign.");
