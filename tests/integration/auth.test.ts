@@ -74,7 +74,7 @@ describe("Better Auth identity integration", () => {
         body: { email, password: "WrongPassword123!" }
       });
     } catch (error) {
-      if (isAPIError(error)) code = error.status;
+      if (isAPIError(error)) code = String(error.status);
     }
     expect(code).not.toBe("");
   });
