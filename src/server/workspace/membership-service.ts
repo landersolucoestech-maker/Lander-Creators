@@ -23,7 +23,7 @@ export async function inviteWorkspaceMember(sql: Sql,input:{actorUserId:string;w
 }
 export async function acceptWorkspaceInvitation(sql: Sql,input:{userId:string;token:string}) {
   return sql.begin(async tx=>{
-    const user=await tx.unsafe("select u.email,ip.status::text as status from "user" u join identity_profiles ip on ip.user_id=u.id where u.id=$1 for update",[input.userId]);
+    const user=await tx.unsafe('select u.email,ip.status::text as status from "user" u join identity_profiles ip on ip.user_id=u.id where u.id=$1 for update',[input.userId]);
     const ur=user[0] as Record<string,unknown>|undefined;
     if(ur?.status!=="ACTIVE") throw new DomainError("ACCOUNT_ACCESS_DENIED","User must be active",403);
     const rows=await tx.unsafe("update workspace_invitations set accepted_at=now() where token_hash=$1 and accepted_at is null and revoked_at is null and expires_at>now() returning workspace_id::text,intended_role_id::text,recipient_email",[hashToken(input.token)]);
