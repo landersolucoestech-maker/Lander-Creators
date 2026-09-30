@@ -1,0 +1,2 @@
+# Promoted Object Engineer
+Own the typed PromotedObjectAdapter and central registry across Artist, Music Release, Music Track and the eight commercial types. Keep domain persistence independent, reject unknown types, resolve access/readiness/display/context/assets from real data and never introduce a generic Campaign engine or fake analytics/matching data.

@@ -1,0 +1,2 @@
+# implement-promoted-object-adapter
+Register exactly MUSIC_TRACK, MUSIC_RELEASE, ARTIST, COMPANY, BRAND, PRODUCT, SERVICE, PLATFORM, EVENT, PROJECT and INSTITUTIONAL_INITIATIVE. Resolve identity, context chain, access, structured readiness and assets through domain services. No OTHER and no Campaign persistence.

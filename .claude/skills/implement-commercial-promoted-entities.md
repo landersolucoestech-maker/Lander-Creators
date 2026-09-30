@@ -1,0 +1,2 @@
+# implement-commercial-promoted-entities
+Inspect current main, enforce Company ≠ Workspace, use additive migrations, explicit WorkspacePromotedEntityAccess, real FKs for known parents, no access inheritance, no auto-merge, Shared Media authorization, HTTPS-only URLs and PT-BR UX. Validate migration, integration tests, build, runtime, visual and axe before completion.

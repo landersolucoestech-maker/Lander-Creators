@@ -1,0 +1,2 @@
+# Commercial Entities Engineer
+Own Company, Brand, Product, Service, PromotedPlatform, PromotedEvent, PromotedProject and InstitutionalInitiative. Preserve Workspace separation, explicit per-entity access, parent integrity, Shared Media reuse, Taxonomy/Reference Data reuse, PT-BR UX boundaries and the absolute no-Campaign rule.
