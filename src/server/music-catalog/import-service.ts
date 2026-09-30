@@ -118,7 +118,7 @@ export async function previewMusicCatalogImport(sql:Sql,input:{userId:string;wor
     const rows=await getMusicCatalogImport(sql,{userId:input.userId,workspaceId:input.workspaceId,sessionId:String(existing[0].id)});
     return rows;
   }
-  const normalized=[];for(const row of parsed)normalized.push(await normalizeRow(sql,input.workspaceId,row));
+  const normalized: Awaited<ReturnType<typeof normalizeRow>>[]=[];for(const row of parsed)normalized.push(await normalizeRow(sql,input.workspaceId,row));
   const status=normalized.some(r=>r.classification==="INVALID"||r.classification==="POSSIBLE_DUPLICATE")?"RESOLUTION_REQUIRED":"READY";
   return sql.begin(async tx=>{
     const s=await tx.unsafe("insert into music_import_sessions(workspace_id,created_by_user_id,source_filename,source_fingerprint,status,row_count) values($1::uuid,$2,$3,$4,$5::music_import_status,$6) returning id::text,status::text,source_filename,row_count",[input.workspaceId,input.userId,input.sourceFilename,fingerprint,status,normalized.length]);
