@@ -37,6 +37,9 @@ jobs:
       MEDIA_STORAGE_MODE: ephemeral
       LOG_LEVEL: info
       LANDER_PREVIEW_RUNTIME: "true"
+      LANDER_LIVE_PREVIEW: "true"
+      LIVE_PREVIEW_EMAIL: ${{ secrets.LIVE_PREVIEW_EMAIL }}
+      LIVE_PREVIEW_PASSWORD: ${{ secrets.LIVE_PREVIEW_PASSWORD }}
       AUTH_SECRET: live-preview-build-only-secret-0123456789abcdef
       AUTH_BASE_URL: http://127.0.0.1:3000
     steps:
@@ -56,6 +59,18 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Validate owner preview credentials
+        shell: bash
+        run: |
+          if [ -z "${LIVE_PREVIEW_EMAIL:-}" ] || [ -z "${LIVE_PREVIEW_PASSWORD:-}" ]; then
+            echo "::error::LIVE_PREVIEW_CREDENTIALS_NOT_CONFIGURED — required repository secrets: LIVE_PREVIEW_EMAIL and LIVE_PREVIEW_PASSWORD"
+            exit 1
+          fi
+          if [ "${#LIVE_PREVIEW_PASSWORD}" -lt 10 ]; then
+            echo "::error::LIVE_PREVIEW_PASSWORD does not satisfy the application minimum password length"
+            exit 1
+          fi
+
       - name: Deterministic install
         run: npm ci --no-audit --no-fund
 
@@ -67,6 +82,10 @@ jobs:
 
       - name: Build exact SHA
         run: npm run build
+
+      - name: Bootstrap authenticated preview owner
+        shell: bash
+        run: npm run preview:bootstrap
 
       - name: Generate ephemeral runtime secret
         shell: bash
@@ -144,8 +163,8 @@ jobs:
             echo
             echo "## Owner access"
             echo
-            echo "Authentication credentials are intentionally **not published** by this public-repository workflow."
-            echo "A verified preview owner bootstrap still requires a GitHub-native secret input/channel before authenticated modules can be safely exposed."
+            echo "Login email: use the configured LIVE_PREVIEW_EMAIL GitHub Actions secret value"
+            echo "Password: use the configured LIVE_PREVIEW_PASSWORD GitHub Actions secret value"
             echo
             echo "## LIVE APPLICATION vs VISUAL REPORT"
             echo
@@ -155,8 +174,28 @@ jobs:
       - name: Authenticated acceptance gate
         shell: bash
         run: |
-          echo "::error::Authenticated owner bootstrap is blocked until a GitHub-native secret credential channel exists for this public repository. Refusing to publish reusable credentials or add an auth bypass."
-          exit 1
+          set -euo pipefail
+          COOKIE_JAR=/tmp/preview-cookies.txt
+          BODY=/tmp/signin.json
+          HTTP_CODE="$(curl -sS -o "$BODY" -w '%{http_code}' -c "$COOKIE_JAR" -H 'content-type: application/json' -X POST "$LIVE_PREVIEW_URL/api/auth/sign-in/email" --data-binary @- <<'JSON'
+          {"email":"__EMAIL__","password":"__PASSWORD__"}
+          JSON
+          )"
+          # Do not put credentials in command text/logs: replace placeholders in-memory via node and retry.
+          rm -f "$BODY" "$COOKIE_JAR"
+          node - <<'NODE' > /tmp/signin-payload.json
+          process.stdout.write(JSON.stringify({email:process.env.LIVE_PREVIEW_EMAIL,password:process.env.LIVE_PREVIEW_PASSWORD}))
+          NODE
+          HTTP_CODE="$(curl -sS -o /tmp/signin-response.json -w '%{http_code}' -c "$COOKIE_JAR" -H 'content-type: application/json' -X POST "$LIVE_PREVIEW_URL/api/auth/sign-in/email" --data-binary @/tmp/signin-payload.json)"
+          rm -f /tmp/signin-payload.json
+          test "$HTTP_CODE" -ge 200 -a "$HTTP_CODE" -lt 300
+          curl -fsS -b "$COOKIE_JAR" "$LIVE_PREVIEW_URL/api/auth/get-session" > /tmp/session.json
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/session.json","utf8"));if(!x?.user?.email)process.exit(1)'
+          curl -fsSL -b "$COOKIE_JAR" "$LIVE_PREVIEW_URL/" > /tmp/authenticated-root.html
+          grep -q "LANDER CREATORS" /tmp/authenticated-root.html
+          curl -fsSL -b "$COOKIE_JAR" "$LIVE_PREVIEW_URL/campaigns" > /tmp/authenticated-campaigns.html
+          test -s /tmp/authenticated-campaigns.html
+          rm -f "$COOKIE_JAR" /tmp/signin-response.json /tmp/session.json
 
       - name: Failure diagnostics
         if: failure()
