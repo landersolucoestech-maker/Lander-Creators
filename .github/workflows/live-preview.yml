@@ -37,6 +37,8 @@ jobs:
       MEDIA_STORAGE_MODE: ephemeral
       LOG_LEVEL: info
       LANDER_PREVIEW_RUNTIME: "true"
+      AUTH_SECRET: live-preview-build-only-secret-0123456789abcdef
+      AUTH_BASE_URL: http://127.0.0.1:3000
     steps:
       - name: Checkout exact main SHA
         uses: actions/checkout@v4
