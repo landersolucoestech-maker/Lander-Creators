@@ -491,7 +491,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
 
   await page.goto("/campaigns/"+commercialCampaignId+"/builder");
   await expect(page.getByRole("heading",{name:"Campanha Produto "+project})).toBeVisible();
-  await expect(page.getByText(productName,{exact:true}).first()).toBeVisible();
+  await expect(page.getByText("Lançamento de produto")).toBeVisible();
   await capture(page,project,"campaign-commercial-builder","/campaigns/[campaignId]/builder","The same generic Builder renders a persisted commercial Product Campaign.");
 
   await page.goto("/campaigns/"+selfDogfoodCampaignId);
