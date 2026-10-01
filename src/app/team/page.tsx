@@ -1,6 +1,5 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/server/auth/auth";
+import { resolveApplicationActor } from "@/server/auth/application-actor";
 import { parseEnv } from "@/server/config/env";
 import { createDatabaseClient } from "@/server/db/client";
 import { getApplicationShellState } from "@/server/application/application-context";
@@ -12,13 +11,13 @@ import { workspaceNavigation } from "../application-navigation";
 import { TeamPanel } from "./team-panel";
 
 export default async function TeamPage(){
- const session=await auth.api.getSession({headers:await headers()});if(!session)redirect("/");
+ const actor=await resolveApplicationActor();if(!actor)redirect("/");
  const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);
  try{
-  const state=await getApplicationShellState(client,{id:session.user.id,name:session.user.name,email:session.user.email});
-  const active=await resolveActiveWorkspace(client,{userId:session.user.id});if(!active)redirect("/workspace");
+  const state=await getApplicationShellState(client,{id:actor.id,name:actor.name,email:actor.email});
+  const active=await resolveActiveWorkspace(client,{userId:actor.id});if(!active)redirect("/workspace");
   if(!state.capabilities.team)return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><AccessDeniedState/></ApplicationShell>;
-  const members=await listWorkspaceMembers(client,{actorUserId:session.user.id,workspaceId:active.workspaceId});
+  const members=await listWorkspaceMembers(client,{actorUserId:actor.id,workspaceId:active.workspaceId});
   return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><TeamPanel workspaceId={active.workspaceId} workspaceName={state.activeWorkspace?.name??"Workspace"} members={members as never}/></ApplicationShell>;
  }finally{await client.end();}
 }
