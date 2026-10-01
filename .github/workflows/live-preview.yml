@@ -172,8 +172,12 @@ jobs:
           tail -n 120 /tmp/tunnel.log 2>/dev/null || true
 
       - name: Keep preview online
-        if: success()
+        if: always()
         shell: bash
         run: |
-          echo "LANDER CREATORS LIVE APPLICATION: $LIVE_PREVIEW_URL"
-          sleep 20400
+          if [ -n "${LIVE_PREVIEW_URL:-}" ]; then
+            echo "LANDER CREATORS LIVE APPLICATION: $LIVE_PREVIEW_URL"
+            sleep 20400
+          else
+            echo "No public preview URL was created; nothing to keep alive."
+          fi
