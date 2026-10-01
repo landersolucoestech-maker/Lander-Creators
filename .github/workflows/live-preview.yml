@@ -33,46 +33,147 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/lander_creators_preview
       TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/lander_creators_preview
-      AUTH_SECRET: preview-only-secret-0123456789abcdef
-      AUTH_BASE_URL: http://127.0.0.1:3000
       EMAIL_DELIVERY_MODE: safe-log
       MEDIA_STORAGE_MODE: ephemeral
       LOG_LEVEL: info
+      LANDER_PREVIEW_RUNTIME: "true"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout exact main SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Verify exact SHA
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+          echo "LIVE_PREVIEW_SHA=${{ github.sha }}" >> "$GITHUB_ENV"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-      - run: npm ci --no-audit --no-fund
-      - run: npm run db:migrate
-      - run: npm run foundation:bootstrap
-      - run: npm run build
-      - name: Start LANDER CREATORS
+
+      - name: Deterministic install
+        run: npm ci --no-audit --no-fund
+
+      - name: Migrate preview PostgreSQL
+        run: npm run db:migrate
+
+      - name: Bootstrap reference foundation
+        run: npm run foundation:bootstrap
+
+      - name: Build exact SHA
+        run: npm run build
+
+      - name: Generate ephemeral runtime secret
+        shell: bash
         run: |
-          npm start > /tmp/app.log 2>&1 &
-          for i in {1..60}; do
-            curl -fsS http://127.0.0.1:3000/api/health && break
-            sleep 1
-          done
-          curl -fsS http://127.0.0.1:3000/api/health
-      - name: Open temporary public URL
+          AUTH_SECRET="$(openssl rand -hex 32)"
+          echo "::add-mask::$AUTH_SECRET"
+          echo "AUTH_SECRET=$AUTH_SECRET" >> "$GITHUB_ENV"
+
+      - name: Open temporary public URL first
+        shell: bash
         run: |
           npx --yes localtunnel --port 3000 > /tmp/tunnel.log 2>&1 &
-          for i in {1..60}; do
-            URL=$(grep -oE 'https://[^ ]+\.loca\.lt' /tmp/tunnel.log | head -1 || true)
+          echo $! > /tmp/tunnel.pid
+          for i in {1..90}; do
+            URL="$(grep -oE 'https://[^ ]+\.loca\.lt' /tmp/tunnel.log | head -1 || true)"
             if [ -n "$URL" ]; then
               echo "LIVE_PREVIEW_URL=$URL" >> "$GITHUB_ENV"
-              echo "### LANDER CREATORS LIVE PREVIEW" >> "$GITHUB_STEP_SUMMARY"
-              echo "$URL" >> "$GITHUB_STEP_SUMMARY"
-              echo "LIVE_PREVIEW_URL=$URL"
+              echo "AUTH_BASE_URL=$URL" >> "$GITHUB_ENV"
               exit 0
             fi
             sleep 1
           done
           cat /tmp/tunnel.log
           exit 1
-      - name: Keep preview online
+
+      - name: Start LANDER CREATORS with external auth origin
+        shell: bash
         run: |
-          echo "LANDER CREATORS: $LIVE_PREVIEW_URL"
+          test -n "$LIVE_PREVIEW_URL"
+          test "$AUTH_BASE_URL" = "$LIVE_PREVIEW_URL"
+          case "$AUTH_BASE_URL" in
+            http://127.0.0.1*|http://localhost*|https://127.0.0.1*|https://localhost*)
+              echo "Refusing to start external preview with localhost AUTH_BASE_URL"
+              exit 1
+              ;;
+          esac
+          NODE_ENV=production AUTH_BASE_URL="$LIVE_PREVIEW_URL" npm start > /tmp/app.log 2>&1 &
+          echo $! > /tmp/app.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000/api/health > /tmp/local-health.json; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/app.log
+          exit 1
+
+      - name: External-origin smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 12 --retry-all-errors --retry-delay 2 -fsS "$LIVE_PREVIEW_URL/api/health" > /tmp/external-health.json
+          grep -q '"status":"ok"' /tmp/external-health.json
+          curl --retry 12 --retry-all-errors --retry-delay 2 -fsSL "$LIVE_PREVIEW_URL/" > /tmp/external-root.html
+          test -s /tmp/external-root.html
+
+      - name: Publish live application summary immediately
+        shell: bash
+        run: |
+          STARTED_AT="$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          EXPIRES_AT="$(date -u -d '+340 minutes' '+%Y-%m-%d %H:%M:%S UTC')"
+          {
+            echo "# LANDER CREATORS — LIVE APPLICATION"
+            echo
+            echo "**Public URL:** $LIVE_PREVIEW_URL"
+            echo
+            echo "- Exact SHA: `$LIVE_PREVIEW_SHA`"
+            echo "- Run ID: `${{ github.run_id }}`"
+            echo "- Status: **LIVE — external health and root smoke passed**"
+            echo "- Started: $STARTED_AT"
+            echo "- Expected expiry: $EXPIRES_AT"
+            echo "- Runtime: real Next.js + ephemeral PostgreSQL on this GitHub Actions runner"
+            echo "- Auth origin: public preview origin (not localhost)"
+            echo "- Media: ephemeral preview storage"
+            echo
+            echo "## Owner access"
+            echo
+            echo "Authentication credentials are intentionally **not published** by this public-repository workflow."
+            echo "A verified preview owner bootstrap still requires a GitHub-native secret input/channel before authenticated modules can be safely exposed."
+            echo
+            echo "## LIVE APPLICATION vs VISUAL REPORT"
+            echo
+            echo "This URL is the **LIVE APPLICATION**. GitHub Pages from CI is only the **VISUAL REPORT**."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Authenticated acceptance gate
+        shell: bash
+        run: |
+          echo "::error::Authenticated owner bootstrap is blocked until a GitHub-native secret credential channel exists for this public repository. Refusing to publish reusable credentials or add an auth bypass."
+          exit 1
+
+      - name: Failure diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          echo "Exact SHA: ${{ github.sha }}"
+          echo "Public URL: ${LIVE_PREVIEW_URL:-not-created}"
+          echo "--- local health ---"
+          cat /tmp/local-health.json 2>/dev/null || true
+          echo "--- external health ---"
+          cat /tmp/external-health.json 2>/dev/null || true
+          echo "--- application log tail ---"
+          tail -n 120 /tmp/app.log 2>/dev/null || true
+          echo "--- tunnel log tail ---"
+          tail -n 120 /tmp/tunnel.log 2>/dev/null || true
+
+      - name: Keep preview online
+        if: success()
+        shell: bash
+        run: |
+          echo "LANDER CREATORS LIVE APPLICATION: $LIVE_PREVIEW_URL"
           sleep 20400
