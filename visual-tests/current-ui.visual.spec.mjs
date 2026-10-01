@@ -461,6 +461,8 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
     commercialProductId=String(product[0].id);
     await campaignSql.unsafe("update products set status='ACTIVE',updated_at=now() where id=$1::uuid",[commercialProductId]);
     await campaignSql.unsafe("update promoted_platforms set status='ACTIVE',updated_at=now() where id=$1::uuid",[String(platform[0].id)]);
+    await campaignSql.unsafe("update workspace_promoted_entity_access set status='ACTIVE',expires_at=null,updated_at=now() where workspace_id=$1::uuid and entity_type='PRODUCT' and entity_id=$2::uuid",[workspaceId,commercialProductId]);
+    await campaignSql.unsafe("update workspace_promoted_entity_access set status='ACTIVE',expires_at=null,updated_at=now() where workspace_id=$1::uuid and entity_type='PLATFORM' and entity_id=$2::uuid",[workspaceId,String(platform[0].id)]);
     async function seedReadyCampaign(name,type,entityId,displayName,goalCode,ctaType,ctaUrl){
       const rows=await campaignSql.unsafe(
         "insert into campaigns(workspace_id,name,status,mode,visibility,recruitment_status,promoted_object_type,promoted_object_id,promoted_object_display_name_snapshot,goal_code,cta_type,cta_url,brief,starts_at,ends_at,timezone_code,last_builder_step,created_by_user_id) values($1::uuid,$2,'DRAFT','FIXED','PRIVATE','NOT_OPEN',$3::promoted_object_type,$4::uuid,$5,$6,$7,$8,'Briefing visual completo para validação da campanha.',now()-interval '1 day',now()+interval '10 days','America/Sao_Paulo',10,$9) returning id::text",
