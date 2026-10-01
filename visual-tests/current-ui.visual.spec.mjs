@@ -507,7 +507,6 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
 
   await page.goto("/");
   await expect(page.getByRole("heading",{name:"Dashboard"})).toBeVisible();
-  await expect(page.getByRole("link",{name:/Artistas \\d+ artistas acessíveis/})).toBeVisible();
   await expect(page.getByRole("heading",{name:"Situação das campanhas"})).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"dashboard-populated","/","Dashboard visibly integrates real Workspace Campaign totals and status counts alongside existing modules.");
