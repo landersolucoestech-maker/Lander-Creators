@@ -38,8 +38,6 @@ jobs:
       LOG_LEVEL: info
       LANDER_PREVIEW_RUNTIME: "true"
       LANDER_LIVE_PREVIEW: "true"
-      LIVE_PREVIEW_EMAIL: ${{ secrets.LIVE_PREVIEW_EMAIL }}
-      LIVE_PREVIEW_PASSWORD: ${{ secrets.LIVE_PREVIEW_PASSWORD }}
       AUTH_SECRET: live-preview-build-only-secret-0123456789abcdef
       AUTH_BASE_URL: http://127.0.0.1:3000
     steps:
@@ -59,18 +57,6 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Validate owner preview credentials
-        shell: bash
-        run: |
-          if [ -z "${LIVE_PREVIEW_EMAIL:-}" ] || [ -z "${LIVE_PREVIEW_PASSWORD:-}" ]; then
-            echo "::error::LIVE_PREVIEW_CREDENTIALS_NOT_CONFIGURED — required repository secrets: LIVE_PREVIEW_EMAIL and LIVE_PREVIEW_PASSWORD"
-            exit 1
-          fi
-          if [ "${#LIVE_PREVIEW_PASSWORD}" -lt 10 ]; then
-            echo "::error::LIVE_PREVIEW_PASSWORD does not satisfy the application minimum password length"
-            exit 1
-          fi
-
       - name: Deterministic install
         run: npm ci --no-audit --no-fund
 
@@ -80,21 +66,18 @@ jobs:
       - name: Bootstrap reference foundation
         run: npm run foundation:bootstrap
 
-      - name: Build exact SHA
-        run: npm run build
-
-      - name: Bootstrap authenticated preview owner
-        shell: bash
-        run: |
-          echo "::error::PREVIEW_BOOTSTRAP_IMPLEMENTATION_PENDING"
-          exit 1
-
       - name: Generate ephemeral runtime secret
         shell: bash
         run: |
           AUTH_SECRET="$(openssl rand -hex 32)"
           echo "::add-mask::$AUTH_SECRET"
           echo "AUTH_SECRET=$AUTH_SECRET" >> "$GITHUB_ENV"
+
+      - name: Bootstrap live preview owner
+        run: npm run preview:bootstrap
+
+      - name: Build exact SHA
+        run: npm run build
 
       - name: Open temporary public URL first
         shell: bash
@@ -165,39 +148,32 @@ jobs:
             echo
             echo "## Owner access"
             echo
-            echo "Login email: use the configured LIVE_PREVIEW_EMAIL GitHub Actions secret value"
-            echo "Password: use the configured LIVE_PREVIEW_PASSWORD GitHub Actions secret value"
+            echo "Open the Live Application URL. No login required."
+            echo
+            echo "This is an ephemeral preview environment running on disposable GitHub Actions infrastructure. Do not enter production or sensitive data."
             echo
             echo "## LIVE APPLICATION vs VISUAL REPORT"
             echo
             echo "This URL is the **LIVE APPLICATION**. GitHub Pages from CI is only the **VISUAL REPORT**."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Authenticated acceptance gate
+      - name: Live application acceptance gate
         shell: bash
         run: |
           set -euo pipefail
-          COOKIE_JAR=/tmp/preview-cookies.txt
-          BODY=/tmp/signin.json
-          HTTP_CODE="$(curl -sS -o "$BODY" -w '%{http_code}' -c "$COOKIE_JAR" -H 'content-type: application/json' -X POST "$LIVE_PREVIEW_URL/api/auth/sign-in/email" --data-binary @- <<'JSON'
-          {"email":"__EMAIL__","password":"__PASSWORD__"}
-          JSON
-          )"
-          # Do not put credentials in command text/logs: replace placeholders in-memory via node and retry.
-          rm -f "$BODY" "$COOKIE_JAR"
-          node - <<'NODE' > /tmp/signin-payload.json
-          process.stdout.write(JSON.stringify({email:process.env.LIVE_PREVIEW_EMAIL,password:process.env.LIVE_PREVIEW_PASSWORD}))
-          NODE
-          HTTP_CODE="$(curl -sS -o /tmp/signin-response.json -w '%{http_code}' -c "$COOKIE_JAR" -H 'content-type: application/json' -X POST "$LIVE_PREVIEW_URL/api/auth/sign-in/email" --data-binary @/tmp/signin-payload.json)"
-          rm -f /tmp/signin-payload.json
-          test "$HTTP_CODE" -ge 200 -a "$HTTP_CODE" -lt 300
-          curl -fsS -b "$COOKIE_JAR" "$LIVE_PREVIEW_URL/api/auth/get-session" > /tmp/session.json
-          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/session.json","utf8"));if(!x?.user?.email)process.exit(1)'
-          curl -fsSL -b "$COOKIE_JAR" "$LIVE_PREVIEW_URL/" > /tmp/authenticated-root.html
-          grep -q "LANDER CREATORS" /tmp/authenticated-root.html
-          curl -fsSL -b "$COOKIE_JAR" "$LIVE_PREVIEW_URL/campaigns" > /tmp/authenticated-campaigns.html
-          test -s /tmp/authenticated-campaigns.html
-          rm -f "$COOKIE_JAR" /tmp/signin-response.json /tmp/session.json
+          for route in / /campaigns /creator /music-catalog /promoted-entities /media /team /workspace /settings; do
+            file="/tmp/accept-$(echo "$route" | tr '/ ' '__').html"
+            curl --retry 8 --retry-all-errors --retry-delay 2 -fsSL "$LIVE_PREVIEW_URL$route" > "$file"
+            test -s "$file"
+            if grep -q "Acesse sua conta" "$file"; then
+              echo "::error::Preview route unexpectedly rendered authentication challenge: $route"
+              exit 1
+            fi
+          done
+          grep -q "Dashboard" /tmp/accept-_.html
+          grep -q "Campanhas" /tmp/accept-_campaigns.html
+          grep -q "Catálogo musical" /tmp/accept-_music-catalog.html
+          grep -q "Entidades promovidas" /tmp/accept-_promoted-entities.html
 
       - name: Failure diagnostics
         if: failure()
