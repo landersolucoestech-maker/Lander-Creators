@@ -527,6 +527,9 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await expect(page.getByRole("heading",{name:"Acesso não disponível"})).toBeVisible();
   await verifyNoHorizontalOverflow(page);
   await capture(page,project,"access-denied","/team","Direct route access remains server-authorized even when Team navigation is unavailable.");
+  await page.goto("/campaigns");
+  await expect(page.getByRole("heading",{name:"Acesso não disponível"})).toBeVisible();
+  await capture(page,project,"campaign-access-denied","/campaigns","Direct Campaign route denies a user without campaign.view even when the URL is entered directly.");
 
   const restoreSql=postgres(process.env.DATABASE_URL,{max:1,prepare:false});
   try{
