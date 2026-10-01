@@ -434,7 +434,7 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await capture(page,project,"promoted-platform-event-project-initiative","/promoted-entities","Platform, Event, Project and Institutional Initiative render in the same coherent commercial area with no Campaign UI.");
 
   await page.goto("/campaigns");
-  await expect(page.getByRole("heading",{name:"Campanhas"})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Campanhas",level:1})).toBeVisible();
   await capture(page,project,"campaign-empty","/campaigns","Campaign module starts with a real Workspace-scoped empty state.");
   const campaignForm=page.locator("form").filter({hasText:"Criar campanha"});
   await campaignForm.getByLabel("Nome da campanha").fill("Campanha Visual "+project);
