@@ -44,6 +44,19 @@ export function DashboardView({
         </div>
       </section>
 
+      {summary.campaigns !== null ? (
+        <section className="card compact-card" aria-labelledby="campaign-summary-title">
+          <p className="eyebrow">CAMPANHAS</p>
+          <h2 id="campaign-summary-title">Situação das campanhas</h2>
+          <div className="mini-stats">
+            <div><strong>{summary.campaigns}</strong><span>Total</span></div>
+            <div><strong>{summary.campaignByStatus?.DRAFT ?? 0}</strong><span>Rascunhos</span></div>
+            <div><strong>{summary.campaignByStatus?.SCHEDULED ?? 0}</strong><span>Agendadas</span></div>
+            <div><strong>{summary.campaignByStatus?.ACTIVE ?? 0}</strong><span>Ativas</span></div>
+          </div>
+        </section>
+      ) : null}
+
       {summary.promotedEntities !== null ? (
         <section className="card compact-card" aria-labelledby="commercial-title">
           <p className="eyebrow">ENTIDADES PROMOVIDAS</p>
