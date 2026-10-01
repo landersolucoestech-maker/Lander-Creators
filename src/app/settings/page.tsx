@@ -1,6 +1,5 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/server/auth/auth";
+import { resolveApplicationActor } from "@/server/auth/application-actor";
 import { parseEnv } from "@/server/config/env";
 import { createDatabaseClient } from "@/server/db/client";
 import { getApplicationShellState } from "@/server/application/application-context";
@@ -8,10 +7,10 @@ import { ApplicationShell } from "../application-shell";
 import { workspaceNavigation } from "../application-navigation";
 
 export default async function SettingsPage(){
- const session=await auth.api.getSession({headers:await headers()});if(!session)redirect("/");
+ const actor=await resolveApplicationActor();if(!actor)redirect("/");
  const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);
  try{
-  const state=await getApplicationShellState(client,{id:session.user.id,name:session.user.name,email:session.user.email});
+  const state=await getApplicationShellState(client,{id:actor.id,name:actor.name,email:actor.email});
   return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace">
    <div className="page-stack">
     <header className="page-header"><div><p className="eyebrow">ORGANIZAÇÃO</p><h1>Configurações</h1><p>Informações existentes da sua conta e do contexto ativo.</p></div></header>
