@@ -18,8 +18,7 @@
     "quality": "npm run lint && npm run typecheck && npm run test && npm run build",
     "db:migrate": "node scripts/migrate.mjs",
     "test:integration": "vitest run tests/integration",
-    "foundation:bootstrap": "node scripts/bootstrap-foundation.mjs",
-    "preview:bootstrap": "node scripts/bootstrap-live-preview.mjs"
+    "foundation:bootstrap": "node scripts/bootstrap-foundation.mjs"
   },
   "dependencies": {
     "better-auth": "^1.7.6",
