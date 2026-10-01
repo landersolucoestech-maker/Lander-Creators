@@ -69,7 +69,8 @@ describe("Promoted entity access and adapters",()=>{
  });
 
  it("keeps promoted object type closed after Campaign Core introduction",async()=>{
-   expect(campaign[0].table_name).toBeNull();
+   const campaign=await sql.unsafe("select to_regclass('public.campaigns')::text as table_name");
+   expect(campaign[0].table_name).toBe("campaigns");
    const enumValues=await sql.unsafe("select enumlabel from pg_enum join pg_type on pg_type.oid=pg_enum.enumtypid where typname='promoted_object_type' order by enumsortorder");
    expect(enumValues.map(v=>v.enumlabel)).not.toContain("OTHER");
  });
