@@ -1,58 +1,39 @@
 # LANDER CREATORS Assisted Engineering
 
-The principal repository orchestrator is `lander-creators-orchestrator`.
+The principal repository orchestrator is `lander-creators-orchestrator`. Read `ENGINEERING-SYSTEM.md`, `DOMAIN-MAP.md`, `DATA-OWNERSHIP.md`, `ARCHITECTURE.md`, `DEFINITION-OF-DONE.md` and applicable `.claude/rules/*` before material changes.
 
 ## Absolute branch policy
 
-`main` is the only valid branch for LANDER CREATORS engineering work.
+`main` is the only valid branch. Work, commit, validate and push only on `main`. Never create or use topic, PR, develop, release or automated update branches. Never force-push or rewrite history except explicit repository recovery.
 
-All assisted engineering must:
-- work, commit, validate and push only on `main`;
-- never create, use, update, synchronize or push another branch;
-- treat every non-`main` branch as a policy violation to be removed;
-- never introduce a topic-branch, pull-request-branch, `develop`, release-branch or automated update-branch workflow.
+## Canonical control plane
 
-All assisted engineering must also preserve repository identity, architecture boundaries, technical language rules, security boundaries and scope control before editing.
+Use `.claude/agents`, `.claude/skills`, `.claude/commands`, `.claude/rules` and `.claude/hooks` as the repository-scoped engineering control plane. External engineering packs are selective capability sources only; they do not replace this control plane.
 
-Use `.claude/agents`, `.claude/skills`, `.claude/commands`, `.claude/rules` and `.claude/hooks` as the repository-scoped engineering control plane.
+## Current implemented ownership
 
+Current canonical domain state is defined by `DOMAIN-MAP.md`; data authority is defined by `DATA-OWNERSHIP.md`. Historical Etapa boundaries are provenance, not permission to contradict current repository state.
 
-## Etapa 3 specialists
+Implemented owners include Identity, Workspace/Membership, Authorization, Taxonomy, Reference Data, Shared Media, Creator, Music Catalog, Commercial Promoted Entities, Promoted Object Registry and Campaign Core. The application shell/Dashboard composes those owners without taking their persistence.
 
-Current security-root specialists:
-- `identity-engineer`
-- `workspace-engineer`
-- `authorization-engineer`
+Downstream Participation, Proposal/Engagement, Engagement Terms, Deliverables/Content, Publication, Finance/Payments, Analytics/Reporting, Matching, Disputes, provider-backed Integrations, Music Intelligence, AI Runtime and Distribution remain separate until explicitly implemented.
 
-Use authorization/tenant/database analysis skills for changes that touch Identity, Workspace, Membership, permissions, invitations, migrations or tenant isolation. No downstream-domain specialist is installed by Etapa 3.
+## Domain specialists
 
+Use the narrowest matching specialist. Security-root changes use identity/workspace/authorization specialists; media/taxonomy/catalog/creator/commercial/campaign changes use their repository specialists. Cross-domain work remains coordinated by `lander-creators-orchestrator` and must preserve single ownership.
+
+Campaign work must not collapse Participation, Engagement, Finance, delivered Content, Publication, Analytics, Matching or AI into Campaign Core.
 
 ## Permanent visual development rule
 
-For any stage that changes user-visible application behavior, read and enforce `VISUAL-DEVELOPMENT-POLICY.md`.
-
-Under the current owner-authorized policy, a user-visible stage is complete only after the exact CI-green `main` SHA passes the GitHub Actions visual-inspection job and its artifact is verified. No external deployment or public URL is implied or authorized.
+For user-visible changes, read and enforce `VISUAL-DEVELOPMENT-POLICY.md`. Completion requires the exact CI-green `main` SHA to pass repository visual inspection. A generated visual report is evidence, not a substitute for owner-approved visual references.
 
 **Vercel is prohibited for this project.**
 
+## Provider rule
 
-## Etapa 4 specialists
-Use `taxonomy-engineer` for governed classification/reference boundaries and `shared-media-engineer` for provider-neutral media metadata, validation, tenant access and storage seams. Do not introduce downstream-domain specialists or external infrastructure without owner approval.
+Do not introduce hosting, storage, auth, social, payment, signature, messaging, analytics or deployment providers implicitly. Keep integration seams provider-neutral until the applicable provider is explicitly authorized.
 
-## Etapa 5A Creator specialist
-Use `creator-engineer` and Creator skills for CreatorProfile, SocialProfile, readiness, ownership security and Creator taxonomy/media relationships. Do not introduce Campaign, Matching, Finance or external social providers.
+## Completion rule
 
-
-## Etapa 5B Music Catalog specialists
-Use `artist-engineer` for Artist identity/access, `music-catalog-engineer` for Release/Track/credits/TrackSegment and `catalog-import-engineer` for the canonical one-sheet XLSX pipeline. Do not introduce Work, Phonogram, rights, distribution, Campaign, Finance or AI Music Intelligence.
-
-## Etapa 5C boundary
-Commercial promoted entities are Company/Brand/Product/Service/Platform/Event/Project/InstitutionalInitiative. Keep Workspace separate from Company, require explicit per-entity access, reuse Shared Media/Taxonomy/Reference Data and route promoted-object polymorphism through the typed registry. Do not implement Campaign until Etapa 6.
-
-
-## Etapa 5D assisted engineering
-Application experience work may use `.claude/agents/application-shell-engineer.md` and `.claude/agents/dashboard-engineer.md` with the repository-local skills `implement-application-shell`, `implement-dashboard`, `navigation-audit` and `visual-consistency-audit`. These helpers consolidate implemented domains only; they must not start Campaign or introduce new providers.
-
-
-## Etapa 6 — Campaign Core
-Campaign work must use the Campaign Core and Campaign Builder agents/skills. Never create subtype campaign engines or skip into Participation, Engagement, Finance, Content, Publication, Analytics metrics, Matching or AI.
+Before claiming completion, satisfy `DEFINITION-OF-DONE.md`, identify the exact SHA, and verify the required CI/runtime/visual gates. If a gate fails, return to the failure before advancing.
