@@ -1,52 +1,39 @@
-# Domain Map
+# LANDER CREATORS — Domain Map
 
-## Implemented in Etapa 3
+This document describes the current repository state. Historical stage notes belong in Git history and stage reports, not in the canonical domain map.
+
+## Implemented business and foundation domains
+
 - Identity
 - Workspace
 - Membership
-- Authorization foundation
+- Authorization
 - Security Audit foundation
-
-## Not implemented yet
-Campaign, Participation, Engagement, Terms, Finance, Content, Publication, Analytics, Reporting, Matching, Disputes, downstream Integrations business domains, Music Intelligence, AI Operations and Platform Operations remain intentionally unimplemented.
-
-Logical domain boundaries do not imply one package or service per domain.
-
-
-## Implemented in Etapa 4
 - Taxonomy
 - Reference Data
-- Shared Media foundation
+- Shared Media
+- Creator: CreatorProfile, taxonomy relationships, declared SocialProfile, provenance-aware SocialMetricsSnapshot, readiness and self-service ownership authorization
+- Music Catalog: Artist, WorkspaceArtistAccess, Release, Track, Track Artist Credits, TrackSegment and one-sheet XLSX catalog import
+- Commercial Promoted Entities: Company, Brand, Product, Service, PromotedPlatform, PromotedEvent, PromotedProject, InstitutionalInitiative and WorkspacePromotedEntityAccess
+- Promoted Object Registry across music and commercial promoted-object types
+- Campaign Core: lifecycle/state machine, promoted-object snapshot, targeting, content requirements, brief/assets, schedule, planning budget/capacity, rights requirements, tracking configuration, readiness and 10-step Campaign Builder
 
-## Implemented in Etapa 5A
-- CreatorProfile
-- Creator taxonomy relationships
-- declared SocialProfile foundation
-- provenance-aware SocialMetricsSnapshot
-- Creator readiness and self-service ownership authorization
+## Implemented application-experience layer
 
+The authenticated application shell, Dashboard, navigation registry, Media, Team, Workspace and Settings surfaces compose existing domains. They do not own business persistence.
 
-## Implemented in Etapa 5B
-- Artist
-- WorkspaceArtistAccess
-- Release
-- Track
-- Track Artist Credits
-- TrackSegment
-- Music Catalog XLSX Import
+## Intentionally not implemented yet
 
-## Etapa 5C
-Implemented: Company, Brand, Product, Service, PromotedPlatform, PromotedEvent, PromotedProject, InstitutionalInitiative, WorkspacePromotedEntityAccess and the typed Promoted Object Registry across Music + Commercial types.
+Participation, Proposal/negotiation, Engagement, Engagement Terms, Deliverables/Content, Publication, Finance/Payments, Analytics metrics, Reporting, Matching, Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
 
+## Boundary rules
 
-## Application experience layer
-Etapa 5D adds an application-experience layer above the existing domains: authenticated shell, Dashboard, navigation registry, Media, Team, Workspace and Settings surfaces. This layer does not create a new business domain and does not own Identity, Creator, Music Catalog, Shared Media or Commercial Promoted Entity persistence.
-
-
-# Domain Map
-
-## Implemented
-Identity, Workspace, Authorization, Taxonomy, Reference Data, Shared Media, Creator, Music Catalog, Commercial Promoted Entities, Promoted Object Registry, Application Shell, Dashboard and Campaign Core with the 10-step Campaign Builder.
-
-## Not implemented
-Participation, Engagement, Proposal, Engagement Terms, Finance, Content, Publication, Analytics metrics, Reporting, Matching, Music Intelligence, AI Runtime and Distribution.
+- Workspace is the operational tenant; it is not Company, Brand, Artist or Creator.
+- User/authentication identity is not CreatorProfile.
+- Creator and Artist are distinct identities.
+- Campaign planning budget is not Finance/Payments.
+- Campaign content requirements are not delivered Content/Deliverables.
+- Campaign rights requirements are planning requirements, not an executed Engagement Terms contract.
+- Promoted-object polymorphism belongs to the typed Promoted Object Registry.
+- Shared Media owns media metadata/storage seams; business domains own business meaning and references.
+- Logical domain boundaries do not require one package or service per domain.
