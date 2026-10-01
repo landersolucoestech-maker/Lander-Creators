@@ -1,4 +1,4 @@
-import { auth } from "@/server/auth/auth";
+import { resolveApplicationActor } from "@/server/auth/application-actor";
 import { DomainError } from "@/server/shared/domain-error";
 import { toPublicError } from "@/server/errors/public-error";
 
@@ -20,11 +20,9 @@ export function assertTrustedRequestOrigin(request: Request) {
 
 export async function requireAuthenticatedUser(request: Request) {
   assertTrustedRequestOrigin(request);
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session?.user?.id) {
-    throw new DomainError("AUTHENTICATION_REQUIRED", "Authentication required", 401);
-  }
-  return session.user;
+  const actor = await resolveApplicationActor(request);
+  if (!actor) throw new DomainError("AUTHENTICATION_REQUIRED", "Authentication required", 401);
+  return actor;
 }
 
 export function apiErrorResponse(error: unknown) {
