@@ -449,15 +449,64 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await page.getByRole("link",{name:"Salvar e sair"}).click();
   await expect(page.getByText("Esta campanha ainda não pode ser ativada.")).toBeVisible();
   await capture(page,project,"campaign-blocked-activation","/campaigns/[campaignId]","Incomplete Campaign shows structured activation blockers.");
+
+  const campaignSql=postgres(process.env.DATABASE_URL,{max:1,prepare:false});
+  let musicCampaignId,commercialCampaignId,selfDogfoodCampaignId,commercialProductId;
+  try{
+    const context=await campaignSql.unsafe('select u.id user_id,m.workspace_id::text workspace_id from "user" u join memberships m on m.user_id=u.id where u.email=$1 limit 1',[email]);
+    const userId=String(context[0].user_id),workspaceId=String(context[0].workspace_id);
+    const track=await campaignSql.unsafe("select id::text from tracks where title='Música Visual' order by created_at desc limit 1");
+    const product=await campaignSql.unsafe("select id::text from products where name=$1 order by created_at desc limit 1",[productName]);
+    const platform=await campaignSql.unsafe("select id::text from promoted_platforms where name=$1 order by created_at desc limit 1",[platformName]);
+    commercialProductId=String(product[0].id);
+    async function seedReadyCampaign(name,type,entityId,displayName,goalCode,ctaType,ctaUrl){
+      const rows=await campaignSql.unsafe(
+        "insert into campaigns(workspace_id,name,status,mode,visibility,recruitment_status,promoted_object_type,promoted_object_id,promoted_object_display_name_snapshot,goal_code,cta_type,cta_url,brief,starts_at,ends_at,timezone_code,last_builder_step,created_by_user_id) values($1::uuid,$2,'DRAFT','FIXED','PRIVATE','NOT_OPEN',$3::promoted_object_type,$4::uuid,$5,$6,$7,$8,'Briefing visual completo para validação da campanha.',now()-interval '1 day',now()+interval '10 days','America/Sao_Paulo',10,$9) returning id::text",
+        [workspaceId,name,type,entityId,displayName,goalCode,ctaType,ctaUrl,userId]
+      );
+      const id=String(rows[0].id);
+      await campaignSql.unsafe("insert into campaign_builder_steps(campaign_id,step,completed,completed_at) select $1::uuid,s,true,now() from generate_series(1,10)s",[id]);
+      await campaignSql.unsafe("insert into campaign_content_requirements(campaign_id,platform,format,quantity,required_publication,ugc) values($1::uuid,'INSTAGRAM','REEL',1,true,true)",[id]);
+      return id;
+    }
+    musicCampaignId=await seedReadyCampaign("Campanha Música "+project,"MUSIC_TRACK",String(track[0].id),"Música Visual","MUSIC_DISCOVERY","LEARN_MORE","https://music.example.com");
+    commercialCampaignId=await seedReadyCampaign("Campanha Produto "+project,"PRODUCT",commercialProductId,productName,"PRODUCT_LAUNCH","LEARN_MORE","https://product.example.com");
+    selfDogfoodCampaignId=await seedReadyCampaign("LANDER CREATORS Recruitment "+project,"PLATFORM",String(platform[0].id),platformName,"CREATOR_RECRUITMENT","SIGN_UP","https://creators.example.com/signup");
+  }finally{await campaignSql.end();}
+
+  await page.goto("/campaigns/"+musicCampaignId);
+  await expect(page.getByRole("heading",{name:"Campanha Música "+project})).toBeVisible();
+  await expect(page.getByText("Descoberta musical")).toBeVisible();
+  await capture(page,project,"campaign-detail-music","/campaigns/[campaignId]","Campaign detail proves a real Music Track promoted object using the generic Campaign Core.");
+  await page.getByRole("button",{name:"Ativar campanha"}).click();
+  await expect(page.getByText("Ativa",{exact:true})).toBeVisible();
+  await capture(page,project,"campaign-active","/campaigns/[campaignId]","Ready Music Campaign activates through the real lifecycle transition.");
+  await page.getByRole("button",{name:"Pausar"}).click();
+  await expect(page.getByText("Pausada",{exact:true})).toBeVisible();
+  await capture(page,project,"campaign-paused","/campaigns/[campaignId]","Active Campaign can be paused through the real lifecycle transition.");
+
+  await page.goto("/campaigns/"+commercialCampaignId+"/builder");
+  await expect(page.getByRole("heading",{name:"Campanha Produto "+project})).toBeVisible();
+  await expect(page.getByLabel("Objeto acessível")).toHaveValue("PRODUCT|"+commercialProductId);
+  await capture(page,project,"campaign-commercial-builder","/campaigns/[campaignId]/builder","The same generic Builder renders a persisted commercial Product Campaign.");
+
+  await page.goto("/campaigns/"+selfDogfoodCampaignId);
+  await expect(page.getByRole("heading",{name:"LANDER CREATORS Recruitment "+project})).toBeVisible();
+  await expect(page.getByText("Recrutamento de Creators")).toBeVisible();
+  await capture(page,project,"campaign-self-dogfood","/campaigns/[campaignId]","Self-dogfood Campaign uses Platform + Creator Recruitment + Sign Up without production seed data.");
+
   await page.goto("/campaigns");
   await expect(page.getByText("Campanha Visual "+project)).toBeVisible();
-  await capture(page,project,"campaign-list","/campaigns","Campaign list shows real status, goal and promoted-object state.");
+  await expect(page.getByText("Campanha Música "+project)).toBeVisible();
+  await expect(page.getByText("Campanha Produto "+project)).toBeVisible();
+  await capture(page,project,"campaign-list","/campaigns","Campaign list shows real persisted Campaigns across Music and commercial promoted objects.");
 
   await page.goto("/");
   await expect(page.getByRole("heading",{name:"Dashboard"})).toBeVisible();
-  await expect(page.getByRole("link",{name:/Artistas \d+ artistas acessíveis/})).toBeVisible();
+  await expect(page.getByRole("link",{name:/Artistas \\d+ artistas acessíveis/})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Situação das campanhas"})).toBeVisible();
   await verifyNoHorizontalOverflow(page);
-  await capture(page,project,"dashboard-populated","/","Dashboard reflects real ephemeral Artist, Release, Track, commercial entity, media and team data.");
+  await capture(page,project,"dashboard-populated","/","Dashboard visibly integrates real Workspace Campaign totals and status counts alongside existing modules.");
 
   const accessSql=postgres(process.env.DATABASE_URL,{max:1,prepare:false});
   try{
