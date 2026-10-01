@@ -85,7 +85,9 @@ jobs:
 
       - name: Bootstrap authenticated preview owner
         shell: bash
-        run: npm run preview:bootstrap
+        run: |
+          echo "::error::PREVIEW_BOOTSTRAP_IMPLEMENTATION_PENDING"
+          exit 1
 
       - name: Generate ephemeral runtime secret
         shell: bash
