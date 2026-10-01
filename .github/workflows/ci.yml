@@ -147,6 +147,17 @@ jobs:
           fi
           grep -q '"status":"ok"' /tmp/health.json
           curl --fail --silent http://127.0.0.1:3000/ > /tmp/root.html
+      - name: Capture navigable preview
+        run: |
+          rm -rf preview-site
+          mkdir -p preview-site
+          wget --quiet --mirror --convert-links --adjust-extension --page-requisites --no-parent \
+            --directory-prefix=preview-site http://127.0.0.1:3000/
+          if [ -d preview-site/127.0.0.1:3000 ]; then
+            cp -R preview-site/127.0.0.1:3000/. preview-site/
+            rm -rf preview-site/127.0.0.1:3000
+          fi
+          test -f preview-site/index.html
       - name: Browser visual inspection
         run: |
           if ! npx playwright test --config=playwright.visual.config.mjs; then
@@ -165,6 +176,7 @@ jobs:
           path: |
             visual/
             visual-report/
+            preview-site/
             test-results/
           if-no-files-found: error
           retention-days: 14
@@ -195,22 +207,9 @@ jobs:
       - name: Prepare GitHub Pages site
         run: |
           mkdir -p _site
+          cp -R public-visual/preview-site/. _site/
           cp -R public-visual/visual _site/visual
           cp -R public-visual/visual-report _site/visual-report
-          cat > _site/index.html <<'HTML'
-          <!doctype html>
-          <html lang="pt-BR">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width,initial-scale=1">
-            <meta http-equiv="refresh" content="0; url=visual-report/index.html">
-            <title>LANDER CREATORS — Visual</title>
-          </head>
-          <body>
-            <p><a href="visual-report/index.html">Abrir relatório visual do LANDER CREATORS</a></p>
-          </body>
-          </html>
-          HTML
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload GitHub Pages artifact
