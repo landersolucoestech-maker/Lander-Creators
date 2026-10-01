@@ -1,71 +1,51 @@
-# Data Ownership
+# LANDER CREATORS — Data Ownership
+
+This document is the canonical current-state ownership map. A responsibility has one authoritative owner; cross-domain references do not transfer ownership.
 
 | Responsibility | Source of truth |
 |---|---|
-| Authenticated human identity | Better Auth core User plus LANDER CREATORS `identity_profiles` application status/preferences |
-| Authentication credentials/session | Better Auth-owned `account`, `session`, `verification` |
-| Operational tenant | `workspaces` |
-| User ↔ Workspace relationship | `memberships` |
-| Active Workspace preference | `user_context_preferences`, revalidated against current Membership on the server |
-| Role definitions | Authorization `roles` |
-| Permission definitions | Authorization `permission_definitions` |
-| Role permission bundles | `role_permissions` |
-| Additional grants/scopes | `membership_grants` |
-| Team invitations | `workspace_invitations` |
-| Security action history | `audit_logs` |
-
-Better Auth owns passwords, credential accounts, sessions and verification tokens. LANDER CREATORS does not duplicate those values in application identity tables.
-
-| Taxonomy definitions/values/aliases | Taxonomy module |
-| Countries/languages/currencies/timezones | Reference Data module |
-| Media metadata | Shared Media module |
-| Media bytes | MediaStorageAdapter implementation; local/ephemeral only in Etapa 4 |
-| Tenant media authorization | Authorization + Shared Media modules |
-
-| Creator professional profile | Creator module |
-| Creator niche/style/music preferences | Creator module + Taxonomy references |
-| Social account metadata | Creator SocialProfile |
-| Social metrics snapshots | Creator social metrics persistence |
-| Creator avatar bytes | Shared Media |
-| Creator self-service authorization | CreatorProfile ownership |
-
-
-| Artist identity/catalog profile | Music Catalog |
-| Release | Music Catalog |
-| Track | Music Catalog |
-| Track Artist Credits | Music Catalog |
-| TrackSegment | Music Catalog |
-| Audio/artwork bytes | Shared Media |
-| Genre hierarchy | Taxonomy |
-| Language/country | Reference Data |
-| Workspace catalog access | Authorization + WorkspaceArtistAccess |
-| XLSX import decisions/provenance | Catalog Import |
-
+| Authenticated human identity | Better Auth core User + Identity `identity_profiles` |
+| Authentication credentials/session/verification | Better Auth |
+| Operational tenant | Workspace `workspaces` |
+| User ↔ Workspace relationship | Membership `memberships` |
+| Active Workspace preference | `user_context_preferences`, server-revalidated against Membership |
+| Role/permission definitions and grants | Authorization |
+| Team invitations | Workspace/Authorization `workspace_invitations` |
+| Security action history | Audit `audit_logs` |
+| Taxonomy definitions/values/aliases | Taxonomy |
+| Countries/languages/currencies/timezones | Reference Data |
+| Media metadata and storage seam | Shared Media |
+| Tenant media authorization | Authorization + Shared Media |
+| Creator professional profile and social profile | Creator |
+| Creator niche/style/music preferences | Creator + Taxonomy references |
+| Creator social metrics snapshots | Creator |
+| Artist / Release / Track / credits / TrackSegment | Music Catalog |
+| Workspace catalog access | Authorization + `WorkspaceArtistAccess` |
+| XLSX import decisions/provenance | Music Catalog Import |
 | Company / Brand / Product / Service | Commercial Promoted Entities |
-| PromotedPlatform / PromotedEvent / PromotedProject / InstitutionalInitiative | Commercial Promoted Entities |
-| Commercial entity media | Shared Media |
-| Commercial classifications | Taxonomy |
-| Country / language / timezone | Reference Data |
+| Platform / Event / Project / Institutional Initiative | Commercial Promoted Entities |
 | Workspace commercial entity access | Promoted Entity Access + Authorization |
 | Promoted-object type resolution | Promoted Object Registry |
-
-
-# Data Ownership
-
-| Responsibility | Source of truth |
-|---|---|
-| Campaign | Campaign Core |
-| Campaign promoted-object reference | Campaign Core + Promoted Object Registry |
-| Promoted-object source data | Owning promoted-object domain |
-| Campaign object snapshot | Campaign Core |
-| Campaign targeting | Campaign Core |
-| Campaign content requirements | Campaign Core |
-| Campaign brief | Campaign Core |
-| Campaign schedule | Campaign Core |
-| Campaign planning budget | Campaign Core |
+| Campaign lifecycle and configuration | Campaign Core |
+| Campaign promoted-object reference/snapshot | Campaign Core + Promoted Object Registry |
+| Campaign targeting/content requirements/brief/schedule | Campaign Core |
+| Campaign planning budget/capacity | Campaign Core |
 | Campaign rights requirements | Campaign Core |
-| Campaign tracking config | Campaign Core |
-| Campaign media bytes | Shared Media |
-| Creator | Creator domain |
-| Artist/Release/Track | Music Catalog |
-| Commercial promoted entities | Commercial domain |
+| Campaign tracking configuration | Campaign Core |
+| Participation/application/invitation | Future Participation domain |
+| Proposal/counterproposal/acceptance | Future Proposal/Engagement domain |
+| Contracted creator scope and negotiated rights | Future Engagement Terms domain |
+| Delivered content and revisions | Future Deliverables/Content domain |
+| Publication/proof URL | Future Publication domain |
+| Payables, balances, releases and payment history | Future Finance/Payments domain |
+| Aggregated performance/report outputs | Future Analytics/Reporting domains |
+
+## Non-negotiable ownership separations
+
+- Better Auth remains authentication authority; application tables must not duplicate credentials or sessions.
+- Workspace is not a commercial promoted entity.
+- User, Creator and Artist remain distinct.
+- Campaign planning budget never becomes the payment ledger.
+- Campaign content requirements never become delivered content records.
+- Campaign rights requirements never become the executed contract.
+- Provider integrations remain adapters at boundaries; provider payloads must not become canonical domain models.
