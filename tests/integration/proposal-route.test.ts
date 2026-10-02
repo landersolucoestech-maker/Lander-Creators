@@ -32,6 +32,14 @@ describe("PATCH /api/proposals/{id}", () => {
     expect(result).toMatchObject({ status: 200, json: { proposal: { status: "ACCEPTED" } } });
   });
 
+  it("answers invalid input with 400 INVALID_REQUEST instead of a server error", async () => {
+    const f = await createNegotiationFixture(sql, "pr3");
+    actor.id = f.creatorUser;
+    const result = await patch("00000000-0000-4000-8000-000000000000", { action: "NOT_AN_ACTION" });
+    expect(result.status).toBe(400);
+    expect(result.json.error.code).toBe("INVALID_REQUEST");
+  });
+
   it("returns a stable public error code for a repeated answer", async () => {
     const f = await createNegotiationFixture(sql, "pr2");
     const proposal = await createWorkspaceProposal(sql, { userId: f.owner, workspaceId: f.workspaceId, participationId: f.participationId, amountMinor: 5000, currencyCode: "BRL", scopeSummary: "Reel" });

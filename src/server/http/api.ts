@@ -27,6 +27,7 @@ export async function requireAuthenticatedUser(request: Request) {
 
 export function apiErrorResponse(error: unknown) {
   const publicError = toPublicError(error);
-  const status = error instanceof DomainError ? error.status : 500;
+  // Validation failures are the caller's mistake (400), never a server error.
+  const status = error instanceof DomainError ? error.status : publicError.code === "INVALID_REQUEST" ? 400 : 500;
   return Response.json({ error: publicError }, { status });
 }
