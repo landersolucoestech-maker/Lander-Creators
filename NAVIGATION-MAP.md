@@ -23,9 +23,10 @@ Navigation visibility is capability-based. Direct server authorization remains a
 ## Creator context
 
 - Meu perfil — `/creator`
+- Oportunidades — `/opportunities` — campanhas abertas, candidaturas e convites
 
 Creator self-service does not inherit Workspace administration authority.
 
 ## Not currently exposed as implemented modules
 
-Participation/Opportunities, Engagement/Contracts, Deliverables, Publication, Finance/Payments, Analytics/Reporting, Matching, Disputes, AI Runtime and provider-backed Integrations are not to be exposed as implemented navigation until their owning domain exists.
+Engagement/Contracts, Deliverables, Publication, Finance/Payments, Analytics/Reporting, Matching, Disputes, AI Runtime and provider-backed Integrations are not to be exposed as implemented navigation until their owning domain exists.
