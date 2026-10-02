@@ -18,8 +18,6 @@ afterAll(async () => sql.end());
 
 const q = <S extends string>(config: ListQueryConfig<S>, params: Record<string, string> = {}) => parseListQuery(params, config);
 
-type Fixture = Awaited<ReturnType<typeof createEngagementFixture>>;
-
 /** One list area: how to call it and which permission-less role must be refused. */
 const areas: Array<{ name: string; deniedRole: string; call: (f: { userId: string; workspaceId: string }) => Promise<{ rows: unknown[] }> }> = [
   { name: "negotiations", deniedRole: "", call: (c) => listWorkspaceNegotiations(sql, { ...c, query: q(negotiationListConfig) }) },
