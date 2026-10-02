@@ -91,6 +91,7 @@ const messages: Record<string, string> = {
   PROMOTED_ENTITY_OWNER_ACCESS_PROTECTED: "O acesso de proprietário não pode ser reduzido por esta operação.",
   PARTICIPATION_NOT_FOUND: "Participação não encontrada.",
   PARTICIPATION_ALREADY_EXISTS: "Já existe uma participação deste Creator nesta campanha.",
+  PARTICIPATION_ACCEPTANCE_REQUIRES_PROPOSAL: "A participação só é aceita quando uma proposta é aceita.",
   PARTICIPATION_TRANSITION_REJECTED: "Esta mudança de situação da participação não é permitida.",
   PROPOSAL_NOT_FOUND: "Proposta não encontrada.",
   PROPOSAL_NOT_ALLOWED: "Esta participação não pode receber uma proposta agora.",

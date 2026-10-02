@@ -104,6 +104,34 @@ describe("Deliverable and Publication hardening", () => {
     expect(await statusOf("content_versions", String(v.id))).toBe("SUBMITTED");
   });
 
+  it("lets a creator attach only media they uploaded to the deliverable's workspace, with one uniform refusal", async () => {
+    const f = await createEngagementFixture(sql, "dp9");
+    const other = await createEngagementFixture(sql, "dp9b");
+    const deliverableId = await newDeliverable(f);
+    const media = async (workspaceId: string, uploader: string, status = "READY") =>
+      String((await sql.unsafe(
+        "insert into media_assets(workspace_id,created_by_user_id,file_name,original_file_name,media_kind,mime_type,size_bytes,checksum_sha256,storage_key,status) values($1::uuid,$2,'a.png','a.png','IMAGE','image/png',10,$3,$4,$5::media_status) returning id::text",
+        [workspaceId, uploader, `sum-${Math.random()}`, `key-${Math.random()}`, status]
+      ))[0].id);
+    const attach = (mediaAssetId: string) => submitContentVersion(sql, { userId: f.creatorUser, deliverableId, mediaAssetId });
+
+    const refused = [
+      await media(f.workspaceId, f.owner),                       // same workspace, uploaded by someone else
+      await media(other.workspaceId, f.creatorUser),             // uploaded by the creator, but in another workspace
+      await media(f.workspaceId, f.creatorUser, "ARCHIVED"),     // archived
+      "00000000-0000-4000-8000-000000000000"                     // does not exist
+    ];
+    for (const id of refused) {
+      await expect(attach(id)).rejects.toMatchObject({ code: "MEDIA_NOT_AVAILABLE", status: 409 });
+    }
+    expect((await sql.unsafe("select count(*)::int c from content_versions where deliverable_id=$1::uuid", [deliverableId]))[0].c).toBe(0);
+    expect(await statusOf("deliverables", deliverableId)).toBe("PENDING");
+
+    const own = await media(f.workspaceId, f.creatorUser);
+    expect((await attach(own)).version).toBe(1);
+    expect(await statusOf("deliverables", deliverableId)).toBe("SUBMITTED");
+  });
+
   it("plans a publication only for approved content and only once, even concurrently", async () => {
     const f = await createEngagementFixture(sql, "dp7");
     const draft = await newDeliverable(f, "Draft");

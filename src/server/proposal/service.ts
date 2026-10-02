@@ -15,8 +15,11 @@ async function lockParticipation(tx:Tx,id:string){
   if(!r[0])throw new DomainError("PARTICIPATION_NOT_FOUND","Participation not found",404);
   return r[0] as Record<string,unknown>;
 }
-async function proposalParticipationId(tx:Tx,id:string){
-  const r=await tx.unsafe("select participation_id::text from campaign_proposals where id=$1::uuid",[id]);
+/** Resolves a proposal only inside the caller's own scope; unknown and foreign ids are indistinguishable (404). */
+async function proposalParticipationId(tx:Tx,id:string,scope:{creatorProfileId:string}|{workspaceId:string}){
+  const r="creatorProfileId" in scope
+    ?await tx.unsafe("select participation_id::text from campaign_proposals where id=$1::uuid and creator_profile_id=$2::uuid",[id,scope.creatorProfileId])
+    :await tx.unsafe("select participation_id::text from campaign_proposals where id=$1::uuid and workspace_id=$2::uuid",[id,scope.workspaceId]);
   if(!r[0])throw new DomainError("PROPOSAL_NOT_FOUND","Proposal not found",404);
   return String(r[0].participation_id);
 }
@@ -41,7 +44,8 @@ export async function createWorkspaceProposal(sql:Sql,input:{userId:string;works
   assertTerms(input);
   return sql.begin(async(tx)=>{
     const p=await lockParticipation(tx,input.participationId);
-    if(p.workspace_id!==input.workspaceId||!["APPLIED","INVITED","SHORTLISTED"].includes(String(p.status)))throw new DomainError("PROPOSAL_NOT_ALLOWED","Participation cannot receive a proposal",409);
+    if(p.workspace_id!==input.workspaceId)throw new DomainError("PARTICIPATION_NOT_FOUND","Participation not found",404);
+    if(!["APPLIED","INVITED","SHORTLISTED"].includes(String(p.status)))throw new DomainError("PROPOSAL_NOT_ALLOWED","Participation cannot receive a proposal",409);
     const open=await tx.unsafe("select 1 from campaign_proposals where participation_id=$1::uuid and status in "+OPEN_STATUSES,[input.participationId]);
     if(open[0])throw new DomainError("PROPOSAL_ALREADY_OPEN","A proposal round is already open for this participation",409);
     const round=await tx.unsafe("select coalesce(max(round),0)+1 next from campaign_proposals where participation_id=$1::uuid",[input.participationId]);
@@ -57,7 +61,7 @@ export async function creatorRespondProposal(sql:Sql,input:{userId:string;propos
   if(!cp)throw new DomainError("CREATOR_PROFILE_REQUIRED","Creator profile required",409);
   if(input.action!=="ACCEPT"&&input.action!=="REJECT")throw new DomainError("PROPOSAL_RESPONSE_NOT_ALLOWED","Proposal response not allowed",409);
   return sql.begin(async(tx)=>{
-    await lockParticipation(tx,await proposalParticipationId(tx,input.proposalId));
+    await lockParticipation(tx,await proposalParticipationId(tx,input.proposalId,{creatorProfileId:String((cp as Record<string,unknown>).id)}));
     const pr=await readProposal(tx,input.proposalId);
     if(!pr||pr.creator_profile_id!==String((cp as Record<string,unknown>).id)||pr.status!=="PENDING_CREATOR")throw new DomainError("PROPOSAL_RESPONSE_NOT_ALLOWED","Proposal cannot be answered",409);
     return answer(tx,{proposal:pr,status:input.action==="ACCEPT"?"ACCEPTED":"REJECTED",actorId:input.userId,notAllowed:"PROPOSAL_RESPONSE_NOT_ALLOWED"});
@@ -68,7 +72,7 @@ export async function creatorCounterProposal(sql:Sql,input:{userId:string;propos
   if(!cp)throw new DomainError("CREATOR_PROFILE_REQUIRED","Creator profile required",409);
   assertTerms(input);
   return sql.begin(async(tx)=>{
-    const part=await lockParticipation(tx,await proposalParticipationId(tx,input.proposalId));
+    const part=await lockParticipation(tx,await proposalParticipationId(tx,input.proposalId,{creatorProfileId:String((cp as Record<string,unknown>).id)}));
     const pr=await readProposal(tx,input.proposalId);
     if(!pr||pr.creator_profile_id!==String((cp as Record<string,unknown>).id)||pr.status!=="PENDING_CREATOR"||!["APPLIED","INVITED","SHORTLISTED"].includes(String(part.status)))throw new DomainError("PROPOSAL_COUNTER_NOT_ALLOWED","Proposal cannot be countered",409);
     const sup=await tx.unsafe("update campaign_proposals set status='SUPERSEDED',responded_at=now(),updated_at=now() where id=$1::uuid and status='PENDING_CREATOR' returning id::text",[input.proposalId]);
@@ -81,7 +85,7 @@ export async function creatorCounterProposal(sql:Sql,input:{userId:string;propos
 export async function workspaceRespondProposal(sql:Sql,input:{userId:string;workspaceId:string;proposalId:string;action:"ACCEPT"|"REJECT"}){
   await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"proposal.manage"});
   return sql.begin(async(tx)=>{
-    await lockParticipation(tx,await proposalParticipationId(tx,input.proposalId));
+    await lockParticipation(tx,await proposalParticipationId(tx,input.proposalId,{workspaceId:input.workspaceId}));
     const pr=await readProposal(tx,input.proposalId);
     if(!pr||pr.workspace_id!==input.workspaceId||pr.status!=="PENDING_WORKSPACE")throw new DomainError("PROPOSAL_RESPONSE_NOT_ALLOWED","Proposal cannot be answered",409);
     return answer(tx,{proposal:pr,status:input.action==="ACCEPT"?"ACCEPTED":"REJECTED",actorId:input.userId,notAllowed:"PROPOSAL_RESPONSE_NOT_ALLOWED"});

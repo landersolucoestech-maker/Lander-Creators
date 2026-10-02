@@ -23,7 +23,9 @@ export async function submitContentVersion(sql:Sql,input:{userId:string;delivera
     const d=await tx.unsafe("select id::text,workspace_id::text,creator_profile_id::text,status::text from deliverables where id=$1::uuid for update",[input.deliverableId]);
     if(!d[0]||d[0].creator_profile_id!==String((cp as Record<string,unknown>).id))throw new DomainError("DELIVERABLE_NOT_FOUND","Deliverable not found",404);
     if(!["PENDING","IN_PROGRESS","CHANGES_REQUESTED"].includes(d[0].status))throw new DomainError("CONTENT_SUBMISSION_NOT_ALLOWED","Content cannot be submitted",409);
-    if(input.mediaAssetId){const m=await tx.unsafe("select id from media_assets where id=$1::uuid and workspace_id=$2::uuid and status='READY'",[input.mediaAssetId,d[0].workspace_id]);if(!m[0])throw new DomainError("MEDIA_NOT_AVAILABLE","Media asset not available",409);}
+    // A submission may only carry media its author uploaded to the deliverable's workspace. Every failure
+    // (unknown id, other workspace, other uploader, archived) answers the same way, so ids cannot be probed.
+    if(input.mediaAssetId){const m=await tx.unsafe("select id from media_assets where id=$1::uuid and workspace_id=$2::uuid and created_by_user_id=$3 and status='READY'",[input.mediaAssetId,d[0].workspace_id,input.userId]);if(!m[0])throw new DomainError("MEDIA_NOT_AVAILABLE","Media asset not available",409);}
     const superseded=await tx.unsafe("update content_versions set status='SUPERSEDED' where deliverable_id=$1::uuid and status='SUBMITTED' returning id::text",[input.deliverableId]);
     const v=await tx.unsafe("select coalesce(max(version),0)+1 next from content_versions where deliverable_id=$1::uuid",[input.deliverableId]);
     const r=await tx.unsafe("insert into content_versions(deliverable_id,version,media_asset_id,external_url,creator_note,submitted_by_user_id) values($1::uuid,$2,$3::uuid,$4,$5,$6) returning id::text,status::text,version",[input.deliverableId,Number(v[0].next),input.mediaAssetId??null,externalUrl,input.creatorNote?.trim()||null,input.userId]);

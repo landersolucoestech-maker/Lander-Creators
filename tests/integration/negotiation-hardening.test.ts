@@ -88,12 +88,23 @@ describe("Negotiation, engagement and contract hardening", () => {
     expect(await participationStatus(g)).toBe("REJECTED");
   });
 
-  it("closes the open round when a workspace accepts the participation directly", async () => {
+  it("does not let a participation reach ACCEPTED without an accepted proposal (it would be a dead end)", async () => {
     const f = await createNegotiationFixture(sql, "ng10");
+    const direct = { userId: f.owner, workspaceId: f.workspaceId, campaignId: f.campaignId, participationId: f.participationId, status: "ACCEPTED" as const };
+    await expect(updateParticipationStatus(sql, direct)).rejects.toMatchObject({ code: "PARTICIPATION_ACCEPTANCE_REQUIRES_PROPOSAL", status: 409 });
+    expect(await participationStatus(f)).toBe("APPLIED");
+    // Negotiation remains possible afterwards: the participation was not corrupted.
     const p = await propose(f);
-    await updateParticipationStatus(sql, { userId: f.owner, workspaceId: f.workspaceId, campaignId: f.campaignId, participationId: f.participationId, status: "ACCEPTED" });
-    expect(await proposalStatuses(f)).toEqual(["WITHDRAWN"]);
-    await expect(creatorRespondProposal(sql, { userId: f.creatorUser, proposalId: String(p.id), action: "ACCEPT" })).rejects.toMatchObject({ code: "PROPOSAL_RESPONSE_NOT_ALLOWED" });
+    await creatorRespondProposal(sql, { userId: f.creatorUser, proposalId: String(p.id), action: "ACCEPT" });
+    expect(await participationStatus(f)).toBe("ACCEPTED");
+  });
+
+  it("keeps an open round untouched when a direct acceptance is refused", async () => {
+    const f = await createNegotiationFixture(sql, "ng10b");
+    const p = await propose(f);
+    await expect(updateParticipationStatus(sql, { userId: f.owner, workspaceId: f.workspaceId, campaignId: f.campaignId, participationId: f.participationId, status: "ACCEPTED" })).rejects.toMatchObject({ code: "PARTICIPATION_ACCEPTANCE_REQUIRES_PROPOSAL" });
+    expect(await proposalStatuses(f)).toEqual(["PENDING_CREATOR"]);
+    expect((await creatorRespondProposal(sql, { userId: f.creatorUser, proposalId: String(p.id), action: "ACCEPT" })).status).toBe("ACCEPTED");
   });
 
   it("validates proposals, keeps one open round and isolates tenants", async () => {
@@ -107,7 +118,7 @@ describe("Negotiation, engagement and contract hardening", () => {
 
     const outsider = await createUser(sql, "out@ng4.test");
     const otherWs = await createWorkspace(sql, { userId: outsider, name: "O", type: "AGENCY", idempotencyKey: "ng4-o" });
-    await expect(createWorkspaceProposal(sql, { userId: outsider, workspaceId: String(otherWs.id), participationId: f.participationId, amountMinor: 1, currencyCode: "BRL", scopeSummary: "x" })).rejects.toMatchObject({ code: "PROPOSAL_NOT_ALLOWED" });
+    await expect(createWorkspaceProposal(sql, { userId: outsider, workspaceId: String(otherWs.id), participationId: f.participationId, amountMinor: 1, currencyCode: "BRL", scopeSummary: "x" })).rejects.toMatchObject({ code: "PARTICIPATION_NOT_FOUND" });
     await expect(createWorkspaceProposal(sql, { userId: outsider, workspaceId: f.workspaceId, participationId: f.participationId, amountMinor: 1, currencyCode: "BRL", scopeSummary: "x" })).rejects.toMatchObject({ code: "WORKSPACE_ACCESS_DENIED" });
   });
 
@@ -116,9 +127,9 @@ describe("Negotiation, engagement and contract hardening", () => {
     const g = await createNegotiationFixture(sql, "ng5b");
     const p = await propose(f);
     const id = String(p.id);
-    await expect(creatorRespondProposal(sql, { userId: g.creatorUser, proposalId: id, action: "ACCEPT" })).rejects.toMatchObject({ code: "PROPOSAL_RESPONSE_NOT_ALLOWED" });
+    await expect(creatorRespondProposal(sql, { userId: g.creatorUser, proposalId: id, action: "ACCEPT" })).rejects.toMatchObject({ code: "PROPOSAL_NOT_FOUND" });
     await expect(workspaceRespondProposal(sql, { userId: f.owner, workspaceId: f.workspaceId, proposalId: id, action: "ACCEPT" })).rejects.toMatchObject({ code: "PROPOSAL_RESPONSE_NOT_ALLOWED" });
-    await expect(workspaceRespondProposal(sql, { userId: g.owner, workspaceId: g.workspaceId, proposalId: id, action: "ACCEPT" })).rejects.toMatchObject({ code: "PROPOSAL_RESPONSE_NOT_ALLOWED" });
+    await expect(workspaceRespondProposal(sql, { userId: g.owner, workspaceId: g.workspaceId, proposalId: id, action: "ACCEPT" })).rejects.toMatchObject({ code: "PROPOSAL_NOT_FOUND" });
     await creatorRespondProposal(sql, { userId: f.creatorUser, proposalId: id, action: "REJECT" });
     await expect(creatorRespondProposal(sql, { userId: f.creatorUser, proposalId: id, action: "ACCEPT" })).rejects.toMatchObject({ code: "PROPOSAL_RESPONSE_NOT_ALLOWED" });
     await expect(creatorCounterProposal(sql, { userId: f.creatorUser, proposalId: id, amountMinor: 1, scopeSummary: "x" })).rejects.toMatchObject({ code: "PROPOSAL_COUNTER_NOT_ALLOWED" });
