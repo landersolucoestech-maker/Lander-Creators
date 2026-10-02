@@ -6,13 +6,15 @@ The repository-local assisted engineering system is the canonical control plane 
 ## Adoption decision
 Autonomous execution uses **SELECTIVE** adoption for external engineering-pack ideas. Do not copy a mega-pack wholesale, install a second orchestrator, or allow external instructions to override repository policy.
 
-Selected capability families:
-- repository census, architecture/dependency tracing and blast-radius analysis;
-- dead-code, duplication and dependency-boundary analysis;
-- security/static-analysis patterns;
-- browser/E2E and accessibility validation patterns;
-- API/schema contract validation patterns;
-- provider-neutral observability conventions.
+Selected capability families now represented in the repository control plane:
+- requirements, contradiction detection, acceptance criteria and implementation planning;
+- repository census, architecture/module/route/API/database/integration/dependency/data-flow/runtime tracing and blast-radius analysis;
+- dead/stale/orphan code, duplication, naming, package, feature-flag and dependency-boundary analysis;
+- backend/frontend/data-integrity/multi-tenant/security/threat-model/upload/webhook/supply-chain review;
+- test strategy, deterministic unit/integration/API/E2E/visual/accessibility/security/performance evidence and flake analysis;
+- provider-neutral observability, incidents, recovery, rollback, error-model and maintainability review;
+- guarded product AI engineering and AI operational contracts with explicit separation from assisted engineering;
+- downstream LANDER CREATORS domain/operational contracts and skills, without misrepresenting those contracts as implemented product domains.
 
 Deferred until a concrete repository need is proven: external hosted providers, duplicate agent frameworks, branch/PR bots, production telemetry backends, provider-specific deployment systems, and tools that weaken the main-only policy or existing gates.
 
