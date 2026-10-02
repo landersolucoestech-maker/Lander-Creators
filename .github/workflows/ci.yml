@@ -51,6 +51,8 @@ jobs:
         run: npm run foundation:bootstrap
       - name: Verify bootstrap idempotency
         run: npm run foundation:bootstrap
+      - name: Verify schema guarantees are enforced
+        run: npm run db:guarantees -- --strict
       - name: Lint
         run: npm run lint
       - name: Typecheck

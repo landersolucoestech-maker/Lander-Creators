@@ -53,8 +53,17 @@ Migration `0008_campaign_core.sql` introduced Campaign persistence. Campaign IDs
 
 The current Campaign persistence is defined by the immutable migration and Campaign service SQL. Any future consolidation into Drizzle schema definitions must be additive/representational and must not rewrite applied migration history.
 
-## Hardening migrations 0018-0021
+## Hardening migrations 0018-0022
 
 All are additive and never rewrite existing rows: `0018` single active dispute per engagement; `0019` unique `(workspace_id, external_payment_reference)` plus NOT VALID paid-evidence and currency checks; `0020` single ACCEPTED proposal per participation (the unique indexes in `0018`, `0019` and `0020` are skipped with a notice when legacy duplicates exist); `0021` a BEFORE INSERT trigger on `audit_logs` that turns a JSON-string `delta` into an object.
 
 The application database client is wrapped by drizzle, which disables the driver's own JSON and date serializers: a `jsonb` parameter must be JSON text (`JSON.stringify`) and a timestamp parameter must be an ISO string. Passing an object or `Date` throws at runtime.
+
+### Skipped guarantees are never silent (migration `0022`)
+
+When legacy data already violates a guarantee from `0018`-`0020`, that migration skips the unique index (or leaves the check `NOT VALID`) instead of failing or deleting data. Migration `0022` makes this visible and actionable:
+
+- table `schema_guarantees` records, per guarantee, `status` (`APPLIED`, `VALIDATED`, `SKIPPED_LEGACY_CONFLICTS`, `MISSING`, `NOT_VALIDATED`), `conflict_count`, `reason` and `remediation`;
+- `select * from refresh_schema_guarantees();` re-evaluates and records the state without changing data; `refresh_schema_guarantees(true)` additionally creates a missing index or validates a constraint, but only when no conflicting rows remain (migration `0022` itself runs it with `true`, so clean databases end fully enforced);
+- `npm run db:guarantees` prints the report, `-- --strict` exits non-zero when any guarantee is not enforced (CI runs it on a clean database), `-- --apply` applies guarantees that now have no conflicts;
+- the diagnostic never deduplicates or edits business rows: operators resolve conflicts through the owning domain's workflow and re-run the command.
