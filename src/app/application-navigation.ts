@@ -38,6 +38,7 @@ export function workspaceNavigation(state: ApplicationShellState): ApplicationNa
 
 export function creatorNavigation(): ApplicationNavItem[] {
   return [
-    { id: "creator", label: "Meu perfil", href: "/creator", group: "Visão geral" }
+    { id: "creator", label: "Meu perfil", href: "/creator", group: "Visão geral" },
+    { id: "opportunities", label: "Oportunidades", href: "/opportunities", group: "Operação" }
   ];
 }
