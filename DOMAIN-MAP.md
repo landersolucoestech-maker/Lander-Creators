@@ -24,6 +24,7 @@ This document describes the current repository state. Historical stage notes bel
 - Publication: mandatory approved-content publication plan, creator/contractor/collab modes, proof URL and verification
 - Finance/Payments: engagement payable, verified-publication eligibility, release and paid recording
 - Analytics/Reporting: immutable publication metric snapshots and campaign-level latest-snapshot aggregation
+- Matching: deterministic campaign-to-creator scoring snapshots with Music Fit, Audience Fit, Creator Fit and Overall Fit
 
 ## Implemented application-experience layer
 
@@ -31,7 +32,7 @@ The authenticated application shell, Dashboard, navigation registry, Media, Team
 
 ## Intentionally not implemented yet
 
-Analytics metrics, Reporting, Matching, Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
+Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
 
 ## Boundary rules
 
