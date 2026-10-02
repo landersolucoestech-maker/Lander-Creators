@@ -1,51 +1,25 @@
 # Visual Development Policy
 
-## Current owner-authorized scope
+## Authorized scope
 
-Only GitHub, GitHub Actions, existing repository tooling and PostgreSQL service containers inside GitHub Actions are authorized for visual inspection at this stage.
+GitHub, GitHub Actions, existing repository tooling, PostgreSQL service containers inside GitHub Actions and the repository's temporary public-tunnel mechanism are authorized for visual inspection.
 
-No external hosting, deployment provider, managed platform or third-party infrastructure may be introduced without explicit owner approval.
-
-Do not recommend or silently add an external provider.
-
-## Permanent provider prohibition
-
-**Vercel is prohibited.**
-
-Do not create, connect, configure, deploy or recommend Vercel in this or any other project.
+No managed hosting, deployment platform or additional third-party infrastructure may be introduced without explicit owner approval. Vercel is prohibited.
 
 ## Main-only invariant
 
-`main` is the only permitted branch.
+`main` is the only permitted branch. Visual inspection and temporary live acceptance must run from the exact `main` SHA being validated. No preview, deployment, feature, pull-request, temporary or automation branch is permitted.
 
-Visual inspection must run from the exact `main` SHA validated by GitHub Actions. No preview, deployment, feature, pull-request, temporary or automation branch is permitted.
+## Required visual evidence
 
-## GitHub-only visual inspection
+For user-visible changes, the workflow must validate the exact SHA, provision PostgreSQL, apply migrations, bootstrap deterministic data, build/start the application, smoke critical routes, run repository-local desktop/mobile browser inspection, run accessibility checks and preserve the visual report artifact.
 
-For the current authorized stage, user-visible validation is delivered as a GitHub Actions artifact, not as an external application URL.
+The Live Preview workflow may additionally expose the exact-SHA runtime through the repository's existing temporary public tunnel. It must verify the external origin and live acceptance before the preview is considered valid. Preview retention is intentionally brief and is not a completion gate after acceptance succeeds.
 
-The workflow must:
+## Reference authority
 
-1. validate the exact `main` SHA;
-2. start PostgreSQL inside GitHub Actions;
-3. apply migrations from zero;
-4. build and start the application;
-5. verify `/` and `/api/health`;
-6. run repository-local browser inspection against that runtime;
-7. capture desktop and mobile screenshots;
-8. run accessibility checks;
-9. generate a static HTML report;
-10. upload one artifact named `lander-creators-visual-inspection`.
+Generated screenshots prove what the SHA renders. They do not define the desired design. Claims of visual equivalence require owner-approved references or explicit canonical design-system rules.
 
-## External capability boundary
+## Provider boundary
 
-If a future requirement cannot be satisfied with the currently authorized GitHub-only scope, stop that specific action and report:
-
-`OWNER_APPROVAL_REQUIRED`
-
-State only:
-- the missing capability;
-- why it is needed;
-- what remains possible without it.
-
-The project owner alone selects providers, hosting, services, integrations and infrastructure expansion.
+If a future visual requirement needs infrastructure outside the authorized scope, do not select a provider implicitly. Record the missing capability and continue every validation that remains possible without it.
