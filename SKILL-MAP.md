@@ -24,3 +24,12 @@ Skills never override `CLAUDE.md`, `ENGINEERING-SYSTEM.md`, `.claude/rules/`, do
 The pack now includes guarded procedures for Participation, Negotiation, Deliverable review, Publication proof, Payment release, Matching explainability, Smart Link attribution, optional Pre-save, structured Rights Usage, Content Library lifecycle, Wave orchestration, Creator CRM updates, Dispute evidence, provider-connection auditing, notification policy and AI human-approval gates.
 
 These skills define how future/downstream capabilities must be implemented and operated. They do not bypass the implementation status recorded in `DOMAIN-MAP.md`.
+
+
+## Pack coverage expansion
+
+Core engineering procedures now explicitly cover runtime and producer/consumer tracing, environment/config analysis, dependency cycles, orphan/stale/feature-flag analysis, concurrency/transactions, retry/circuit-breaker behavior, webhook/web security, data retention, frontend state/detail audits and performance/load evidence.
+
+AI engineering procedures now explicitly cover runtime, agent/workflow, prompt, provider/routing/cost, evaluation/regression, structured output, tool policy/human approval, context/memory/retrieval, fallback/latency and hallucination audits.
+
+Operational procedures now explicitly cover Campaign lifecycle/creative assistance, Creator discovery/ranking/relationship actions, Negotiation, Deliverable/Content, Publication, Rights/Contracts, Payments/Billing, Smart Link/Pre-save/Attribution, Metrics, Waves, CRM/Network, Notifications/Tasks, Import/Export/Reporting and Human Approval/Recovery/Evidence.
