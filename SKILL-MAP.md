@@ -17,3 +17,10 @@ Git/repository safety, lint, typecheck, unit tests, build, responsive/accessibil
 Commands under `.claude/commands/` compose these procedures for audit, investigation, planning, implementation, fixes, refactoring, review, tests, visual/security audits, validation, quality gates and release checks.
 
 Skills never override `CLAUDE.md`, `ENGINEERING-SYSTEM.md`, `.claude/rules/`, domain ownership, the main-only invariant or provider policy.
+
+
+## Downstream operational procedures
+
+The pack now includes guarded procedures for Participation, Negotiation, Deliverable review, Publication proof, Payment release, Matching explainability, Smart Link attribution, optional Pre-save, structured Rights Usage, Content Library lifecycle, Wave orchestration, Creator CRM updates, Dispute evidence, provider-connection auditing, notification policy and AI human-approval gates.
+
+These skills define how future/downstream capabilities must be implemented and operated. They do not bypass the implementation status recorded in `DOMAIN-MAP.md`.
