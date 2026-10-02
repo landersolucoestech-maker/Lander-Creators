@@ -18,6 +18,7 @@ A change is complete only when all applicable requirements below are satisfied.
 - deterministic dependency installation succeeds;
 - lint passes;
 - typecheck passes;
+- repository-local engineering OS structural contracts pass;
 - applicable unit/integration/security tests pass;
 - build passes;
 - runtime smoke passes.
