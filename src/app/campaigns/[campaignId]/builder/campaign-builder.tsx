@@ -48,23 +48,113 @@ export function CampaignBuilder({
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     let payload: any = { step, revision: Number(c.revision) };
-  if (step===1) {
-  const [type,entityId]=String(f.get("object")).split("|");payload={...payload,type,entityId}}
-  if (step===2)payload={...payload,name:String(f.get("name")),goalCode:String(f.get("goalCode")),internalDescription:String(f.get("internalDescription")||"")||null,objectiveContext:String(f.get("objectiveContext")||"")||null,ctaType:String(f.get("ctaType")||"")||null,ctaUrl:String(f.get("ctaUrl")||"")||null};
-  if (step===3)payload={...payload,followerMin:f.get("followerMin")?Number(f.get("followerMin")):null,followerMax:f.get("followerMax")?Number(f.get("followerMax")):null,platforms:f.getAll("platforms"),nicheIds:f.getAll("niches"),contentStyleIds:f.getAll("styles"),musicGenreIds:f.getAll("genres"),countryCodes:f.getAll("countries"),languageCodes:f.getAll("languages")};
-  if (step===4)payload={...payload,requirements:[{platform:String(f.get("platform")),format:String(f.get("format")),quantity:Number(f.get("quantity")),notes:String(f.get("notes")||"")||null,requiredPublication:f.get("requiredPublication")==="on",ugc:f.get("ugc")==="on"}]};
-  if (step===5)payload={...payload,brief:String(f.get("brief")),assetIds:f.getAll("assets")};
-  if (step===6)payload={...payload,mode:String(f.get("mode")),startsAt:f.get("startsAt")?new Date(String(f.get("startsAt"))).toISOString():null,endsAt:f.get("endsAt")?new Date(String(f.get("endsAt"))).toISOString():null,timezoneCode:String(f.get("timezoneCode")),recruitmentOpensAt:null,recruitmentClosesAt:null};
-  if (step===7)payload={...payload,budgetMinor:f.get("budget")?Math.round(Number(f.get("budget"))*100):null,targetCreatorCount:f.get("target")?Number(f.get("target")):null,maximumCreatorCount:f.get("maximum")?Number(f.get("maximum")):null};
-  if (step===8)payload={...payload,organicUsageDays:f.get("organic")?Number(f.get("organic")):null,paidMediaAllowed:f.get("paid")==="on",whitelistingRequired:f.get("white")==="on",exclusivityRequired:f.get("exclusive")==="on",geography:String(f.get("geography")||"")||null,usageDurationDays:f.get("usage")?Number(f.get("usage")):null};
-  if (step===9)payload={...payload,targetUrl:String(f.get("targetUrl")||"")||null,utmSource:String(f.get("utmSource")||"")||null,utmMedium:String(f.get("utmMedium")||"")||null,utmCampaign:String(f.get("utmCampaign")||"")||null,utmContentPattern:null,trackingLabel:null,objectives:f.getAll("objectives")};
-  if (step===10){location.href="/campaigns/"+c.id;
-  return}
-  const r=await fetch("/api/workspaces/"+workspaceId+"/campaigns/"+c.id+"/builder",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}),p=await r.json();
-  if (!r.ok){setMessage(p.error?.message??"Não foi possível salvar esta etapa.");
-  return}
-  setMessage("Etapa salva.");
-  setTimeout(()=>location.reload(),250)}
+    if (step === 1) {
+      const [type, entityId] = String(f.get("object")).split("|");
+      payload = { ...payload, type, entityId };
+    }
+    if (step === 2) {
+      payload = {
+        ...payload,
+        name: String(f.get("name")),
+        goalCode: String(f.get("goalCode")),
+        internalDescription: String(f.get("internalDescription") || "") || null,
+        objectiveContext: String(f.get("objectiveContext") || "") || null,
+        ctaType: String(f.get("ctaType") || "") || null,
+        ctaUrl: String(f.get("ctaUrl") || "") || null
+      };
+    }
+    if (step === 3) {
+      payload = {
+        ...payload,
+        followerMin: f.get("followerMin") ? Number(f.get("followerMin")) : null,
+        followerMax: f.get("followerMax") ? Number(f.get("followerMax")) : null,
+        platforms: f.getAll("platforms"),
+        nicheIds: f.getAll("niches"),
+        contentStyleIds: f.getAll("styles"),
+        musicGenreIds: f.getAll("genres"),
+        countryCodes: f.getAll("countries"),
+        languageCodes: f.getAll("languages")
+      };
+    }
+    if (step === 4) {
+      payload = {
+        ...payload,
+        requirements: [{
+          platform: String(f.get("platform")),
+          format: String(f.get("format")),
+          quantity: Number(f.get("quantity")),
+          notes: String(f.get("notes") || "") || null,
+          requiredPublication: f.get("requiredPublication") === "on",
+          ugc: f.get("ugc") === "on"
+        }]
+      };
+    }
+    if (step === 5) {
+      payload = { ...payload, brief: String(f.get("brief")), assetIds: f.getAll("assets") };
+    }
+    if (step === 6) {
+      payload = {
+        ...payload,
+        mode: String(f.get("mode")),
+        startsAt: f.get("startsAt") ? new Date(String(f.get("startsAt"))).toISOString() : null,
+        endsAt: f.get("endsAt") ? new Date(String(f.get("endsAt"))).toISOString() : null,
+        timezoneCode: String(f.get("timezoneCode")),
+        recruitmentOpensAt: null,
+        recruitmentClosesAt: null
+      };
+    }
+    if (step === 7) {
+      payload = {
+        ...payload,
+        budgetMinor: f.get("budget") ? Math.round(Number(f.get("budget")) * 100) : null,
+        targetCreatorCount: f.get("target") ? Number(f.get("target")) : null,
+        maximumCreatorCount: f.get("maximum") ? Number(f.get("maximum")) : null
+      };
+    }
+    if (step === 8) {
+      payload = {
+        ...payload,
+        organicUsageDays: f.get("organic") ? Number(f.get("organic")) : null,
+        paidMediaAllowed: f.get("paid") === "on",
+        whitelistingRequired: f.get("white") === "on",
+        exclusivityRequired: f.get("exclusive") === "on",
+        geography: String(f.get("geography") || "") || null,
+        usageDurationDays: f.get("usage") ? Number(f.get("usage")) : null
+      };
+    }
+    if (step === 9) {
+      payload = {
+        ...payload,
+        targetUrl: String(f.get("targetUrl") || "") || null,
+        utmSource: String(f.get("utmSource") || "") || null,
+        utmMedium: String(f.get("utmMedium") || "") || null,
+        utmCampaign: String(f.get("utmCampaign") || "") || null,
+        utmContentPattern: null,
+        trackingLabel: null,
+        objectives: f.getAll("objectives")
+      };
+    }
+    if (step === 10) {
+      location.href = "/campaigns/" + c.id;
+      return;
+    }
+
+    const response = await fetch(
+      "/api/workspaces/" + workspaceId + "/campaigns/" + c.id + "/builder",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }
+    );
+    const responsePayload = await response.json();
+    if (!response.ok) {
+      setMessage(responsePayload.error?.message ?? "Não foi possível salvar esta etapa.");
+      return;
+    }
+    setMessage("Etapa salva.");
+    setTimeout(() => location.reload(), 250);
+  }
   const tax = (code: string) =>
     taxonomies.find((x) => x.code === code)?.values ?? [];
   return (
