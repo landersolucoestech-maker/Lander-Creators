@@ -12,9 +12,10 @@ The repository currently includes the engineering foundation plus the implemente
 - Creator profiles and creator readiness;
 - Music Catalog: Artist → Release → Track, including XLSX import;
 - Commercial Promoted Entities: Company, Brand, Product, Service, PromotedPlatform, PromotedEvent, PromotedProject and InstitutionalInitiative;
-- the typed Promoted Object registry/adapters that connect music and commercial promoted objects without collapsing their domain boundaries.
+- the typed Promoted Object registry/adapters that connect music and commercial promoted objects without collapsing their domain boundaries;
+- Campaign Core and its persistence-backed 10-step Campaign Builder.
 
-Campaign and the later Participation, Engagement, Terms, Finance, Content, Publication, Analytics, Reporting, Matching and AI Runtime domains remain deferred until their explicit implementation stages.
+Participation, Proposal/negotiation, Engagement, Engagement Terms, Deliverables/Content, Publication, Finance/Payments, Analytics metrics, Reporting, Matching, Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain deferred until their explicit implementation stages.
 
 ## Engineering rules
 
