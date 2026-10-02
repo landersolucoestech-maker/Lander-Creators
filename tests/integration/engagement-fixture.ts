@@ -101,3 +101,26 @@ export async function addEngagement(sql: TestSql, f: { owner: string; workspaceI
   );
   return { creatorUser, creatorProfileId, engagementId: String(engagement[0].id) };
 }
+
+/** Workspace + creator + campaign + participation (no proposal yet). */
+export async function createNegotiationFixture(sql: TestSql, tag: string, participationStatus = "APPLIED") {
+  const owner = await createUser(sql, `owner@${tag}.test`);
+  const workspace = await createWorkspace(sql, { userId: owner, name: tag, type: "AGENCY", idempotencyKey: tag });
+  const workspaceId = String(workspace.id);
+  const creatorUser = await createUser(sql, `creator@${tag}.test`);
+  const creator = await createCreatorProfile(sql, {
+    userId: creatorUser,
+    displayName: `Creator ${tag}`,
+    countryCode: "BR",
+    languageCode: "pt-BR",
+    timezoneCode: "America/Sao_Paulo"
+  });
+  const creatorProfileId = String(creator.id);
+  const campaign = await createCampaign(sql, { userId: owner, workspaceId, name: `Campaign ${tag}` });
+  const campaignId = String(campaign.id);
+  const participation = await sql.unsafe(
+    "insert into campaign_participations(campaign_id,creator_profile_id,origin,status) values($1::uuid,$2::uuid,'APPLICATION',$3::campaign_participation_status) returning id::text",
+    [campaignId, creatorProfileId, participationStatus]
+  );
+  return { owner, workspaceId, creatorUser, creatorProfileId, campaignId, participationId: String(participation[0].id) };
+}

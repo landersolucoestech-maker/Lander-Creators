@@ -46,3 +46,4 @@ downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Opera
 - Promoted-object polymorphism belongs to the typed Promoted Object Registry.
 - Shared Media owns media metadata/storage seams; business domains own business meaning and references.
 - Logical domain boundaries do not require one package or service per domain.
+- State-changing operations from Participation through Finance/Payments, Disputes and the Music import/Promoted-entity grants write `audit_logs` in the same transaction as the state change and serialize on the owning row (participation, engagement, deliverable, payable) with status-guarded transitions.
