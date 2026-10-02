@@ -25,6 +25,7 @@ This document describes the current repository state. Historical stage notes bel
 - Finance/Payments: engagement payable, verified-publication eligibility, release and paid recording
 - Analytics/Reporting: immutable publication metric snapshots and campaign-level latest-snapshot aggregation
 - Matching: deterministic campaign-to-creator scoring snapshots with Music Fit, Audience Fit, Creator Fit and Overall Fit
+- Disputes: creator-opened engagement disputes with workspace review and resolution
 
 ## Implemented application-experience layer
 
@@ -32,7 +33,7 @@ The authenticated application shell, Dashboard, navigation registry, Media, Team
 
 ## Intentionally not implemented yet
 
-Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
+downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
 
 ## Boundary rules
 
