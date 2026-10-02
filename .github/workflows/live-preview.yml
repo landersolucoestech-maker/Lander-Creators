@@ -15,7 +15,7 @@ concurrency:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     services:
       postgres:
         image: postgres:16
@@ -131,7 +131,7 @@ jobs:
         shell: bash
         run: |
           STARTED_AT="$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          EXPIRES_AT="$(date -u -d '+20 minutes' '+%Y-%m-%d %H:%M:%S UTC')"
+          EXPIRES_AT="$(date -u -d '+2 minutes' '+%Y-%m-%d %H:%M:%S UTC')"
           {
             echo "# LANDER CREATORS — LIVE APPLICATION"
             echo
@@ -195,5 +195,5 @@ jobs:
         shell: bash
         run: |
           echo "LANDER CREATORS LIVE APPLICATION: $LIVE_PREVIEW_URL"
-          echo "Keeping the accepted preview available briefly for owner inspection without blocking the main-only delivery queue."
-          sleep 1200
+          echo "Acceptance is complete. Keeping the ephemeral URL alive for two minutes only so the main-only delivery queue remains unblocked."
+          sleep 120
