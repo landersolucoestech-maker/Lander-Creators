@@ -1,46 +1,54 @@
-# Database Conventions
+# LANDER CREATORS — Database Conventions
 
-- PostgreSQL identifiers: `snake_case`.
-- Auth core IDs are server-generated UUID strings stored as text because Better Auth owns their lifecycle.
+- PostgreSQL identifiers use `snake_case`.
+- Better Auth owns authentication credential/session/verification lifecycle; its IDs remain compatible with Better Auth.
 - Application tenant/security entity IDs use PostgreSQL UUID with `gen_random_uuid()`.
-- Timestamps: `timestamptz`, stored in UTC.
-- Money: integer minor units or exact decimal according to domain requirement; never floating point; currency is explicit.
-- Migrations are ordered SQL files and immutable after application; new changes append migrations.
-- Soft delete is not default. Identity/Workspace/Membership use explicit lifecycle states where security history must remain.
-- Foreign keys are explicit and enforced.
-- Indexes are driven by access paths and uniqueness invariants.
+- Timestamps use `timestamptz` and UTC; date-only business values use PostgreSQL `date`.
+- Money uses integer minor units or exact decimal according to domain requirements, never floating point; currency is explicit.
+- Migrations are ordered, append-only SQL. Applied migrations are immutable.
+- Foreign keys are explicit whenever the target is one concrete table. Controlled polymorphic references require typed service validation.
+- Indexes follow real access paths and uniqueness invariants.
 - Application services own transaction boundaries for multi-write invariants.
+- Soft delete is not the default; explicit lifecycle states are preferred where history/security matters.
+- External money operations require idempotency; a future financial ledger must not be modeled as Campaign planning budget.
+
+## Security and tenancy
+
 - Workspace creation + Owner Membership is atomic.
 - Invitation acceptance is transactional and single-use.
-- Owner mutations lock the Workspace before checking the final-Owner invariant.
-- External money operations will require idempotency.
-- The future ledger will be immutable/double-entry by design.
+- Owner mutations preserve the final-Owner invariant.
+- Tenant authorization is server-authoritative.
+- Raw storage keys and filesystem paths are never public contracts.
+
+## Shared foundations
 
 - Taxonomy codes are stable English machine identifiers; PT-BR labels are display data.
 - Reference registries use stable standard codes.
-- Media storage keys are opaque and never public API contracts.
-- Media checksum uses SHA-256.
+- Media checksum uses SHA-256 and media storage keys are opaque.
 
-- CreatorProfile is global and has a database-enforced one-profile-per-User V1 invariant.
-- Creator taxonomy joins use canonical taxonomy_value IDs and unique composite relations.
-- Social metrics are append-only snapshots with explicit captured_at and provenance; unknown values are NULL.
-- Social counts use non-negative PostgreSQL bigint; money is not introduced by Etapa 5A.
+## Creator
 
+- CreatorProfile is global and one-profile-per-User in V1.
+- Creator taxonomy joins use canonical taxonomy-value IDs and unique composite relations.
+- Social metrics are append-only snapshots with explicit capture time and provenance; unknown values are NULL.
+- Social counts are non-negative bigint.
+
+## Music Catalog
 
 - Artist/Release/Track are global catalog entities and are not duplicated per Workspace.
-- WorkspaceArtistAccess is the explicit Workspace-to-Artist access edge.
-- Release dates use PostgreSQL date semantics; no timezone conversion is applied.
+- WorkspaceArtistAccess is the explicit Workspace-to-Artist edge.
 - Track duration and TrackSegment boundaries use integer milliseconds.
-- Track numbers are unique within Release in V1; multi-disc modeling is deferred.
 - Artist credits persist explicit role and position.
-- ISRC is normalized locally; it is indexed as duplicate evidence rather than destructive global identity.
+- ISRC is normalized and indexed as duplicate evidence rather than destructive global identity.
 - Music import sessions are idempotent by Workspace + SHA-256 source fingerprint.
-- Import rows persist normalized provenance and explicit duplicate resolution; raw XLSX bytes are not retained.
+- Import rows persist provenance and explicit duplicate resolution; raw XLSX bytes are not retained.
 
-## Etapa 5C
-Migration 0007 is additive. Known parent relations use real foreign keys. WorkspacePromotedEntityAccess uses the controlled promoted_object_type + entity_id pair because PostgreSQL cannot express one FK across multiple target tables; typed services validate every reference before mutation. No Campaign table exists.
+## Commercial promoted entities
 
+Known parent relations use real foreign keys. `WorkspacePromotedEntityAccess` uses controlled promoted-object type + entity ID because PostgreSQL cannot express one foreign key across multiple target tables; typed services validate references.
 
-# Database Conventions
+## Campaign Core
 
-Etapa 6 appends immutable migration `0008_campaign_core.sql`. Campaign IDs are UUIDs, status/mode/visibility/recruitment/platform/format values are closed PostgreSQL enums, planning budget uses BRL integer minor units, and revision provides optimistic concurrency. Business-critical builder data is normalized into typed tables; the builder is not persisted as a generic JSON dump. Promoted-object polymorphic references are validated centrally through the registry because a cross-table FK is not possible.
+Migration `0008_campaign_core.sql` introduced Campaign persistence. Campaign IDs are UUIDs; lifecycle/configuration categories use closed PostgreSQL enums; planning budget uses integer minor units; revision provides optimistic concurrency. Builder data is normalized into typed tables rather than a generic JSON document.
+
+The current Campaign persistence is defined by the immutable migration and Campaign service SQL. Any future consolidation into Drizzle schema definitions must be additive/representational and must not rewrite applied migration history.
