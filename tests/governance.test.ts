@@ -22,8 +22,8 @@ describe("main-only repository governance", () => {
   it("prohibits Vercel and preserves owner-controlled infrastructure decisions", () => {
     const policy = readFileSync("VISUAL-DEVELOPMENT-POLICY.md", "utf8");
     expect(policy).toContain("**Vercel is prohibited.**");
-    expect(policy).toContain("Only GitHub, GitHub Actions");
-    expect(policy).toContain("OWNER_APPROVAL_REQUIRED");
+    expect(policy).toContain("GitHub, GitHub Actions");
+    expect(policy).toContain("No managed hosting, deployment platform or additional third-party infrastructure may be introduced without explicit owner approval.");
   });
 
   it("keeps visual inspection GitHub-only and downstream of validation", () => {
