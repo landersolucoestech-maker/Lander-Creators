@@ -15,7 +15,7 @@ concurrency:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16
@@ -131,7 +131,7 @@ jobs:
         shell: bash
         run: |
           STARTED_AT="$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          EXPIRES_AT="$(date -u -d '+340 minutes' '+%Y-%m-%d %H:%M:%S UTC')"
+          EXPIRES_AT="$(date -u -d '+20 minutes' '+%Y-%m-%d %H:%M:%S UTC')"
           {
             echo "# LANDER CREATORS — LIVE APPLICATION"
             echo
@@ -190,13 +190,10 @@ jobs:
           echo "--- tunnel log tail ---"
           tail -n 120 /tmp/tunnel.log 2>/dev/null || true
 
-      - name: Keep preview online
-        if: always()
+      - name: Keep preview online briefly
+        if: success()
         shell: bash
         run: |
-          if [ -n "${LIVE_PREVIEW_URL:-}" ]; then
-            echo "LANDER CREATORS LIVE APPLICATION: $LIVE_PREVIEW_URL"
-            sleep 20400
-          else
-            echo "No public preview URL was created; nothing to keep alive."
-          fi
+          echo "LANDER CREATORS LIVE APPLICATION: $LIVE_PREVIEW_URL"
+          echo "Keeping the accepted preview available briefly for owner inspection without blocking the main-only delivery queue."
+          sleep 1200
