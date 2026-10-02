@@ -243,6 +243,21 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await capture(page, project, "creator-availability", "/creator", "Availability is independent from lifecycle and marketplace visibility.");
 
 
+
+  for (const [route, heading, empty, name] of [
+    ["/opportunities", "Oportunidades", null, "creator-opportunities"],
+    ["/proposals", "Propostas", "Nenhuma proposta recebida", "creator-proposals-empty"],
+    ["/contracts", "Contratos", "Nenhum contrato recebido", "creator-contracts-empty"],
+    ["/deliverables", "Entregas", "Nenhuma entrega contratada", "creator-deliverables-empty"],
+    ["/payments", "Pagamentos", "Nenhum pagamento registrado", "creator-payments-empty"]
+  ]) {
+    await page.goto(route);
+    await expect(page.getByRole("heading", { name: heading, level: 1 })).toBeVisible();
+    if (empty) await expect(page.getByText(empty)).toBeVisible();
+    await verifyNoHorizontalOverflow(page);
+    await capture(page, project, name, route, `Creator portal ${route} renders a PT-BR empty state without invented data.`);
+  }
+
   await page.goto("/music-catalog");
   await expect(page.getByRole("heading",{name:"Catálogo musical"})).toBeVisible();
   await expect(page.getByText("Nenhum artista acessível neste workspace.")).toBeVisible();
@@ -533,6 +548,66 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
   await page.goto("/campaigns");
   await expect(page.getByRole("heading",{name:"Acesso não disponível"})).toBeVisible();
   await capture(page,project,"campaign-access-denied","/campaigns","Direct Campaign route denies a user without campaign.view even when the URL is entered directly.");
+
+
+  // Creator portal with persisted post-campaign data (seeded directly; the visual identity is both Workspace owner and Creator).
+  const portalSql=postgres(process.env.DATABASE_URL,{max:1,prepare:false});
+  try{
+    const owner=(await portalSql.unsafe('select id from "user" where email=$1',[email]))[0].id;
+    const creatorId=String((await portalSql.unsafe("select id::text from creator_profiles where user_id=$1",[owner]))[0].id);
+    const workspaceId=String((await portalSql.unsafe("select workspace_id::text from campaigns where id=$1::uuid",[musicCampaignId]))[0].workspace_id);
+    async function participate(campaignId,status){
+      return String((await portalSql.unsafe("insert into campaign_participations(campaign_id,creator_profile_id,origin,status) values($1::uuid,$2::uuid,'APPLICATION',$3::campaign_participation_status) on conflict(campaign_id,creator_profile_id) do update set status=excluded.status returning id::text",[campaignId,creatorId,status]))[0].id);
+    }
+    async function propose(participationId,status,amount,scope){
+      return String((await portalSql.unsafe("insert into campaign_proposals(participation_id,workspace_id,creator_profile_id,round,proposed_by,amount_minor,currency_code,scope_summary,status,created_by_user_id) values($1::uuid,$2::uuid,$3::uuid,1,'WORKSPACE',$4,'BRL',$5,$6::campaign_proposal_status,$7) returning id::text",[participationId,workspaceId,creatorId,amount,scope,status,owner]))[0].id);
+    }
+    async function engage(campaignId,participationId,proposalId,status,amount){
+      return String((await portalSql.unsafe("insert into campaign_engagements(participation_id,accepted_proposal_id,campaign_id,workspace_id,creator_profile_id,status,contracted_amount_minor,currency_code,scope_snapshot,created_by_user_id) values($1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::campaign_engagement_status,$7,'BRL','Reel e Stories',$8) returning id::text",[participationId,proposalId,campaignId,workspaceId,creatorId,status,amount,owner]))[0].id);
+    }
+    // 1) Open proposal waiting for the Creator (shows accept / reject / counter actions).
+    const pending=await participate(commercialCampaignId,"APPLIED");
+    await propose(pending,"PENDING_CREATOR",150000,"Reel de lançamento com 2 Stories");
+    // 2) Contract sent and waiting for the Creator signature.
+    const sentPart=await participate(selfDogfoodCampaignId,"ACCEPTED");
+    const sentProposal=await propose(sentPart,"ACCEPTED",90000,"Vídeo curto de recrutamento");
+    const sentEngagement=await engage(selfDogfoodCampaignId,sentPart,sentProposal,"PENDING_CREATOR_SIGNATURE",90000);
+    await portalSql.unsafe("insert into engagement_contracts(engagement_id,version,status,scope_of_work,rights_terms,payment_terms,created_by_user_id) values($1::uuid,1,'SENT','Vídeo curto de recrutamento','Uso orgânico por 90 dias','Pagamento após publicação verificada',$2)",[sentEngagement,owner]);
+    // 3) Active engagement with deliverables, publication and payable.
+    const activePart=await participate(musicCampaignId,"ACCEPTED");
+    const activeProposal=await propose(activePart,"ACCEPTED",250000,"Reel + Stories sobre a faixa");
+    const activeEngagement=await engage(musicCampaignId,activePart,activeProposal,"ACTIVE",250000);
+    const deliverableSql="insert into deliverables(engagement_id,campaign_id,workspace_id,creator_profile_id,title,platform,format,requirements_snapshot,status,due_at) values($1::uuid,$2::uuid,$3::uuid,$4::uuid,$5,'INSTAGRAM','REEL','15 a 30 segundos',$6::deliverable_status,now()+interval '7 days') returning id::text";
+    const todo=await portalSql.unsafe(deliverableSql,[activeEngagement,musicCampaignId,workspaceId,creatorId,"Reel principal","PENDING"]);
+    const approved=await portalSql.unsafe(deliverableSql,[activeEngagement,musicCampaignId,workspaceId,creatorId,"Stories de apoio","APPROVED"]);
+    const version=await portalSql.unsafe("insert into content_versions(deliverable_id,version,external_url,status,submitted_by_user_id) values($1::uuid,1,'https://example.com/stories','APPROVED',$2) returning id::text",[approved[0].id,owner]);
+    await portalSql.unsafe("insert into publications(deliverable_id,approved_content_version_id,engagement_id,campaign_id,workspace_id,creator_profile_id,platform,mode,status) values($1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid,'INSTAGRAM','CREATOR_PROFILE','READY')",[approved[0].id,version[0].id,activeEngagement,musicCampaignId,workspaceId,creatorId]);
+    await portalSql.unsafe("insert into campaign_payables(engagement_id,campaign_id,workspace_id,creator_profile_id,amount_minor,currency_code) values($1::uuid,$2::uuid,$3::uuid,$4::uuid,250000,'BRL')",[activeEngagement,musicCampaignId,workspaceId,creatorId]);
+    expect(todo).toHaveLength(1);
+  }finally{await portalSql.end();}
+
+  for (const [route, heading, text, name] of [
+    ["/proposals", "Propostas", "Aceitar proposta", "creator-proposals-populated"],
+    ["/contracts", "Contratos", "Assinar contrato", "creator-contracts-populated"],
+    ["/deliverables", "Entregas", "Enviar comprovação", "creator-deliverables-populated"],
+    ["/payments", "Pagamentos", "R$ 2.500,00", "creator-payments-populated"]
+  ]) {
+    await page.goto(route);
+    await expect(page.getByRole("heading", { name: heading, level: 1 })).toBeVisible();
+    await expect(page.getByText(text).first()).toBeVisible();
+    await verifyNoHorizontalOverflow(page);
+    await capture(page, project, name, route, `Creator portal ${route} renders persisted data as a keyboard-scrollable table with PT-BR status labels.`);
+  }
+  await page.goto("/proposals");
+  await page.getByRole("button",{name:"Aceitar proposta"}).click();
+  await expect(page.getByRole("button",{name:"Aceitar proposta"})).toHaveCount(0);
+  await verifyNoHorizontalOverflow(page);
+  await capture(page,project,"creator-proposal-accepted","/proposals","Accepting a proposal updates the table through the real API without a manual reload.");
+  await page.goto("/contracts");
+  await page.getByRole("button",{name:"Assinar contrato"}).click();
+  await expect(page.getByText("Aguardando assinatura do contratante")).toBeVisible();
+  await expect(page.getByRole("button",{name:"Assinar contrato"})).toHaveCount(0);
+  await capture(page,project,"creator-contract-signed","/contracts","Signing a contract updates its status through the real API; Workspace signature is still pending.");
 
   const restoreSql=postgres(process.env.DATABASE_URL,{max:1,prepare:false});
   try{

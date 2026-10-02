@@ -1,12 +1,13 @@
-import postgres from "postgres";
+import { createDatabaseClient } from "@/server/db/client";
 
 export const testDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
   "postgresql://postgres:postgres@localhost:5432/lander_creators_test";
 
+/** Same client factory as the application (drizzle-wrapped), so tests exercise production driver behavior. */
 export function createTestSql() {
-  return postgres(testDatabaseUrl, { max: 10, prepare: false });
+  return createDatabaseClient(testDatabaseUrl).client;
 }
 
 export async function resetSecurityData(sql: ReturnType<typeof createTestSql>) {

@@ -68,8 +68,8 @@ export async function addManualMetricsSnapshot(sql:Sql,input:{
   const owned=await sql.unsafe("select 1 from social_profiles where id=$1::uuid and creator_profile_id=$2::uuid",[input.socialProfileId,input.creatorProfileId]);
   if(!owned[0])throw new DomainError("SOCIAL_PROFILE_NOT_FOUND","Social profile not found",404);
   const rows=await sql.unsafe(
-    "insert into social_metrics_snapshots(social_profile_id,captured_at,source,followers,following,total_likes,average_views,engagement_rate_basis_points) values($1::uuid,$2,'MANUAL_DECLARED',$3,$4,$5,$6,$7) returning id::text,captured_at,source::text,followers,following,total_likes,average_views,engagement_rate_basis_points",
-    [input.socialProfileId,input.capturedAt,input.followers??null,input.following??null,input.totalLikes??null,input.averageViews??null,input.engagementRateBasisPoints??null]
+    "insert into social_metrics_snapshots(social_profile_id,captured_at,source,followers,following,total_likes,average_views,engagement_rate_basis_points) values($1::uuid,$2::timestamptz,'MANUAL_DECLARED',$3,$4,$5,$6,$7) returning id::text,captured_at,source::text,followers,following,total_likes,average_views,engagement_rate_basis_points",
+    [input.socialProfileId,input.capturedAt.toISOString(),input.followers??null,input.following??null,input.totalLikes??null,input.averageViews??null,input.engagementRateBasisPoints??null]
   );
   return rows[0];
 }

@@ -4,7 +4,7 @@ import { createNegotiationFixture, createUser } from "./engagement-fixture";
 import { createWorkspace } from "@/server/workspace/workspace-service";
 import { applyToCampaign, inviteCreator, updateParticipationStatus, withdrawApplication } from "@/server/participation/service";
 import { createWorkspaceProposal, creatorCounterProposal, creatorRespondProposal, workspaceRespondProposal } from "@/server/proposal/service";
-import { createEngagementContract, createEngagementFromAcceptedProposal, creatorSignContract, sendContract, workspaceSignContract } from "@/server/engagement/service";
+import { createEngagementContract, createEngagementFromAcceptedProposal, creatorSignContract, listCreatorContracts, sendContract, workspaceSignContract } from "@/server/engagement/service";
 
 const sql = createTestSql();
 afterAll(async () => sql.end());
@@ -158,6 +158,18 @@ describe("Negotiation, engagement and contract hardening", () => {
     expect(fulfilled(wsSigns)).toBe(1);
     expect(String((await one("select status::text s from campaign_engagements where id=$1::uuid", [engagementId])).s)).toBe("ACTIVE");
     await expect(mk()).rejects.toMatchObject({ code: "CONTRACT_NOT_ALLOWED" });
+  });
+
+  it("never shows a creator a contract draft that was not sent to them", async () => {
+    const f = await createNegotiationFixture(sql, "ng9");
+    const other = await createNegotiationFixture(sql, "ng9b");
+    const { engagementId } = await acceptedEngagement(f);
+    const c = await createEngagementContract(sql, { userId: f.owner, workspaceId: f.workspaceId, engagementId, scopeOfWork: "s", rightsTerms: "r", paymentTerms: "p" });
+    expect(await listCreatorContracts(sql, f.creatorUser)).toHaveLength(0);
+    await sendContract(sql, { userId: f.owner, workspaceId: f.workspaceId, contractId: String(c.id) });
+    const visible = await listCreatorContracts(sql, f.creatorUser);
+    expect(visible.map((v) => v.status)).toEqual(["SENT"]);
+    expect(await listCreatorContracts(sql, other.creatorUser)).toHaveLength(0);
   });
 
   it("serializes applications and enforces invitation and transition rules", async () => {
