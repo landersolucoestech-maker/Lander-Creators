@@ -12,7 +12,7 @@ for(const x of [...commands,...hooks,...rules]){const base=x.name;const dir=comm
 for(const p of ["CLAUDE.md","ENGINEERING-SYSTEM.md","AGENT-MAP.md","SKILL-MAP.md","DOMAIN-MAP.md","DATA-OWNERSHIP.md","DEFINITION-OF-DONE.md"]){if(!fs.existsSync(path.join(root,p)))fail.push("missing canonical "+p)}
 if(!agents.some(x=>x.name==="lander-creators-orchestrator.md"))fail.push("missing principal orchestrator");
 if(!agents.some(x=>x.name==="lander-creators-ai-orchestrator.md"))fail.push("missing product AI orchestrator contract");
-const claude=fs.readFileSync(path.join(root,"CLAUDE.md"),"utf8"); if(!claude.includes("main")||!claude.includes("only valid branch"))fail.push("main-only policy not explicit");
-const es=fs.readFileSync(path.join(root,"ENGINEERING-SYSTEM.md"),"utf8");if(!es.includes("single principal orchestrator"))fail.push("single orchestrator invariant missing");
+const claude=fs.readFileSync(path.join(root,"CLAUDE.md"),"utf8"); if(!claude.includes("main")||!claude.includes("only valid branch"))fail.push("main-only policy not explicit"); if(!claude.includes("Vercel is prohibited"))fail.push("Vercel prohibition missing");
+const es=fs.readFileSync(path.join(root,"ENGINEERING-SYSTEM.md"),"utf8");if(!es.includes("single principal orchestrator"))fail.push("single orchestrator invariant missing"); const dm=fs.readFileSync(path.join(root,"DOMAIN-MAP.md"),"utf8"); if(!dm.includes("Downstream")&&!dm.includes("downstream"))fail.push("downstream product boundary missing");
 if(fail.length){console.error(fail.join("\n"));process.exit(1)}
 console.log(JSON.stringify({agents:agents.length,skillDirectories:skillDirs.length,legacySkillFiles:legacySkillFiles.length,commands:commands.length,hooks:hooks.length,rules:rules.length}));
