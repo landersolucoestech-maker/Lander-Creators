@@ -1,86 +1,33 @@
-# LANDER CREATORS Application Shell
+# LANDER CREATORS — Application Shell
 
 ## Purpose
 
-Etapa 5D consolidates the already implemented product foundations into one authenticated application experience. It does not introduce a new business domain.
+The authenticated application shell composes implemented domains into one experience. It is an application layer, not a business-domain persistence owner.
 
-## Authenticated shell
+## Shell contract
 
-The authenticated application uses one reusable shell with:
+The shell provides desktop sidebar, responsive mobile navigation, sticky header, explicit Workspace/Creator context, account/sign-out controls, one main content landmark, skip navigation and capability-aware navigation.
 
-- desktop sidebar;
-- responsive mobile navigation;
-- sticky header;
-- explicit Workspace / Creator context controls;
-- account and sign-out controls;
-- a single main content landmark;
-- a skip link;
-- permission-aware navigation.
-
-Unauthenticated authentication, password reset and invitation routes remain outside the authenticated shell where appropriate.
+Authentication, password reset and invitation acceptance may remain outside the authenticated shell where appropriate.
 
 ## Contexts
 
-### Workspace
+Workspace context uses the active Workspace persisted in `user_context_preferences.active_workspace_id` and revalidated server-side against current Membership.
 
-Workspace context uses the existing active Workspace persisted in `user_context_preferences.active_workspace_id`. Switching Workspaces continues through the existing active-Workspace API and authorization service.
+Creator context is explicit through Creator self-service routes and must not inherit Workspace administration authority. No duplicate context-persistence model is introduced.
 
-### Creator
+## Navigation and authorization
 
-Creator context is route-explicit through `/creator`. It intentionally uses a smaller navigation surface so Creator self-service does not inherit Workspace administration navigation.
-
-No duplicate context-persistence model is introduced.
-
-## Navigation authorization
-
-Navigation visibility is derived from current permission checks through the existing authorization service. It does not use role-name checks.
-
-Direct server routes remain authoritative. A hidden item does not grant or revoke access; protected module routes independently evaluate current capabilities before loading their data.
-
-Artist and promoted-entity lists continue to apply their existing explicit entity-access rules after Workspace permission checks.
+Navigation visibility derives from current permission checks, never role-name assumptions. Hidden navigation is not authorization; protected routes independently enforce current server-side capabilities.
 
 ## Dashboard
 
-The Dashboard is the authenticated `/` experience whenever an active Workspace exists.
+Dashboard reads real, access-filtered data only. It must not fabricate Campaign, Finance, ROI, revenue, follower-growth or other analytics. Campaign summaries may be shown only from implemented Campaign Core data.
 
-It reads real data only:
+## Responsive/accessibility behavior
 
-- personal CreatorProfile state;
-- Workspace-accessible Artist count;
-- accessible Release and Track counts through Artist access;
-- active, unexpired promoted-entity access counts;
-- Workspace media count;
-- Workspace membership count;
-- a small safe projection of known audit actions.
+Mobile navigation must preserve keyboard access, focus transfer/return, Escape close behavior and no page-level horizontal overflow. User-visible changes remain subject to the repository visual and accessibility gates.
 
-No Campaign, Finance, ROI, revenue, follower-growth or synthetic analytics are shown.
+## Implemented surfaces
 
-## Mobile behavior
-
-At narrow viewports the sidebar becomes an accessible drawer with:
-
-- explicit open and close controls;
-- Escape-key close behavior;
-- focus transfer to the close control;
-- focus return to the menu trigger;
-- route selection close behavior;
-- no page-level horizontal overflow.
-
-## Product modules
-
-The shell exposes only implemented areas:
-
-- Dashboard;
-- Creator;
-- Artists / Music Catalog;
-- Commercial Promoted Entities;
-- Shared Media;
-- Team;
-- Workspace;
-- Settings.
-
-Campaign and later domains remain absent.
-
-
-## Etapa 6 — Campaign Core
-Etapa 6 adds `Campanhas` to Workspace navigation only when `campaign.view` is effective. Creator self-service navigation remains isolated.
+Current surfaces are defined by `NAVIGATION-MAP.md`. Future modules are not exposed merely because their domain is planned.
