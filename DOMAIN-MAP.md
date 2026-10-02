@@ -19,6 +19,7 @@ This document describes the current repository state. Historical stage notes bel
 - Campaign Core: lifecycle/state machine, promoted-object snapshot, targeting, content requirements, brief/assets, schedule, planning budget/capacity, rights requirements, tracking configuration, readiness and 10-step Campaign Builder
 - Participation/Opportunities: creator applications, direct invitations, shortlist, withdrawal, rejection and acceptance
 - Proposal/Negotiation: workspace offers, creator counterproposals, acceptance and rejection with immutable negotiation rounds
+- Engagement/Contracts: accepted-proposal engagement snapshot, versioned contract, creator/workspace signatures and activation
 
 ## Implemented application-experience layer
 
@@ -26,7 +27,7 @@ The authenticated application shell, Dashboard, navigation registry, Media, Team
 
 ## Intentionally not implemented yet
 
-Engagement, Engagement Terms, Deliverables/Content, Publication, Finance/Payments, Analytics metrics, Reporting, Matching, Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
+Deliverables/Content, Publication, Finance/Payments, Analytics metrics, Reporting, Matching, Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
 
 ## Boundary rules
 
