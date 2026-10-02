@@ -2,10 +2,18 @@
 
 Repository-local skills under `.claude/skills/` are reusable procedures, not autonomous owners.
 
-Core investigation skills cover repository inspection, architecture/module/dependency mapping, blast radius, data-flow tracing, API/database/integration mapping, root cause, duplication, dead code and technical-debt analysis.
+## Investigation
+Repository census/inspection, architecture/module/database/API/integration mapping, dependency and data-flow tracing, blast radius, root cause, duplication, dead code and technical-debt analysis.
 
-Implementation skills cover safe feature work, bug fixes, refactoring, components, hooks, services, API routes, repositories, migrations/schemas, integrations, authentication/authorization, forms, CRUD, responsive UI and accessibility where present.
+## Implementation
+Feature implementation, bug fixing, safe refactoring, migrations/schema changes and the domain-specific implementation procedures already represented in the repository.
 
-Validation skills cover architecture, API contracts, responsive behavior, accessibility, security and release evidence. Commands under `.claude/commands/` compose these procedures for audits, implementation, review, testing and completion gates.
+## Security and contracts
+Authorization, tenant isolation, promoted-entity access, media/music/catalog/campaign security, API contracts, campaign state/readiness and registry audits.
 
-Skills never override `CLAUDE.md`, `ENGINEERING-SYSTEM.md`, `.claude/rules/`, domain ownership or the main-only/provider policies.
+## Validation
+Git/repository safety, lint, typecheck, unit tests, build, responsive/accessibility/visual consistency, diff review, evidence reporting and the composed quality gate.
+
+Commands under `.claude/commands/` compose these procedures for audit, investigation, planning, implementation, fixes, refactoring, review, tests, visual/security audits, validation, quality gates and release checks.
+
+Skills never override `CLAUDE.md`, `ENGINEERING-SYSTEM.md`, `.claude/rules/`, domain ownership, the main-only invariant or provider policy.
