@@ -32,4 +32,29 @@ describe("Music Catalog XLSX import",()=>{
  it("rejects malformed workbook, extra sheet, unexpected column and excessive rows",async()=>{expect(()=>parseMusicCatalogXlsx(Buffer.from("not-xlsx"))).toThrow();expect(()=>parseMusicCatalogXlsx(Buffer.alloc(5*1024*1024+1))).toThrow();expect(()=>parseMusicCatalogXlsx(fixture([], {extraSheet:true}))).toThrow();const bad:string[]=[...MUSIC_IMPORT_HEADERS];bad[0]="Faixa";expect(()=>parseMusicCatalogXlsx(fixture([],{headers:bad}))).toThrow();expect(()=>parseMusicCatalogXlsx(fixture(Array.from({length:1001},()=>row({"Música":"x","Tipo de Lançamento":"Single","Artista Principal":"A"}))))).toThrow();});
  it("treats formula cells as data and never evaluates cached result",()=>{const parsed=parseMusicCatalogXlsx(fixture([row({"Música":"ignored","Tipo de Lançamento":"Single","Artista Principal":"A"})],{formula:true}));expect(parsed[0].values["Música"]).toBe("=1+1");});
  it("rejects invalid URLs and duplicate Track numbers before inconsistent import",async()=>{const x=await setup();const invalid=await previewMusicCatalogImport(sql,{...x,sourceFilename:"bad.xlsx",bytes:fixture([row({"Música":"Bad","Tipo de Lançamento":"Single","Artista Principal":"A","Spotify":"javascript:alert(1)"})])});expect(invalid.rows[0].error_codes).toContain("URL_INVALID");const dupRows=[row({"Música":"Um","Nome do Lançamento":"Album","Tipo de Lançamento":"Álbum","Número da Faixa":"1","Artista Principal":"A"}),row({"Música":"Dois","Nome do Lançamento":"Album","Tipo de Lançamento":"Álbum","Número da Faixa":"1","Artista Principal":"A"})];const p=await previewMusicCatalogImport(sql,{...x,sourceFilename:"dup-track.xlsx",bytes:fixture(dupRows)});await expect(confirmMusicCatalogImport(sql,{...x,sessionId:String(p.session.id)})).rejects.toMatchObject({code:"MUSIC_IMPORT_INVALID"});});
+
+ it("never lets a workspace claim another tenant's Artist through import resolution",async()=>{
+  const a=await setup("a2@import.test");const b=await setup("b2@import.test");
+  const artist=await sql.unsafe("insert into artists(artistic_name,normalized_artistic_name) values('Nome Alheio','nome alheio') returning id::text");const artistId=String(artist[0].id);
+  await sql.unsafe("insert into workspace_artist_access(workspace_id,artist_id,access_level,granted_by_user_id) values($1::uuid,$2::uuid,'MANAGE',$3)",[a.workspaceId,artistId,a.userId]);
+  const bytes=fixture([row({"Música":"Roubada","Tipo de Lançamento":"Single","Artista Principal":"Nome Alheio"})]);
+  const p=await previewMusicCatalogImport(sql,{userId:b.userId,workspaceId:b.workspaceId,sourceFilename:"steal.xlsx",bytes});
+  expect(p.rows[0].classification).toBe("POSSIBLE_DUPLICATE");
+  expect(JSON.stringify(p.rows[0])).not.toContain(artistId);
+  await expect(resolveMusicImportRow(sql,{userId:b.userId,workspaceId:b.workspaceId,sessionId:String(p.session.id),rowId:String(p.rows[0].id),artistResolutions:{"nome alheio":artistId}})).rejects.toMatchObject({code:"MUSIC_IMPORT_INVALID"});
+  const access=await sql.unsafe("select 1 from workspace_artist_access where workspace_id=$1::uuid and artist_id=$2::uuid",[b.workspaceId,artistId]);
+  expect(access).toHaveLength(0);
+ });
+ it("does not upgrade a VIEW Artist grant to MANAGE via import resolution",async()=>{
+  const x=await setup("view@import.test");
+  const artist=await sql.unsafe("insert into artists(artistic_name,normalized_artistic_name) values('Somente Leitura','somente leitura') returning id::text");const artistId=String(artist[0].id);
+  await sql.unsafe("insert into workspace_artist_access(workspace_id,artist_id,access_level,granted_by_user_id) values($1::uuid,$2::uuid,'VIEW',$3)",[x.workspaceId,artistId,x.userId]);
+  const bytes=fixture([row({"Música":"Nova","Tipo de Lançamento":"Single","Artista Principal":"Somente Leitura"})]);
+  const p=await previewMusicCatalogImport(sql,{...x,sourceFilename:"view.xlsx",bytes});
+  expect(p.rows[0].classification).toBe("POSSIBLE_DUPLICATE");
+  await resolveMusicImportRow(sql,{...x,sessionId:String(p.session.id),rowId:String(p.rows[0].id),artistResolutions:{"somente leitura":artistId}}).catch(()=>undefined);
+  await expect(confirmMusicCatalogImport(sql,{...x,sessionId:String(p.session.id)})).rejects.toBeDefined();
+  const access=await sql.unsafe("select access_level::text l from workspace_artist_access where workspace_id=$1::uuid and artist_id=$2::uuid",[x.workspaceId,artistId]);
+  expect(access[0].l).toBe("VIEW");
+ });
 });

@@ -22,7 +22,7 @@ This document describes the current repository state. Historical stage notes bel
 - Engagement/Contracts: accepted-proposal engagement snapshot, versioned contract, creator/workspace signatures and activation
 - Deliverables/Content: contracted deliverables, creator submissions, immutable content versions, review/change-request/approval lifecycle
 - Publication: mandatory approved-content publication plan, creator/contractor/collab modes, proof URL and verification
-- Finance/Payments: engagement payable, verified-publication eligibility, release and paid recording
+- Finance/Payments: engagement payable, eligibility requiring a verified publication for every non-cancelled deliverable (re-proven at release), transactional audited release and idempotent paid recording with a unique external payment reference
 - Analytics/Reporting: immutable publication metric snapshots and campaign-level latest-snapshot aggregation
 - Matching: deterministic campaign-to-creator scoring snapshots with Music Fit, Audience Fit, Creator Fit and Overall Fit
 - Disputes: creator-opened engagement disputes (single active dispute per engagement, audited) with workspace review start and resolution

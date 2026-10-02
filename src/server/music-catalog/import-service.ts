@@ -72,7 +72,8 @@ async function classifyArtist(sql:QueryExecutor,workspaceId:string,name:string):
   if(assigned.length===1&&assigned[0].access_level==="MANAGE")return{name,normalizedName,kind:"EXISTING",artistId:String(assigned[0].id)};
   if(assigned.length>0)return{name,normalizedName,kind:"POSSIBLE_DUPLICATE",candidates:assigned.map(r=>({id:String(r.id),artisticName:String(r.artistic_name)}))};
   const global=await sql.unsafe("select id::text,artistic_name from artists where normalized_artistic_name=$1",[normalizedName]);
-  if(global.length)return{name,normalizedName,kind:"POSSIBLE_DUPLICATE",candidates:global.map(r=>({id:String(r.id),artisticName:String(r.artistic_name)}))};
+  // Artists of other workspaces are never exposed or claimable: the only resolution is CREATE_NEW.
+  if(global.length)return{name,normalizedName,kind:"POSSIBLE_DUPLICATE",candidates:[]};
   return{name,normalizedName,kind:"NEW"};
 }
 async function normalizeRow(sql:QueryExecutor,workspaceId:string,row:{rowNumber:number;values:Record<string,string>}){
@@ -177,7 +178,9 @@ async function resolveArtistId(tx:TransactionSql,input:{workspaceId:string;userI
     if(choice!=="CREATE_NEW"){
       const candidate=input.artist.candidates?.find(c=>c.id===choice);if(!candidate)throw new DomainError("MUSIC_IMPORT_INVALID","Artist resolution is invalid",400);
       await authorizeWorkspacePermission(tx,{userId:input.userId,workspaceId:input.workspaceId,permission:"artist.manage"});
-      await tx.unsafe("insert into workspace_artist_access(workspace_id,artist_id,access_level,granted_by_user_id) values($1::uuid,$2::uuid,'MANAGE',$3) on conflict(workspace_id,artist_id) do update set access_level='MANAGE',updated_at=now()",[input.workspaceId,choice,input.userId]);
+      // Import never creates or upgrades access: the workspace must already manage the chosen Artist.
+      const managed=await tx.unsafe("select 1 from workspace_artist_access where workspace_id=$1::uuid and artist_id=$2::uuid and access_level='MANAGE'",[input.workspaceId,choice]);
+      if(!managed[0])throw new DomainError("MUSIC_IMPORT_ARTIST_ACCESS_DENIED","Artist is not managed by this workspace",403);
       input.cache.set(input.artist.normalizedName,choice);return choice;
     }
   }

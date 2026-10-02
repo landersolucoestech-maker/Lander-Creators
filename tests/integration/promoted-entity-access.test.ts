@@ -26,6 +26,19 @@ describe("Promoted entity access and adapters",()=>{
    await expect(authorizePromotedEntityAccess(sql,{...target,entityType:"COMPANY",entityId:String(entity.id),permission:"promoted_entity.view"})).resolves.toMatchObject({accessLevel:"VIEW"});
  });
 
+ it("rejects grants to unknown workspaces and never downgrades an OWNER access row",async()=>{
+   const owner=await setup("grant-owner@test");const other=await setup("grant-other@test");
+   const entity=await createCompany(sql,{...owner,tradeName:"Protected Company"});const id=String(entity.id);
+   await expect(grantWorkspacePromotedEntityAccess(sql,{...owner,targetWorkspaceId:randomUUID(),entityType:"COMPANY",entityId:id,accessLevel:"VIEW"})).rejects.toMatchObject({code:"WORKSPACE_NOT_FOUND",status:404});
+   // Owner cannot lock itself out by re-granting its own workspace a lower level.
+   await expect(grantWorkspacePromotedEntityAccess(sql,{...owner,entityType:"COMPANY",entityId:id,accessLevel:"VIEW"})).rejects.toMatchObject({code:"PROMOTED_ENTITY_OWNER_ACCESS_PROTECTED",status:409});
+   // A co-owner cannot silently downgrade the original owner either.
+   await grantWorkspacePromotedEntityAccess(sql,{...owner,targetWorkspaceId:other.workspaceId,entityType:"COMPANY",entityId:id,accessLevel:"OWNER"});
+   await expect(grantWorkspacePromotedEntityAccess(sql,{...other,targetWorkspaceId:owner.workspaceId,entityType:"COMPANY",entityId:id,accessLevel:"VIEW"})).rejects.toMatchObject({code:"PROMOTED_ENTITY_OWNER_ACCESS_PROTECTED"});
+   const rows=await sql.unsafe("select workspace_id::text w,access_level::text l from workspace_promoted_entity_access where entity_id=$1::uuid order by access_level",[id]);
+   expect(rows.map(r=>r.l)).toEqual(["OWNER","OWNER"]);
+ });
+
  it("fails closed for suspended, expired, revoked and permission-less access",async()=>{
    const owner=await setup("access-owner@test");const target=await setup("access-target@test");
    const entity=await createCompany(sql,{...owner,tradeName:"Access Company"});
