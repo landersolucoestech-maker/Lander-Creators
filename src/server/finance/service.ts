@@ -5,6 +5,8 @@ type PayableInput={userId:string;workspaceId:string;payableId:string};
 
 /** Every non-cancelled deliverable of the engagement needs a VERIFIED publication, and at least one must exist. */
 async function publicationsVerified(tx:Tx,engagementId:string){
+  // Exclusive engagement lock: a concurrent createDeliverable (share lock) cannot slip in between this check and the transition.
+  await tx.unsafe("select id from campaign_engagements where id=$1::uuid for update",[engagementId]);
   const r=await tx.unsafe("select count(*) filter (where d.status<>'CANCELLED')::int required,count(*) filter (where d.status<>'CANCELLED' and not exists(select 1 from publications p where p.deliverable_id=d.id and p.status='VERIFIED'))::int unverified from deliverables d where d.engagement_id=$1::uuid",[engagementId]);
   return Number(r[0].required)>0&&Number(r[0].unverified)===0;
 }

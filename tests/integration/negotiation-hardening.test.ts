@@ -88,6 +88,14 @@ describe("Negotiation, engagement and contract hardening", () => {
     expect(await participationStatus(g)).toBe("REJECTED");
   });
 
+  it("closes the open round when a workspace accepts the participation directly", async () => {
+    const f = await createNegotiationFixture(sql, "ng10");
+    const p = await propose(f);
+    await updateParticipationStatus(sql, { userId: f.owner, workspaceId: f.workspaceId, campaignId: f.campaignId, participationId: f.participationId, status: "ACCEPTED" });
+    expect(await proposalStatuses(f)).toEqual(["WITHDRAWN"]);
+    await expect(creatorRespondProposal(sql, { userId: f.creatorUser, proposalId: String(p.id), action: "ACCEPT" })).rejects.toMatchObject({ code: "PROPOSAL_RESPONSE_NOT_ALLOWED" });
+  });
+
   it("validates proposals, keeps one open round and isolates tenants", async () => {
     const f = await createNegotiationFixture(sql, "ng4");
     await expect(propose(f, { amountMinor: -1 })).rejects.toMatchObject({ code: "PROPOSAL_INVALID", status: 400 });

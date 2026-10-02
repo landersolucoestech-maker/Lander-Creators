@@ -54,7 +54,8 @@ export async function updateParticipationStatus(sql:Sql,input:{userId:string;wor
   return sql.begin(async(tx)=>{
     const r=await tx.unsafe("update campaign_participations set status=$3::campaign_participation_status,responded_at=case when $3::text in ('REJECTED','ACCEPTED') then now() else responded_at end,updated_at=now() where id=$1::uuid and campaign_id=$2::uuid and status in ('APPLIED','INVITED','SHORTLISTED') returning id::text,status::text",[input.participationId,input.campaignId,input.status]);
     if(!r[0])throw new DomainError("PARTICIPATION_TRANSITION_REJECTED","Participation transition rejected",409);
-    if(input.status==="REJECTED")await closeOpenProposals(tx,String(r[0].id));
+    // Rejecting or accepting directly ends the negotiation, so no round may stay open.
+    if(input.status==="REJECTED"||input.status==="ACCEPTED")await closeOpenProposals(tx,String(r[0].id));
     await writeAudit(tx,{actorId:input.userId,workspaceId:input.workspaceId,action:`participation.${input.status.toLowerCase()}`,entityType:"campaign_participation",entityId:String(r[0].id),delta:{campaignId:input.campaignId}});
     return r[0];
   });

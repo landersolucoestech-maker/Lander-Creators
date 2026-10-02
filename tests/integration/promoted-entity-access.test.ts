@@ -39,6 +39,13 @@ describe("Promoted entity access and adapters",()=>{
    expect(rows.map(r=>r.l)).toEqual(["OWNER","OWNER"]);
  });
 
+ it("accepts a future expiry date through the application database client",async()=>{
+   const owner=await setup("expiry-owner@test");const target=await setup("expiry-target@test");
+   const entity=await createCompany(sql,{...owner,tradeName:"Expiring Company"});const id=String(entity.id);
+   await grantWorkspacePromotedEntityAccess(sql,{...owner,targetWorkspaceId:target.workspaceId,entityType:"COMPANY",entityId:id,accessLevel:"VIEW",expiresAt:new Date(Date.now()+86_400_000)});
+   await expect(authorizePromotedEntityAccess(sql,{...target,entityType:"COMPANY",entityId:id,permission:"promoted_entity.view"})).resolves.toMatchObject({accessLevel:"VIEW"});
+ });
+
  it("fails closed for suspended, expired, revoked and permission-less access",async()=>{
    const owner=await setup("access-owner@test");const target=await setup("access-target@test");
    const entity=await createCompany(sql,{...owner,tradeName:"Access Company"});
