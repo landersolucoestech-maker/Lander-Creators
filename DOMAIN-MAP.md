@@ -23,6 +23,7 @@ This document describes the current repository state. Historical stage notes bel
 - Deliverables/Content: contracted deliverables, creator submissions, immutable content versions, review/change-request/approval lifecycle
 - Publication: mandatory approved-content publication plan, creator/contractor/collab modes, proof URL and verification
 - Finance/Payments: engagement payable, verified-publication eligibility, release and paid recording
+- Analytics/Reporting: immutable publication metric snapshots and campaign-level latest-snapshot aggregation
 
 ## Implemented application-experience layer
 
