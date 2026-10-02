@@ -18,6 +18,7 @@ This document describes the current repository state. Historical stage notes bel
 - Promoted Object Registry across music and commercial promoted-object types
 - Campaign Core: lifecycle/state machine, promoted-object snapshot, targeting, content requirements, brief/assets, schedule, planning budget/capacity, rights requirements, tracking configuration, readiness and 10-step Campaign Builder
 - Participation/Opportunities: creator applications, direct invitations, shortlist, withdrawal, rejection and acceptance
+- Proposal/Negotiation: workspace offers, creator counterproposals, acceptance and rejection with immutable negotiation rounds
 
 ## Implemented application-experience layer
 
@@ -25,7 +26,7 @@ The authenticated application shell, Dashboard, navigation registry, Media, Team
 
 ## Intentionally not implemented yet
 
-Proposal/negotiation, Engagement, Engagement Terms, Deliverables/Content, Publication, Finance/Payments, Analytics metrics, Reporting, Matching, Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
+Engagement, Engagement Terms, Deliverables/Content, Publication, Finance/Payments, Analytics metrics, Reporting, Matching, Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
 
 ## Boundary rules
 
