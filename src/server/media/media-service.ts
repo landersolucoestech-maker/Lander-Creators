@@ -1,6 +1,7 @@
 import type { Sql } from "postgres";
 import { authorizeWorkspacePermission } from "@/server/authorization/authorization-service";
 import { DomainError } from "@/server/shared/domain-error";
+import { writeAudit } from "@/server/shared/audit";
 import { validateMedia } from "./media-validation";
 import type { MediaStorageAdapter } from "./storage";
 import { authorizeTrackBoundMediaRead } from "@/server/music-catalog/catalog-media-guard";
@@ -76,19 +77,14 @@ export async function uploadMediaAsset(
       );
       const row = rows[0] as Record<string, unknown>;
 
-      await tx.unsafe(
-        "insert into audit_logs(actor_type,actor_id,workspace_id,action,entity_type,entity_id,delta,origin) values('USER',$1,$2::uuid,'media.uploaded','media_asset',$3,$4::jsonb,'API')",
-        [
-          input.userId,
-          input.workspaceId,
-          String(row.id),
-          JSON.stringify({
-            mediaKind: validated.kind,
-            mimeType: validated.mime,
-            sizeBytes: validated.sizeBytes
-          })
-        ]
-      );
+      await writeAudit(tx, {
+        actorId: input.userId,
+        workspaceId: input.workspaceId,
+        action: "media.uploaded",
+        entityType: "media_asset",
+        entityId: String(row.id),
+        delta: { mediaKind: validated.kind, mimeType: validated.mime, sizeBytes: validated.sizeBytes }
+      });
 
       return safe(row);
     });
@@ -157,10 +153,13 @@ export async function archiveMediaAsset(
       throw new DomainError("MEDIA_NOT_FOUND", "Media asset not found", 404);
     }
 
-    await tx.unsafe(
-      "insert into audit_logs(actor_type,actor_id,workspace_id,action,entity_type,entity_id,origin) values('USER',$1,$2::uuid,'media.archived','media_asset',$3,'API')",
-      [input.userId, input.workspaceId, input.mediaAssetId]
-    );
+    await writeAudit(tx, {
+      actorId: input.userId,
+      workspaceId: input.workspaceId,
+      action: "media.archived",
+      entityType: "media_asset",
+      entityId: input.mediaAssetId
+    });
 
     return { mediaAssetId: input.mediaAssetId, status: "ARCHIVED" as const };
   });

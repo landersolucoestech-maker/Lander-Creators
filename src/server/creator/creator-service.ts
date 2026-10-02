@@ -1,5 +1,6 @@
 import type { Sql, TransactionSql } from "postgres";
 import { DomainError } from "@/server/shared/domain-error";
+import { writeGlobalAudit } from "@/server/shared/audit";
 import { assertTaxonomyValueSelectable } from "@/server/taxonomy/taxonomy-service";
 
 type QueryExecutor = Sql | TransactionSql;
@@ -13,10 +14,13 @@ async function audit(sql: QueryExecutor, input: {
   entityId: string;
   delta?: Record<string, unknown>;
 }) {
-  await sql.unsafe(
-    "insert into audit_logs(actor_type,actor_id,action,entity_type,entity_id,delta,origin) values('USER',$1,$2,'creator_profile',$3,$4::jsonb,'API')",
-    [input.userId, input.action, input.entityId, JSON.stringify(input.delta ?? {})]
-  );
+  await writeGlobalAudit(sql, {
+    actorId: input.userId,
+    action: input.action,
+    entityType: "creator_profile",
+    entityId: input.entityId,
+    delta: input.delta ?? {}
+  });
 }
 
 export async function getCreatorProfileByUser(sql: Sql, userId: string) {
@@ -170,20 +174,24 @@ export async function submitCreatorProfileForReview(sql: Sql,input:{userId:strin
   await requireCreatorOwner(sql,input);
   const readiness=await calculateCreatorReadiness(sql,input.userId);
   if(!readiness.technicalReady) throw new DomainError("CREATOR_PROFILE_INCOMPLETE","Creator profile is incomplete",409);
-  const rows=await sql.unsafe(
-    "update creator_profiles set status='UNDER_REVIEW',marketplace_visibility='HIDDEN',updated_at=now() where id=$1::uuid and user_id=$2 and status in ('DRAFT','UNDER_REVIEW') returning id::text,status::text",
-    [input.creatorProfileId,input.userId]
-  );
-  if(!rows[0])throw new DomainError("INVALID_CREATOR_STATUS_TRANSITION","Creator status transition rejected",409);
-  await audit(sql,{userId:input.userId,action:"creator.submitted_for_review",entityId:input.creatorProfileId});
-  return rows[0];
+  return sql.begin(async tx=>{
+    const rows=await tx.unsafe(
+      "update creator_profiles set status='UNDER_REVIEW',marketplace_visibility='HIDDEN',updated_at=now() where id=$1::uuid and user_id=$2 and status in ('DRAFT','UNDER_REVIEW') returning id::text,status::text",
+      [input.creatorProfileId,input.userId]
+    );
+    if(!rows[0])throw new DomainError("INVALID_CREATOR_STATUS_TRANSITION","Creator status transition rejected",409);
+    await audit(tx,{userId:input.userId,action:"creator.submitted_for_review",entityId:input.creatorProfileId});
+    return rows[0];
+  });
 }
 
 export async function setCreatorAvailability(sql:Sql,input:{userId:string;creatorProfileId:string;availability:CreatorAvailability}){
   await requireCreatorOwner(sql,input);
-  const rows=await sql.unsafe("update creator_profiles set availability=$3::creator_availability,updated_at=now() where id=$1::uuid and user_id=$2 returning id::text,availability::text",[input.creatorProfileId,input.userId,input.availability]);
-  await audit(sql,{userId:input.userId,action:"creator.availability_changed",entityId:input.creatorProfileId,delta:{availability:input.availability}});
-  return rows[0];
+  return sql.begin(async tx=>{
+    const rows=await tx.unsafe("update creator_profiles set availability=$3::creator_availability,updated_at=now() where id=$1::uuid and user_id=$2 returning id::text,availability::text",[input.creatorProfileId,input.userId,input.availability]);
+    await audit(tx,{userId:input.userId,action:"creator.availability_changed",entityId:input.creatorProfileId,delta:{availability:input.availability}});
+    return rows[0];
+  });
 }
 
 export async function setMarketplaceVisibility(sql:Sql,input:{userId:string;creatorProfileId:string;visibility:MarketplaceVisibility}){
@@ -195,7 +203,9 @@ export async function setMarketplaceVisibility(sql:Sql,input:{userId:string;crea
   if(["SUSPENDED","DISABLED","LIMITED"].includes(status) && input.visibility==="VISIBLE"){
     throw new DomainError("CREATOR_NOT_MARKETPLACE_ELIGIBLE","Creator is not eligible for marketplace visibility",409);
   }
-  const rows=await sql.unsafe("update creator_profiles set marketplace_visibility=$3::creator_marketplace_visibility,updated_at=now() where id=$1::uuid and user_id=$2 returning id::text,marketplace_visibility::text",[input.creatorProfileId,input.userId,input.visibility]);
-  await audit(sql,{userId:input.userId,action:"creator.visibility_changed",entityId:input.creatorProfileId,delta:{visibility:input.visibility}});
-  return rows[0];
+  return sql.begin(async tx=>{
+    const rows=await tx.unsafe("update creator_profiles set marketplace_visibility=$3::creator_marketplace_visibility,updated_at=now() where id=$1::uuid and user_id=$2 returning id::text,marketplace_visibility::text",[input.creatorProfileId,input.userId,input.visibility]);
+    await audit(tx,{userId:input.userId,action:"creator.visibility_changed",entityId:input.creatorProfileId,delta:{visibility:input.visibility}});
+    return rows[0];
+  });
 }

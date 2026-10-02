@@ -1,7 +1,7 @@
-import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";
+import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";import{writeAudit}from"@/server/shared/audit";
 
 type Tx={unsafe:Sql["unsafe"]};
-async function audit(tx:Tx,i:{userId:string;workspaceId:string;disputeId:string;action:string;delta?:unknown}){await tx.unsafe("insert into audit_logs(actor_type,actor_id,workspace_id,action,entity_type,entity_id,delta,origin) values('USER',$1,$2::uuid,$3,'dispute',$4,$5::jsonb,'API')",[i.userId,i.workspaceId,i.action,i.disputeId,JSON.stringify(i.delta??{})]);}
+async function audit(tx:Tx,i:{userId:string;workspaceId:string;disputeId:string;action:string;delta?:Record<string,unknown>}){await writeAudit(tx,{actorId:i.userId,workspaceId:i.workspaceId,action:i.action,entityType:"dispute",entityId:i.disputeId,delta:i.delta});}
 
 export async function openCreatorDispute(sql:Sql,input:{userId:string;engagementId:string;reason:string;details?:string|null}){
   const cp=await getCreatorProfileByUser(sql,input.userId);

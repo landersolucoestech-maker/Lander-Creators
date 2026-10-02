@@ -5,11 +5,12 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { eq } from "drizzle-orm";
 import { parseEnv } from "@/server/config/env";
 import { createDatabaseClient } from "@/server/db/client";
-import { auditLogs, identityProfiles } from "@/server/db/schema";
+import { identityProfiles } from "@/server/db/schema";
+import { writeGlobalAudit } from "@/server/shared/audit";
 import { createAuthEmailSender } from "./email-sender";
 
 const env = parseEnv(process.env);
-const { db, schema } = createDatabaseClient(env.DATABASE_URL);
+const { client, db, schema } = createDatabaseClient(env.DATABASE_URL);
 const emailSender = createAuthEmailSender(env.EMAIL_DELIVERY_MODE);
 
 export const auth = betterAuth({
@@ -55,14 +56,7 @@ export const auth = betterAuth({
       create: {
         after: async (createdUser) => {
           await db.insert(identityProfiles).values({ userId: createdUser.id });
-          await db.insert(auditLogs).values({
-            actorType: "USER",
-            actorId: createdUser.id,
-            action: "identity.signup",
-            entityType: "user",
-            entityId: createdUser.id,
-            origin: "API"
-          });
+          await writeGlobalAudit(client, { actorId: createdUser.id, action: "identity.signup", entityType: "user", entityId: createdUser.id });
         }
       },
       update: {
@@ -91,26 +85,12 @@ export const auth = betterAuth({
           return { data: sessionData };
         },
         after: async (createdSession) => {
-          await db.insert(auditLogs).values({
-            actorType: "USER",
-            actorId: createdSession.userId,
-            action: "auth.session_created",
-            entityType: "session",
-            entityId: createdSession.id,
-            origin: "API"
-          });
+          await writeGlobalAudit(client, { actorId: createdSession.userId, action: "auth.session_created", entityType: "session", entityId: createdSession.id });
         }
       },
       delete: {
         after: async (deletedSession) => {
-          await db.insert(auditLogs).values({
-            actorType: "USER",
-            actorId: deletedSession.userId,
-            action: "auth.session_revoked",
-            entityType: "session",
-            entityId: deletedSession.id,
-            origin: "API"
-          });
+          await writeGlobalAudit(client, { actorId: deletedSession.userId, action: "auth.session_revoked", entityType: "session", entityId: deletedSession.id });
         }
       }
     }

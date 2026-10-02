@@ -1,5 +1,6 @@
 import type { Sql } from "postgres";
 import { DomainError } from "@/server/shared/domain-error";
+import { writeAudit } from "@/server/shared/audit";
 import { authorizeWorkspacePermission } from "@/server/authorization/authorization-service";
 
 export type WorkspaceType = "LABEL" | "MANAGEMENT" | "COMPANY" | "AGENCY" | "INTERNAL";
@@ -49,10 +50,13 @@ export async function createWorkspace(
       "insert into workspace_creation_requests (user_id,idempotency_key,workspace_id) values ($1,$2,$3::uuid)",
       [input.userId, input.idempotencyKey, String(workspace.id)]
     );
-    await tx.unsafe(
-      "insert into audit_logs (actor_type,actor_id,workspace_id,action,entity_type,entity_id,origin) values ('USER',$1,$2::uuid,'workspace.created','workspace',$2,'API')",
-      [input.userId, String(workspace.id)]
-    );
+    await writeAudit(tx, {
+      actorId: input.userId,
+      workspaceId: String(workspace.id),
+      action: "workspace.created",
+      entityType: "workspace",
+      entityId: String(workspace.id)
+    });
 
     return workspace;
   });

@@ -1,5 +1,6 @@
 import type { Sql } from "postgres";
 import { DomainError } from "@/server/shared/domain-error";
+import { writeGlobalAudit } from "@/server/shared/audit";
 import { requireCreatorOwner } from "./creator-service";
 
 export type SocialPlatform="TIKTOK"|"INSTAGRAM"|"YOUTUBE";
@@ -31,12 +32,14 @@ export async function addDeclaredSocialProfile(sql:Sql,input:{
   if(!normalized)throw new DomainError("SOCIAL_PROFILE_INVALID","Social handle required",400);
   const profileUrl=validateProfileUrl(input.platform,input.profileUrl);
   try{
-    const rows=await sql.unsafe(
+    return await sql.begin(async tx=>{
+      const rows=await tx.unsafe(
       "insert into social_profiles(creator_profile_id,platform,external_account_id,handle,normalized_handle,profile_url,display_name,provenance,connection_status) values($1::uuid,$2::social_platform,$3,$4,$5,$6,$7,'DECLARED','NOT_CONNECTED') returning id::text,creator_profile_id::text,platform::text,external_account_id,handle,normalized_handle,profile_url,display_name,provenance::text,connection_status::text,created_at,updated_at",
       [input.creatorProfileId,input.platform,null,input.handle.trim(),normalized,profileUrl,input.displayName?.trim()||null]
-    );
-    await sql.unsafe("insert into audit_logs(actor_type,actor_id,action,entity_type,entity_id,delta,origin) values('USER',$1,'creator.social_added','social_profile',$2,$3::jsonb,'API')",[input.userId,String((rows[0] as Record<string,unknown>).id),JSON.stringify({platform:input.platform,provenance:"DECLARED"})]);
-    return rows[0];
+      );
+      await writeGlobalAudit(tx,{actorId:input.userId,action:"creator.social_added",entityType:"social_profile",entityId:String((rows[0] as Record<string,unknown>).id),delta:{platform:input.platform,provenance:"DECLARED"}});
+      return rows[0];
+    });
   }catch(error){
     if(error instanceof DomainError)throw error;
     const message=error instanceof Error?error.message:"";
@@ -55,9 +58,11 @@ export async function listSocialProfiles(sql:Sql,input:{userId:string;creatorPro
 
 export async function removeSocialProfile(sql:Sql,input:{userId:string;creatorProfileId:string;socialProfileId:string}){
   await requireCreatorOwner(sql,input);
-  const rows=await sql.unsafe("delete from social_profiles where id=$1::uuid and creator_profile_id=$2::uuid returning id::text",[input.socialProfileId,input.creatorProfileId]);
-  if(!rows[0])throw new DomainError("SOCIAL_PROFILE_NOT_FOUND","Social profile not found",404);
-  await sql.unsafe("insert into audit_logs(actor_type,actor_id,action,entity_type,entity_id,origin) values('USER',$1,'creator.social_removed','social_profile',$2,'API')",[input.userId,input.socialProfileId]);
+  await sql.begin(async tx=>{
+    const rows=await tx.unsafe("delete from social_profiles where id=$1::uuid and creator_profile_id=$2::uuid returning id::text",[input.socialProfileId,input.creatorProfileId]);
+    if(!rows[0])throw new DomainError("SOCIAL_PROFILE_NOT_FOUND","Social profile not found",404);
+    await writeGlobalAudit(tx,{actorId:input.userId,action:"creator.social_removed",entityType:"social_profile",entityId:input.socialProfileId});
+  });
   return {socialProfileId:input.socialProfileId};
 }
 

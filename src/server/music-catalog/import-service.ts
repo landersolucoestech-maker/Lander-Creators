@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { Sql, TransactionSql } from "postgres";
 import { authorizeWorkspacePermission } from "@/server/authorization/authorization-service";
 import { DomainError } from "@/server/shared/domain-error";
+import { writeAudit } from "@/server/shared/audit";
 import { MUSIC_IMPORT_HEADERS, parseMusicCatalogXlsx } from "./xlsx";
 import { normalizeCatalogText, normalizeIsrc, parseDurationText, validateHttpsUrl } from "./catalog-validation";
 
@@ -222,7 +223,7 @@ export async function confirmMusicCatalogImport(sql:Sql,input:{userId:string;wor
       await tx.unsafe("update music_import_rows set created_entity_ids=$2::jsonb where id=$1::uuid",[String(row.id),JSON.stringify({trackId,releaseId,created:true})]);
     }
     await tx.unsafe("update music_import_sessions set status='IMPORTED',imported_at=now(),updated_at=now() where id=$1::uuid",[input.sessionId]);
-    await tx.unsafe("insert into audit_logs(actor_type,actor_id,workspace_id,action,entity_type,entity_id,origin) values('USER',$1,$2::uuid,'music_import.confirmed','music_import_session',$3,'API')",[input.userId,input.workspaceId,input.sessionId]);
+    await writeAudit(tx,{actorId:input.userId,workspaceId:input.workspaceId,action:"music_import.confirmed",entityType:"music_import_session",entityId:input.sessionId});
     return getMusicCatalogImport(tx,input);
   });
 }

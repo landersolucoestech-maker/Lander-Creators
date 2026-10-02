@@ -1,6 +1,7 @@
 import type{Sql}from "postgres";
 import{authorizeWorkspacePermission}from "@/server/authorization/authorization-service";
 import{DomainError}from "@/server/shared/domain-error";
+import { writeAudit } from "@/server/shared/audit";
 import{resolvePromotedObject}from "@/server/promoted-entities/registry";
 import type{PromotedObjectType}from "@/server/promoted-entities/types";
 import{assertCampaignTransition}from "./state-machine";
@@ -16,8 +17,8 @@ async function row(sql:Sql, i:{userId:string;workspaceId:string;campaignId:strin
   if(!r[0])throw new DomainError("CAMPAIGN_NOT_FOUND","Campaign not found",404);
   return r[0] as Record<string,unknown>;
 }
-async function audit(sql:{unsafe:Sql["unsafe"]}, i:{userId:string;workspaceId:string;campaignId:string;action:string;delta?:unknown}) {
-  await sql.unsafe("insert into audit_logs(actor_type,actor_id,workspace_id,action,entity_type,entity_id,delta,origin) values('USER',$1,$2::uuid,$3,'campaign',$4,$5::jsonb,'API')",[i.userId,i.workspaceId,i.action,i.campaignId,JSON.stringify(i.delta??{})]);
+async function audit(tx:{unsafe:Sql["unsafe"]}, i:{userId:string;workspaceId:string;campaignId:string;action:string;delta?:Record<string,unknown>}) {
+  await writeAudit(tx,{actorId:i.userId,workspaceId:i.workspaceId,action:i.action,entityType:"campaign",entityId:i.campaignId,delta:i.delta??{}});
 }
 async function touch(sql:{unsafe:Sql["unsafe"]},campaignId:string,revision:number) {
   const r=await sql.unsafe("update campaigns set revision=revision+1,updated_at=now() where id=$1::uuid and revision=$2 returning revision",[campaignId,revision]);
@@ -68,11 +69,14 @@ export async function setCampaignPromotedObject(sql:Sql, i:{userId:string;worksp
 
 export async function updateCampaignGoalContext(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string;revision:number;name:string;goalCode:string;internalDescription?:string|null;objectiveContext?:string|null;ctaType?:string|null;ctaUrl?:string|null}) {
   const c=await editable(sql,i);assertSafeUrl(i.ctaUrl);
-  const g=await sql.unsafe("select 1 from campaign_goal_object_types where goal_code=$1 and object_type=$2::promoted_object_type",[i.goalCode,String(c.promoted_object_type??"")]);
+  if(!c.promoted_object_type)throw new DomainError("CAMPAIGN_PROMOTED_OBJECT_REQUIRED","Select the promoted object before the goal",409);
+  const g=await sql.unsafe("select 1 from campaign_goal_object_types where goal_code=$1 and object_type=$2::promoted_object_type",[i.goalCode,String(c.promoted_object_type)]);
   if(!g[0])throw new DomainError("CAMPAIGN_GOAL_INCOMPATIBLE","Goal incompatible with promoted object",400);
-  await touch(sql,i.campaignId,i.revision);
-  await sql.unsafe("update campaigns set name=$2,goal_code=$3,internal_description=$4,objective_context=$5,cta_type=$6,cta_url=$7 where id=$1::uuid",[i.campaignId,i.name.trim(),i.goalCode,i.internalDescription??null,i.objectiveContext??null,i.ctaType??null,i.ctaUrl??null]);
-  await audit(sql,{...i,action:"campaign.goal_context.updated"});
+  await sql.begin(async tx=>{
+    await touch(tx,i.campaignId,i.revision);
+    await tx.unsafe("update campaigns set name=$2,goal_code=$3,internal_description=$4,objective_context=$5,cta_type=$6,cta_url=$7 where id=$1::uuid",[i.campaignId,i.name.trim(),i.goalCode,i.internalDescription??null,i.objectiveContext??null,i.ctaType??null,i.ctaUrl??null]);
+    await audit(tx,{...i,action:"campaign.goal_context.updated"});
+  });
 }
 
 export async function updateCampaignTargeting(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string;revision:number;followerMin?:number|null;followerMax?:number|null;platforms:string[];nicheIds:string[];contentStyleIds:string[];musicGenreIds:string[];countryCodes:string[];languageCodes:string[]}) {
@@ -117,33 +121,41 @@ export async function updateCampaignBriefAssets(sql:Sql, i:{userId:string;worksp
 
 export async function updateCampaignSchedule(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string;revision:number;mode:"FIXED"|"EVERGREEN";startsAt:string|null;endsAt:string|null;timezoneCode:string;recruitmentOpensAt?:string|null;recruitmentClosesAt?:string|null}) {
   await editable(sql,i);assertSchedule(i);
-  await touch(sql,i.campaignId,i.revision);
-  await sql.unsafe("update campaigns set mode=$2::campaign_mode,starts_at=$3::timestamptz,ends_at=$4::timestamptz,timezone_code=$5,recruitment_opens_at=$6::timestamptz,recruitment_closes_at=$7::timestamptz where id=$1::uuid",[i.campaignId,i.mode,i.startsAt,i.endsAt,i.timezoneCode,i.recruitmentOpensAt??null,i.recruitmentClosesAt??null]);
-  await audit(sql,{...i,action:"campaign.schedule.updated"});
+  await sql.begin(async tx=>{
+    await touch(tx,i.campaignId,i.revision);
+    await tx.unsafe("update campaigns set mode=$2::campaign_mode,starts_at=$3::timestamptz,ends_at=$4::timestamptz,timezone_code=$5,recruitment_opens_at=$6::timestamptz,recruitment_closes_at=$7::timestamptz where id=$1::uuid",[i.campaignId,i.mode,i.startsAt,i.endsAt,i.timezoneCode,i.recruitmentOpensAt??null,i.recruitmentClosesAt??null]);
+    await audit(tx,{...i,action:"campaign.schedule.updated"});
+  });
 }
 
 export async function updateCampaignBudgetCapacity(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string;revision:number;budgetMinor:number|null;targetCreatorCount:number|null;maximumCreatorCount:number|null}) {
   await editable(sql,i);
   if(i.budgetMinor!=null&&(!Number.isSafeInteger(i.budgetMinor)||i.budgetMinor<0))throw new DomainError("CAMPAIGN_BUDGET_INVALID","Invalid campaign budget",400);
   if(i.targetCreatorCount!=null&&i.targetCreatorCount<=0||i.maximumCreatorCount!=null&&i.maximumCreatorCount<=0||i.targetCreatorCount!=null&&i.maximumCreatorCount!=null&&i.targetCreatorCount>i.maximumCreatorCount)throw new DomainError("CAMPAIGN_CAPACITY_INVALID","Invalid campaign capacity",400);
-  await touch(sql,i.campaignId,i.revision);
-  await sql.unsafe("update campaigns set budget_minor=$2,target_creator_count=$3,maximum_creator_count=$4 where id=$1::uuid",[i.campaignId,i.budgetMinor,i.targetCreatorCount,i.maximumCreatorCount]);
-  await audit(sql,{...i,action:"campaign.budget_capacity.updated"});
+  await sql.begin(async tx=>{
+    await touch(tx,i.campaignId,i.revision);
+    await tx.unsafe("update campaigns set budget_minor=$2,target_creator_count=$3,maximum_creator_count=$4 where id=$1::uuid",[i.campaignId,i.budgetMinor,i.targetCreatorCount,i.maximumCreatorCount]);
+    await audit(tx,{...i,action:"campaign.budget_capacity.updated"});
+  });
 }
 
 export async function updateCampaignRightsRequirements(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string;revision:number;organicUsageDays:number|null;paidMediaAllowed:boolean;whitelistingRequired:boolean;exclusivityRequired:boolean;geography?:string|null;usageDurationDays:number|null}) {
   await editable(sql,i);
-  await touch(sql,i.campaignId,i.revision);
-  await sql.unsafe("insert into campaign_rights_requirements(campaign_id,organic_usage_days,paid_media_allowed,whitelisting_required,exclusivity_required,geography,usage_duration_days) values($1::uuid,$2,$3,$4,$5,$6,$7) on conflict(campaign_id) do update set organic_usage_days=excluded.organic_usage_days,paid_media_allowed=excluded.paid_media_allowed,whitelisting_required=excluded.whitelisting_required,exclusivity_required=excluded.exclusivity_required,geography=excluded.geography,usage_duration_days=excluded.usage_duration_days",[i.campaignId,i.organicUsageDays,i.paidMediaAllowed,i.whitelistingRequired,i.exclusivityRequired,i.geography??null,i.usageDurationDays]);
-  await audit(sql,{...i,action:"campaign.rights.updated"});
+  await sql.begin(async tx=>{
+    await touch(tx,i.campaignId,i.revision);
+    await tx.unsafe("insert into campaign_rights_requirements(campaign_id,organic_usage_days,paid_media_allowed,whitelisting_required,exclusivity_required,geography,usage_duration_days) values($1::uuid,$2,$3,$4,$5,$6,$7) on conflict(campaign_id) do update set organic_usage_days=excluded.organic_usage_days,paid_media_allowed=excluded.paid_media_allowed,whitelisting_required=excluded.whitelisting_required,exclusivity_required=excluded.exclusivity_required,geography=excluded.geography,usage_duration_days=excluded.usage_duration_days",[i.campaignId,i.organicUsageDays,i.paidMediaAllowed,i.whitelistingRequired,i.exclusivityRequired,i.geography??null,i.usageDurationDays]);
+    await audit(tx,{...i,action:"campaign.rights.updated"});
+  });
 }
 
 export async function updateCampaignTracking(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string;revision:number;targetUrl?:string|null;utmSource?:string|null;utmMedium?:string|null;utmCampaign?:string|null;utmContentPattern?:string|null;trackingLabel?:string|null;objectives:string[]}) {
   await editable(sql,i);assertSafeUrl(i.targetUrl);
-  await touch(sql,i.campaignId,i.revision);
-  const o=new Set(i.objectives);
-  await sql.unsafe("insert into campaign_tracking_config(campaign_id,target_url,utm_source,utm_medium,utm_campaign,utm_content_pattern,tracking_label,measure_views,measure_reach,measure_engagement,measure_clicks,measure_conversions) values($1::uuid,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) on conflict(campaign_id) do update set target_url=excluded.target_url,utm_source=excluded.utm_source,utm_medium=excluded.utm_medium,utm_campaign=excluded.utm_campaign,utm_content_pattern=excluded.utm_content_pattern,tracking_label=excluded.tracking_label,measure_views=excluded.measure_views,measure_reach=excluded.measure_reach,measure_engagement=excluded.measure_engagement,measure_clicks=excluded.measure_clicks,measure_conversions=excluded.measure_conversions",[i.campaignId,i.targetUrl??null,i.utmSource??null,i.utmMedium??null,i.utmCampaign??null,i.utmContentPattern??null,i.trackingLabel??null,o.has("VIEWS"),o.has("REACH"),o.has("ENGAGEMENT"),o.has("CLICKS"),o.has("CONVERSIONS")]);
-  await audit(sql,{...i,action:"campaign.tracking.updated"});
+  await sql.begin(async tx=>{
+    await touch(tx,i.campaignId,i.revision);
+    const o=new Set(i.objectives);
+    await tx.unsafe("insert into campaign_tracking_config(campaign_id,target_url,utm_source,utm_medium,utm_campaign,utm_content_pattern,tracking_label,measure_views,measure_reach,measure_engagement,measure_clicks,measure_conversions) values($1::uuid,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) on conflict(campaign_id) do update set target_url=excluded.target_url,utm_source=excluded.utm_source,utm_medium=excluded.utm_medium,utm_campaign=excluded.utm_campaign,utm_content_pattern=excluded.utm_content_pattern,tracking_label=excluded.tracking_label,measure_views=excluded.measure_views,measure_reach=excluded.measure_reach,measure_engagement=excluded.measure_engagement,measure_clicks=excluded.measure_clicks,measure_conversions=excluded.measure_conversions",[i.campaignId,i.targetUrl??null,i.utmSource??null,i.utmMedium??null,i.utmCampaign??null,i.utmContentPattern??null,i.trackingLabel??null,o.has("VIEWS"),o.has("REACH"),o.has("ENGAGEMENT"),o.has("CLICKS"),o.has("CONVERSIONS")]);
+    await audit(tx,{...i,action:"campaign.tracking.updated"});
+  });
 }
 
 export async function setBuilderStepCompletion(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string;step:number;completed:boolean}) {
@@ -162,8 +174,16 @@ export async function transitionCampaign(sql:Sql, i:{userId:string;workspaceId:s
   const ready=await evaluateCampaignReadiness(sql,i);
   if(ready.status==="BLOCKED")throw new DomainError("CAMPAIGN_NOT_READY","Campaign is not ready",409,{blockers:ready.blockers});
   if(i.to==="SCHEDULED"&&(!c.starts_at||new Date(String(c.starts_at))<=new Date()))throw new DomainError("CAMPAIGN_SCHEDULE_INVALID","Scheduled Campaign requires future start",409);
-}await sql.unsafe("update campaigns set status=$2::campaign_status,updated_at=now(),revision=revision+1 where id=$1::uuid",[i.campaignId,i.to]);
-  await audit(sql,{...i,action:`campaign.${i.to.toLowerCase()}`,delta:{from,to:i.to}});
+}
+  // Re-requesting the status the campaign already has is an idempotent no-op: no write, no revision bump, no audit.
+  if(from===i.to)return{status:i.to};
+  await sql.begin(async tx=>{
+    // Compare-and-set on the origin status: concurrent transitions cannot both apply.
+    const moved=await tx.unsafe("update campaigns set status=$2::campaign_status,updated_at=now(),revision=revision+1 where id=$1::uuid and status=$3::campaign_status returning id",[i.campaignId,i.to,from]);
+    if(moved[0]){await audit(tx,{...i,action:`campaign.${i.to.toLowerCase()}`,delta:{from,to:i.to}});return;}
+    const now=await tx.unsafe("select status::text s from campaigns where id=$1::uuid",[i.campaignId]);
+    if(now[0]?.s!==i.to)throw new DomainError("CAMPAIGN_INVALID_STATUS_TRANSITION","Campaign status changed since it was loaded",409);
+  });
   return{status:i.to};
 }
 

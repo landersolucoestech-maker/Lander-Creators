@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { Sql, TransactionSql } from "postgres";
 import { DomainError } from "@/server/shared/domain-error";
+import { writeAudit } from "@/server/shared/audit";
 import { authorizeWorkspacePermission } from "@/server/authorization/authorization-service";
 
 type QueryExecutor = Sql | TransactionSql;
@@ -47,17 +48,14 @@ async function audit(
     delta?: Record<string, unknown>;
   }
 ) {
-  await tx.unsafe(
-    "insert into audit_logs (actor_type,actor_id,workspace_id,action,entity_type,entity_id,delta,origin) values ('USER',$1,$2::uuid,$3,$4,$5,$6::jsonb,'API')",
-    [
-      input.actorUserId,
-      input.workspaceId,
-      input.action,
-      input.entityType,
-      input.entityId ?? null,
-      JSON.stringify(input.delta ?? {})
-    ]
-  );
+  await writeAudit(tx, {
+    actorId: input.actorUserId,
+    workspaceId: input.workspaceId,
+    action: input.action,
+    entityType: input.entityType,
+    entityId: input.entityId,
+    delta: input.delta ?? {}
+  });
 }
 
 async function getMembershipRole(
