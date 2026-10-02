@@ -25,7 +25,7 @@ This document describes the current repository state. Historical stage notes bel
 - Finance/Payments: engagement payable, verified-publication eligibility, release and paid recording
 - Analytics/Reporting: immutable publication metric snapshots and campaign-level latest-snapshot aggregation
 - Matching: deterministic campaign-to-creator scoring snapshots with Music Fit, Audience Fit, Creator Fit and Overall Fit
-- Disputes: creator-opened engagement disputes with workspace review and resolution
+- Disputes: creator-opened engagement disputes (single active dispute per engagement, audited) with workspace review start and resolution
 
 ## Implemented application-experience layer
 
