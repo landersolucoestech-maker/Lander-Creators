@@ -55,6 +55,8 @@ jobs:
         run: npm run lint
       - name: Typecheck
         run: npm run typecheck
+      - name: Engineering OS contracts
+        run: npm run test:engineering-os
       - name: Tests
         run: npm test
       - name: Build
