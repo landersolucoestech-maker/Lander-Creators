@@ -1,4 +1,4 @@
-# LANDER CREATORS Navigation Map
+# LANDER CREATORS — Navigation Map
 
 ## Unauthenticated routes
 
@@ -8,44 +8,24 @@
 
 ## Workspace context
 
-### Visão geral
 - Dashboard — `/`
-
-### Operação
 - Creators — `/creator`
-- Artistas — `/music-catalog#artists`
-- Catálogo musical — `/music-catalog`
+- Artistas / Catálogo musical — `/music-catalog`
 - Entidades promovidas — `/promoted-entities`
-
-### Recursos
+- Campanhas — `/campaigns` with detail and builder routes
 - Mídia — `/media`
-
-### Organização
 - Equipe — `/team`
 - Workspace — `/workspace`
 - Configurações — `/settings`
 
-Items are filtered by real capabilities. Artist and promoted-entity records remain filtered by their explicit access models.
+Navigation visibility is capability-based. Direct server authorization remains authoritative. Artist and promoted-entity records retain their explicit access models.
 
 ## Creator context
 
 - Meu perfil — `/creator`
 
-Creator context intentionally avoids Workspace administration navigation.
+Creator self-service does not inherit Workspace administration authority.
 
-## Not present
+## Not currently exposed as implemented modules
 
-No clickable navigation exists for:
-
-- Campaign;
-- Finance;
-- Content;
-- Publication;
-- Analytics;
-- Reporting;
-- Matching;
-- AI Runtime.
-
-
-## Etapa 6 — Campaign Core
-Etapa 6 Workspace operation navigation adds `/campaigns`, `/campaigns/[campaignId]` and `/campaigns/[campaignId]/builder`. No downstream Participation/Finance/Analytics navigation is exposed.
+Participation/Opportunities, Engagement/Contracts, Deliverables, Publication, Finance/Payments, Analytics/Reporting, Matching, Disputes, AI Runtime and provider-backed Integrations are not to be exposed as implemented navigation until their owning domain exists.
