@@ -21,7 +21,7 @@ Deferred until a concrete repository need is proven: external hosted providers, 
 
 Before every write: verify repository identity and exact main HEAD; establish scope and owning domain; trace dependencies/blast radius; identify required tests/gates; preserve provider-neutral boundaries.
 
-After every write: inspect the diff; run relevant tests; run mandatory repository gates; require visual inspection for user-visible changes; advance only when evidence is green.
+After every logical change batch: inspect the diff and require the mandatory repository gates. Do not serialize every individual commit behind a full CI wait when multiple behavior-preserving edits belong to the same batch; finish the coherent batch, then use the exact batch HEAD as the gate. User-visible batches additionally require visual inspection.
 
 ## Stage discipline
 Historical stage names are provenance, not architecture. Canonical documents describe current state. Autonomous work may advance only while all preceding gates are green. A failed gate or unresolved ownership conflict stops forward progress until corrected.
