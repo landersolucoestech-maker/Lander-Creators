@@ -1,0 +1,2 @@
+import{parseEnv}from"@/server/config/env";import{createDatabaseClient}from"@/server/db/client";import{apiErrorResponse,requireAuthenticatedUser}from"@/server/http/api";import{listCreatorOpportunities}from"@/server/participation/service";
+export async function GET(request:Request){const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);try{const u=await requireAuthenticatedUser(request);return Response.json({opportunities:await listCreatorOpportunities(client,u.id)});}catch(e){return apiErrorResponse(e)}finally{await client.end()}}
