@@ -1,29 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { creatorNavigation, workspaceNavigation } from "@/app/application-navigation";
 import type { ApplicationShellState } from "@/server/application/application-context";
-
-function state(capabilities: ApplicationShellState["capabilities"]): ApplicationShellState {
-  return {
-    user:{id:"u",name:"User",email:"u@example.test"},
-    workspaces:[],
-    activeWorkspace:{id:"w",name:"Workspace",type:"AGENCY",status:"ACTIVE",role_code:"VIEWER",active:true},
-    creator:null,
-    capabilities
-  };
-}
-
-describe("application navigation",()=>{
- it("filters Workspace navigation by capabilities instead of role names",()=>{
-  const nav=workspaceNavigation(state({workspace:true,team:false,media:true,music:false,promoted:true,workspaceSettings:false,campaign:true}));
-  expect(nav.map(item=>item.label)).toEqual(["Dashboard","Creators","Campanhas","Entidades promovidas","Mídia","Workspace","Configurações"]);
-  expect(nav.map(item=>item.label)).not.toContain("Equipe");
-  expect(nav.map(item=>item.label)).not.toContain("Catálogo musical");
- });
- it("keeps Creator context intentionally small",()=>{
-  expect(creatorNavigation().map(item=>item.href)).toEqual(["/creator"]);
- });
- it("does not expose future modules",()=>{
-  const labels=workspaceNavigation(state({workspace:true,team:true,media:true,music:true,promoted:true,workspaceSettings:true,campaign:true})).map(item=>item.label);
-  for(const forbidden of ["Financeiro","Conteúdo","Publicações","Analytics","Relatórios","Matching","AI"])expect(labels).not.toContain(forbidden);
- });
-});
+function state(capabilities: ApplicationShellState["capabilities"]): ApplicationShellState {return {user:{id:"u",name:"User",email:"u@example.test"},workspaces:[],activeWorkspace:{id:"w",name:"Workspace",type:"AGENCY",status:"ACTIVE",role_code:"VIEWER",active:true},creator:null,capabilities};}
+describe("application navigation",()=>{it("filters Workspace navigation by capabilities instead of role names",()=>{const nav=workspaceNavigation(state({workspace:true,team:false,media:true,music:false,promoted:true,workspaceSettings:false,campaign:true}));expect(nav.map(item=>item.label)).toEqual(["Dashboard","Creators","Campanhas","Entidades promovidas","Mídia","Workspace","Configurações"]);expect(nav.map(item=>item.label)).not.toContain("Equipe");expect(nav.map(item=>item.label)).not.toContain("Catálogo musical");});it("exposes implemented Creator modules only",()=>{expect(creatorNavigation().map(item=>item.href)).toEqual(["/creator","/opportunities"]);});it("does not expose future modules",()=>{const labels=workspaceNavigation(state({workspace:true,team:true,media:true,music:true,promoted:true,workspaceSettings:true,campaign:true})).map(item=>item.label);for(const forbidden of["Financeiro","Conteúdo","Publicações","Analytics","Relatórios","Matching","AI"])expect(labels).not.toContain(forbidden);});});
