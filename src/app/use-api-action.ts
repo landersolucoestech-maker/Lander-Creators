@@ -33,5 +33,10 @@ export function useApiAction() {
     }
   }
 
-  return { message, busy, run };
+  /** Surfaces a client-side validation message in the same notice region. */
+  function fail(text: string) {
+    setMessage(text);
+  }
+
+  return { message, busy, run, fail };
 }

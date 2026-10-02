@@ -1,6 +1,7 @@
 import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";import{writeAudit}from"@/server/shared/audit";
 
 type Tx={unsafe:Sql["unsafe"]};
+export type CreatorContractRow={id:string;version:number;status:string;scope_of_work:string;rights_terms:string;payment_terms:string;campaign_name:string;contracted_amount_minor:string;currency_code:string};
 const LIVE_CONTRACT="('DRAFT','SENT','SIGNED_CREATOR','SIGNED_WORKSPACE')";
 
 /** Moves the engagement between expected states; a miss means the pair (contract, engagement) diverged, so the whole transaction aborts. */
@@ -69,4 +70,4 @@ export async function workspaceSignContract(sql:Sql,input:{userId:string;workspa
     return{id:r[0].id,status:"EXECUTED"};
   });
 }
-export async function listCreatorContracts(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe("select ec.id::text,ec.version,ec.status::text,ec.scope_of_work,ec.rights_terms,ec.payment_terms,c.name campaign_name,ce.contracted_amount_minor::text,ce.currency_code from engagement_contracts ec join campaign_engagements ce on ce.id=ec.engagement_id join campaigns c on c.id=ce.campaign_id where ce.creator_profile_id=$1::uuid and ec.status<>'DRAFT' order by ec.updated_at desc",[String((cp as Record<string,unknown>).id)]);}
+export async function listCreatorContracts(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe<CreatorContractRow[]>("select ec.id::text,ec.version,ec.status::text,ec.scope_of_work,ec.rights_terms,ec.payment_terms,c.name campaign_name,ce.contracted_amount_minor::text,ce.currency_code from engagement_contracts ec join campaign_engagements ce on ce.id=ec.engagement_id join campaigns c on c.id=ce.campaign_id where ce.creator_profile_id=$1::uuid and ec.status<>'DRAFT' order by ec.updated_at desc",[String((cp as Record<string,unknown>).id)]);}

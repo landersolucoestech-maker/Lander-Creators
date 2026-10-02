@@ -1,22 +1,12 @@
 "use client";
 
+import type { CreatorContractRow } from "@/server/engagement/service";
 import { formatMinor } from "../format";
 import { contractStatusLabels } from "../post-campaign-labels";
 import { useApiAction } from "../use-api-action";
 
-type Contract = {
-  id: string;
-  version: number;
-  status: string;
-  scope_of_work: string;
-  rights_terms: string;
-  payment_terms: string;
-  campaign_name: string;
-  contracted_amount_minor: string;
-  currency_code: string;
-};
 
-export function ContractsPanel({ contracts }: { contracts: Contract[] }) {
+export function ContractsPanel({ contracts }: { contracts: CreatorContractRow[] }) {
   const { message, busy, run } = useApiAction();
 
   return (

@@ -1,18 +1,9 @@
+import type { CreatorPayableRow } from "@/server/finance/service";
 import { formatDate, formatMinor } from "../format";
 import { payableStatusLabels } from "../post-campaign-labels";
 
-type Payment = {
-  id: string;
-  amount_minor: string;
-  currency_code: string;
-  status: string;
-  eligible_at: string | Date | null;
-  released_at: string | Date | null;
-  paid_at: string | Date | null;
-  campaign_name: string;
-};
 
-export function PaymentsPanel({ payments }: { payments: Payment[] }) {
+export function PaymentsPanel({ payments }: { payments: CreatorPayableRow[] }) {
   return (
     <div className="module-surface">
       <header className="page-header">

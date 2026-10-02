@@ -1,38 +1,19 @@
 "use client";
 
+import type { CreatorDeliverableRow } from "@/server/deliverable/service";
+import type { CreatorPublicationRow } from "@/server/publication/service";
 import type { FormEvent } from "react";
 import { formatDate } from "../format";
 import { contentFormatLabels, deliverableStatusLabels, labelOr, platformLabels, publicationModeLabels, publicationStatusLabels } from "../post-campaign-labels";
 import { useApiAction } from "../use-api-action";
 
-type Deliverable = {
-  id: string;
-  title: string;
-  platform: string;
-  format: string;
-  requirements_snapshot: string;
-  due_at: string | Date | null;
-  status: string;
-  campaign_name: string;
-};
-type Publication = {
-  id: string;
-  title: string;
-  platform: string;
-  mode: string;
-  status: string;
-  proof_url: string | null;
-  scheduled_at: string | Date | null;
-  published_at: string | Date | null;
-  campaign_name: string;
-};
 
 const SUBMITTABLE = new Set(["PENDING", "IN_PROGRESS", "CHANGES_REQUESTED"]);
 
-export function DeliverablesPanel({ deliverables, publications }: { deliverables: Deliverable[]; publications: Publication[] }) {
+export function DeliverablesPanel({ deliverables, publications }: { deliverables: CreatorDeliverableRow[]; publications: CreatorPublicationRow[] }) {
   const { message, busy, run } = useApiAction();
 
-  async function submitContent(event: FormEvent<HTMLFormElement>, deliverable: Deliverable) {
+  async function submitContent(event: FormEvent<HTMLFormElement>, deliverable: CreatorDeliverableRow) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const note = String(form.get("note") ?? "").trim();
@@ -44,7 +25,7 @@ export function DeliverablesPanel({ deliverables, publications }: { deliverables
     );
   }
 
-  async function submitProof(event: FormEvent<HTMLFormElement>, publication: Publication) {
+  async function submitProof(event: FormEvent<HTMLFormElement>, publication: CreatorPublicationRow) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     await run(

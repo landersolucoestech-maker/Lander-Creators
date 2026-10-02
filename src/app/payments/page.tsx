@@ -4,6 +4,6 @@ import { PaymentsPanel } from "./payments-panel";
 
 export default async function PaymentsPage() {
   return renderCreatorPage(async ({ client, userId }) => (
-    <PaymentsPanel payments={(await listCreatorPayables(client, userId)) as never} />
+    <PaymentsPanel payments={await listCreatorPayables(client, userId)} />
   ));
 }

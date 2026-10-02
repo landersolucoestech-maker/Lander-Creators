@@ -1,4 +1,5 @@
 import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";import{writeAudit}from"@/server/shared/audit";import{isHttpsUrl}from"@/server/shared/https-url";
+export type CreatorPublicationRow={id:string;platform:string;mode:string;scheduled_at:Date|null;published_at:Date|null;proof_url:string|null;status:string;title:string;campaign_name:string};
 export async function planPublication(sql:Sql,input:{userId:string;workspaceId:string;deliverableId:string;mode:"CREATOR_PROFILE"|"CONTRACTOR_PROFILE"|"COLLAB";scheduledAt?:string|null}){
   await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"publication.manage"});
   return sql.begin(async(tx)=>{
@@ -12,7 +13,7 @@ export async function planPublication(sql:Sql,input:{userId:string;workspaceId:s
     return r[0];
   });
 }
-export async function listCreatorPublications(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe("select p.id::text,p.platform,p.mode::text,p.scheduled_at,p.published_at,p.proof_url,p.status::text,d.title,c.name campaign_name from publications p join deliverables d on d.id=p.deliverable_id join campaigns c on c.id=p.campaign_id where p.creator_profile_id=$1::uuid order by p.updated_at desc",[String((cp as Record<string,unknown>).id)]);}
+export async function listCreatorPublications(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe<CreatorPublicationRow[]>("select p.id::text,p.platform,p.mode::text,p.scheduled_at,p.published_at,p.proof_url,p.status::text,d.title,c.name campaign_name from publications p join deliverables d on d.id=p.deliverable_id join campaigns c on c.id=p.campaign_id where p.creator_profile_id=$1::uuid order by p.updated_at desc",[String((cp as Record<string,unknown>).id)]);}
 export async function submitPublicationProof(sql:Sql,input:{userId:string;publicationId:string;proofUrl:string}){
   const cp=await getCreatorProfileByUser(sql,input.userId);
   if(!cp)throw new DomainError("CREATOR_PROFILE_REQUIRED","Creator profile required",409);

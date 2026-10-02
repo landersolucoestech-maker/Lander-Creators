@@ -1,6 +1,7 @@
 import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";import{writeAudit}from"@/server/shared/audit";
 
 type Tx={unsafe:Sql["unsafe"]};
+export type CreatorProposalRow={id:string;participation_id:string;round:number;proposed_by:"WORKSPACE"|"CREATOR";amount_minor:string;currency_code:string;scope_summary:string;rights_summary:string|null;status:string;campaign_name:string};
 const OPEN_STATUSES="('PENDING_CREATOR','PENDING_WORKSPACE')";
 
 function assertTerms(i:{amountMinor:number;scopeSummary:string;currencyCode?:string}){
@@ -50,7 +51,7 @@ export async function createWorkspaceProposal(sql:Sql,input:{userId:string;works
     return r[0];
   });
 }
-export async function listCreatorProposals(sql:Sql,userId:string){const p=await getCreatorProfileByUser(sql,userId);if(!p)return[];return sql.unsafe("select pr.id::text,pr.participation_id::text,pr.round,pr.proposed_by,pr.amount_minor::text,pr.currency_code,pr.scope_summary,pr.rights_summary,pr.status::text,c.name campaign_name from campaign_proposals pr join campaign_participations cp on cp.id=pr.participation_id join campaigns c on c.id=cp.campaign_id where pr.creator_profile_id=$1::uuid order by pr.updated_at desc",[String((p as Record<string,unknown>).id)]);}
+export async function listCreatorProposals(sql:Sql,userId:string){const p=await getCreatorProfileByUser(sql,userId);if(!p)return[];return sql.unsafe<CreatorProposalRow[]>("select pr.id::text,pr.participation_id::text,pr.round,pr.proposed_by,pr.amount_minor::text,pr.currency_code,pr.scope_summary,pr.rights_summary,pr.status::text,c.name campaign_name from campaign_proposals pr join campaign_participations cp on cp.id=pr.participation_id join campaigns c on c.id=cp.campaign_id where pr.creator_profile_id=$1::uuid order by pr.updated_at desc",[String((p as Record<string,unknown>).id)]);}
 export async function creatorRespondProposal(sql:Sql,input:{userId:string;proposalId:string;action:"ACCEPT"|"REJECT";amountMinor?:number;scopeSummary?:string;rightsSummary?:string|null}){
   const cp=await getCreatorProfileByUser(sql,input.userId);
   if(!cp)throw new DomainError("CREATOR_PROFILE_REQUIRED","Creator profile required",409);

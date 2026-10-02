@@ -1,34 +1,27 @@
 "use client";
 
+import type { CreatorProposalRow } from "@/server/proposal/service";
 import type { FormEvent } from "react";
-import { formatMinor, parseMoneyToMinor } from "../format";
+import { formatMinor, moneyInputPlaceholder, parseMoneyToMinor } from "../format";
 import { proposalStatusLabels } from "../post-campaign-labels";
 import { useApiAction } from "../use-api-action";
 
-type Proposal = {
-  id: string;
-  round: number;
-  proposed_by: "WORKSPACE" | "CREATOR";
-  amount_minor: string;
-  currency_code: string;
-  scope_summary: string;
-  rights_summary: string | null;
-  status: string;
-  campaign_name: string;
-};
 
-export function ProposalsPanel({ proposals }: { proposals: Proposal[] }) {
-  const { message, busy, run } = useApiAction();
+export function ProposalsPanel({ proposals }: { proposals: CreatorProposalRow[] }) {
+  const { message, busy, run, fail } = useApiAction();
 
   function respond(id: string, action: "ACCEPT" | "REJECT") {
     return run(`/api/proposals/${id}`, "PATCH", { action }, "Não foi possível responder à proposta.");
   }
 
-  async function counter(event: FormEvent<HTMLFormElement>, proposal: Proposal) {
+  async function counter(event: FormEvent<HTMLFormElement>, proposal: CreatorProposalRow) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const amountMinor = parseMoneyToMinor(String(form.get("amount") ?? ""));
-    if (amountMinor === null) return;
+    const amountMinor = parseMoneyToMinor(String(form.get("amount") ?? ""), proposal.currency_code);
+    if (amountMinor === null) {
+      fail("Informe um valor válido, com as casas decimais da moeda.");
+      return;
+    }
     await run(
       `/api/proposals/${proposal.id}`,
       "PATCH",
@@ -96,7 +89,7 @@ export function ProposalsPanel({ proposals }: { proposals: Proposal[] }) {
                             <form className="form compact-form" onSubmit={(event) => void counter(event, proposal)}>
                               <label>
                                 Valor ({proposal.currency_code})
-                                <input name="amount" required inputMode="decimal" pattern="\d{1,12}([.,]\d{1,2})?" placeholder="1500,00" />
+                                <input name="amount" required inputMode="decimal" pattern="\d{1,12}([.,]\d+)?" placeholder={moneyInputPlaceholder(proposal.currency_code)} />
                               </label>
                               <label>
                                 Escopo

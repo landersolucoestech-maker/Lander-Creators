@@ -1,6 +1,7 @@
 import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";import{writeAudit}from"@/server/shared/audit";
 
 type Tx={unsafe:Sql["unsafe"]};
+export type CreatorPayableRow={id:string;amount_minor:string;currency_code:string;status:string;eligible_at:Date|null;released_at:Date|null;paid_at:Date|null;campaign_name:string};
 type PayableInput={userId:string;workspaceId:string;payableId:string};
 
 /** Every non-cancelled deliverable of the engagement needs a VERIFIED publication, and at least one must exist. */
@@ -81,4 +82,4 @@ export async function recordPaid(sql:Sql,input:PayableInput&{externalPaymentRefe
   }
 }
 
-export async function listCreatorPayables(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe("select p.id::text,p.amount_minor::text,p.currency_code,p.status::text,p.eligible_at,p.released_at,p.paid_at,c.name campaign_name from campaign_payables p join campaigns c on c.id=p.campaign_id where p.creator_profile_id=$1::uuid order by p.updated_at desc",[String((cp as Record<string,unknown>).id)]);}
+export async function listCreatorPayables(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe<CreatorPayableRow[]>("select p.id::text,p.amount_minor::text,p.currency_code,p.status::text,p.eligible_at,p.released_at,p.paid_at,c.name campaign_name from campaign_payables p join campaigns c on c.id=p.campaign_id where p.creator_profile_id=$1::uuid order by p.updated_at desc",[String((cp as Record<string,unknown>).id)]);}

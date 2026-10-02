@@ -9,6 +9,6 @@ export default async function DeliverablesPage() {
       listCreatorDeliverables(client, userId),
       listCreatorPublications(client, userId)
     ]);
-    return <DeliverablesPanel deliverables={deliverables as never} publications={publications as never} />;
+    return <DeliverablesPanel deliverables={deliverables} publications={publications} />;
   });
 }

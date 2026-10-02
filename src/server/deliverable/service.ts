@@ -1,4 +1,5 @@
 import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";import{writeAudit}from"@/server/shared/audit";import{isHttpsUrl}from"@/server/shared/https-url";
+export type CreatorDeliverableRow={id:string;title:string;platform:string;format:string;requirements_snapshot:string;due_at:Date|null;status:string;campaign_name:string};
 export async function createDeliverable(sql:Sql,input:{userId:string;workspaceId:string;engagementId:string;title:string;platform:string;format:string;requirementsSnapshot:string;dueAt?:string|null}){
   await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"deliverable.manage"});
   return sql.begin(async(tx)=>{
@@ -10,7 +11,7 @@ export async function createDeliverable(sql:Sql,input:{userId:string;workspaceId
     return r[0];
   });
 }
-export async function listCreatorDeliverables(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe("select d.id::text,d.title,d.platform,d.format,d.requirements_snapshot,d.due_at,d.status::text,c.name campaign_name from deliverables d join campaigns c on c.id=d.campaign_id where d.creator_profile_id=$1::uuid order by d.updated_at desc",[String((cp as Record<string,unknown>).id)]);}
+export async function listCreatorDeliverables(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe<CreatorDeliverableRow[]>("select d.id::text,d.title,d.platform,d.format,d.requirements_snapshot,d.due_at,d.status::text,c.name campaign_name from deliverables d join campaigns c on c.id=d.campaign_id where d.creator_profile_id=$1::uuid order by d.updated_at desc",[String((cp as Record<string,unknown>).id)]);}
 export async function submitContentVersion(sql:Sql,input:{userId:string;deliverableId:string;mediaAssetId?:string|null;externalUrl?:string|null;creatorNote?:string|null}){
   const cp=await getCreatorProfileByUser(sql,input.userId);
   if(!cp)throw new DomainError("CREATOR_PROFILE_REQUIRED","Creator profile required",409);
