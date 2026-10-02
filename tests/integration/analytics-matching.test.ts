@@ -42,6 +42,17 @@ describe("Analytics", () => {
     expect(a).toMatchObject({ publications: 1, verified_publications: 1, views: "250", likes: "30" });
   });
 
+  it("audits manual metric recording with the actor, once per record", async () => {
+    const f = await createEngagementFixture(sql, "a3");
+    const pubId = await publication(f, "PUBLISHED");
+    const base = { userId: f.owner, workspaceId: f.workspaceId, publicationId: pubId };
+    const snap = await recordPublicationMetrics(sql, { ...base, ...zero, views: 10, source: " manual " });
+    const rows = await sql.unsafe("select actor_id,action,entity_type,entity_id,delta from audit_logs where action='analytics.metrics_recorded'");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ actor_id: f.owner, entity_type: "publication", entity_id: pubId });
+    expect(rows[0].delta).toMatchObject({ snapshotId: snap.id, source: "manual", views: 10 });
+  });
+
   it("rejects metrics for unpublished publications and foreign workspaces", async () => {
     const f = await createEngagementFixture(sql, "a2");
     const planned = await publication(f, "PLANNED");
@@ -103,6 +114,18 @@ describe("Matching", () => {
     expect(list[0].creator_profile_id).toBe(fit);
     const rows = await sql.unsafe("select count(*)::int c from campaign_creator_match_snapshots where campaign_id=$1::uuid", [f.campaignId]);
     expect(rows[0].c).toBe(list.length);
+  });
+
+  it("audits one aggregate event per recalculation and never one per creator", async () => {
+    const f = await createEngagementFixture(sql, "m3");
+    await visibleCreator("c1@m3.test", "BR");
+    await visibleCreator("c2@m3.test", "BR");
+    const ctx = { userId: f.owner, workspaceId: f.workspaceId, campaignId: f.campaignId };
+    await recalculateCampaignMatches(sql, ctx);
+    await recalculateCampaignMatches(sql, ctx);
+    const rows = await sql.unsafe("select delta from audit_logs where action='matching.recalculated' and entity_id=$1", [f.campaignId]);
+    expect(rows).toHaveLength(2);
+    expect(rows[0].delta).toMatchObject({ candidates: 2 });
   });
 
   it("denies outsiders and cross-workspace campaign access", async () => {
