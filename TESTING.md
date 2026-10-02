@@ -32,3 +32,6 @@ Validation includes Dashboard access-filtering tests, canonical navigation tests
 
 ## Etapa 6 — Campaign Core
 Etapa 6 requires migration 0008 from zero/repeatability, Campaign lifecycle and validation tests, builder/domain-boundary regressions, Dashboard/navigation regressions, desktop/mobile Campaign visual states and axe.
+
+## Integration client and post-campaign coverage
+Integration tests create their client with the application's own factory (`createDatabaseClient`, see `tests/integration/test-db.ts`), so driver behavior such as JSON and date serialization matches production. Post-campaign suites cover lifecycle and audit order, concurrency (exactly one winner), tenant and creator ownership denial, and invalid transitions: negotiation, deliverable/publication and finance hardening, cross-tenant mutation, audit integrity and proposal-route tests. A public-error test fails when any `DomainError` code in `src/server` has no PT-BR message. The visual spec covers the Creator portal routes (empty and populated) and the accept-proposal and sign-contract interactions on desktop and mobile.

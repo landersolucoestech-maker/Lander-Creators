@@ -52,3 +52,9 @@ Known parent relations use real foreign keys. `WorkspacePromotedEntityAccess` us
 Migration `0008_campaign_core.sql` introduced Campaign persistence. Campaign IDs are UUIDs; lifecycle/configuration categories use closed PostgreSQL enums; planning budget uses integer minor units; revision provides optimistic concurrency. Builder data is normalized into typed tables rather than a generic JSON document.
 
 The current Campaign persistence is defined by the immutable migration and Campaign service SQL. Any future consolidation into Drizzle schema definitions must be additive/representational and must not rewrite applied migration history.
+
+## Hardening migrations 0018-0021
+
+All are additive and never rewrite existing rows: `0018` single active dispute per engagement; `0019` unique `(workspace_id, external_payment_reference)` plus NOT VALID paid-evidence and currency checks; `0020` single ACCEPTED proposal per participation (the unique indexes in `0018`, `0019` and `0020` are skipped with a notice when legacy duplicates exist); `0021` a BEFORE INSERT trigger on `audit_logs` that turns a JSON-string `delta` into an object.
+
+The application database client is wrapped by drizzle, which disables the driver's own JSON and date serializers: a `jsonb` parameter must be JSON text (`JSON.stringify`) and a timestamp parameter must be an ISO string. Passing an object or `Date` throws at runtime.

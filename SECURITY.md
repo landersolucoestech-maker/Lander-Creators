@@ -63,3 +63,11 @@ Commercial links are HTTPS-only and are never fetched server-side during creatio
 
 ## Etapa 6 — Campaign Core
 Campaign security gate covers cross-Workspace IDOR, promoted-object access, foreign Shared Media, direct lifecycle escalation, activation bypass, unsafe URLs, stale writes and active material edits. Authorization remains permission-based.
+
+## Post-campaign lifecycle
+- Content and publication-proof URLs must be absolute `https` (`src/server/shared/https-url.ts`), enforced in the Deliverable and Publication services.
+- Every transition writes `audit_logs` through `writeAudit` in the same transaction as the state change.
+- A payment reference is required to mark a payable paid and is unique per workspace; releasing a payable re-proves that every non-cancelled deliverable has a verified publication.
+- Music import never exposes or claims another workspace's Artist, and never creates or upgrades Artist access.
+- A promoted-entity access grant cannot downgrade an OWNER access row.
+- Creators never see contract drafts that were not sent to them.

@@ -32,13 +32,15 @@ This document is the canonical current-state ownership map. A responsibility has
 | Campaign planning budget/capacity | Campaign Core |
 | Campaign rights requirements | Campaign Core |
 | Campaign tracking configuration | Campaign Core |
-| Participation/application/invitation | Future Participation domain |
-| Proposal/counterproposal/acceptance | Future Proposal/Engagement domain |
-| Contracted creator scope and negotiated rights | Future Engagement Terms domain |
-| Delivered content and revisions | Future Deliverables/Content domain |
-| Publication/proof URL | Future Publication domain |
-| Payables, balances, releases and payment history | Future Finance/Payments domain |
-| Aggregated performance/report outputs | Future Analytics/Reporting domains |
+| Participation/application/invitation | Participation domain |
+| Proposal/counterproposal/acceptance (immutable rounds) | Proposal/Negotiation domain |
+| Engagement, versioned contract and signatures | Engagement/Contracts domain |
+| Delivered content and revisions | Deliverables/Content domain |
+| Publication/proof URL | Publication domain |
+| Payables, releases and paid recording | Finance/Payments domain |
+| Publication metric snapshots and campaign aggregation | Analytics/Reporting domain |
+| Campaign-to-creator match snapshots | Matching domain |
+| Engagement disputes | Disputes domain |
 
 ## Non-negotiable ownership separations
 
