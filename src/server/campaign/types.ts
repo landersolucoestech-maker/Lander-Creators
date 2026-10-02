@@ -1,11 +1,41 @@
-import type{PromotedObjectType}from"@/server/promoted-entities/types";
-export const campaignStatuses=["DRAFT","SCHEDULED","ACTIVE","PAUSED","CANCELLATION_PENDING","CANCELLED","COMPLETED","ARCHIVED"] as const;
-export type CampaignStatus=(typeof campaignStatuses)[number];
-export const campaignModes=["FIXED","EVERGREEN"] as const;export type CampaignMode=(typeof campaignModes)[number];
-export const campaignVisibilities=["OPEN","PRIVATE"] as const;export type CampaignVisibility=(typeof campaignVisibilities)[number];
-export const recruitmentStatuses=["NOT_OPEN","OPEN","CLOSED"] as const;export type RecruitmentStatus=(typeof recruitmentStatuses)[number];
-export const socialPlatforms=["TIKTOK","INSTAGRAM","YOUTUBE"] as const;export type SocialPlatform=(typeof socialPlatforms)[number];
-export const contentFormats=["VIDEO","REEL","STORY","FEED_POST","SHORT"] as const;export type ContentFormat=(typeof contentFormats)[number];
-export const builderSteps=[1,2,3,4,5,6,7,8,9,10] as const;
-export type CampaignReadiness={status:"READY"|"READY_WITH_WARNINGS"|"BLOCKED";blockers:string[];warnings:string[]};
-export type CampaignPromotedObject={type:PromotedObjectType;entityId:string};
+import type { PromotedObjectType } from "@/server/promoted-entities/types";
+
+export const campaignStatuses = [
+  "DRAFT",
+  "SCHEDULED",
+  "ACTIVE",
+  "PAUSED",
+  "CANCELLATION_PENDING",
+  "CANCELLED",
+  "COMPLETED",
+  "ARCHIVED"
+] as const;
+export type CampaignStatus = (typeof campaignStatuses)[number];
+
+export const campaignModes = ["FIXED", "EVERGREEN"] as const;
+export type CampaignMode = (typeof campaignModes)[number];
+
+export const campaignVisibilities = ["OPEN", "PRIVATE"] as const;
+export type CampaignVisibility = (typeof campaignVisibilities)[number];
+
+export const recruitmentStatuses = ["NOT_OPEN", "OPEN", "CLOSED"] as const;
+export type RecruitmentStatus = (typeof recruitmentStatuses)[number];
+
+export const socialPlatforms = ["TIKTOK", "INSTAGRAM", "YOUTUBE"] as const;
+export type SocialPlatform = (typeof socialPlatforms)[number];
+
+export const contentFormats = ["VIDEO", "REEL", "STORY", "FEED_POST", "SHORT"] as const;
+export type ContentFormat = (typeof contentFormats)[number];
+
+export const builderSteps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+
+export type CampaignReadiness = {
+  status: "READY" | "READY_WITH_WARNINGS" | "BLOCKED";
+  blockers: string[];
+  warnings: string[];
+};
+
+export type CampaignPromotedObject = {
+  type: PromotedObjectType;
+  entityId: string;
+};
