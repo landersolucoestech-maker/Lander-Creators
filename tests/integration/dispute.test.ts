@@ -2,7 +2,10 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { createTestSql, resetSecurityData } from "./test-db";
 import { createEngagementFixture, createUser } from "./engagement-fixture";
 import { createWorkspace } from "@/server/workspace/workspace-service";
-import { listWorkspaceDisputes, openCreatorDispute, resolveDispute, startDisputeReview } from "@/server/dispute/service";
+import { disputeListConfig, listWorkspaceDisputes, openCreatorDispute, resolveDispute, startDisputeReview } from "@/server/dispute/service";
+import { parseListQuery } from "@/server/shared/list-query";
+
+const defaultQuery = parseListQuery({}, disputeListConfig);
 
 const sql = createTestSql();
 
@@ -54,7 +57,7 @@ describe("Disputes", () => {
     const otherWs = await createWorkspace(sql, { userId: outsider, name: "Other", type: "AGENCY", idempotencyKey: "d3-other" });
 
     for (const [user, ws] of [[outsider, f.workspaceId], [f.creatorUser, f.workspaceId]] as const) {
-      await expect(listWorkspaceDisputes(sql, { userId: user, workspaceId: ws })).rejects.toMatchObject({ code: "WORKSPACE_ACCESS_DENIED" });
+      await expect(listWorkspaceDisputes(sql, { userId: user, workspaceId: ws, query: defaultQuery })).rejects.toMatchObject({ code: "WORKSPACE_ACCESS_DENIED" });
       await expect(
         resolveDispute(sql, { userId: user, workspaceId: ws, disputeId: String(d.id), resolution: "ok" })
       ).rejects.toMatchObject({ code: "WORKSPACE_ACCESS_DENIED" });
@@ -65,7 +68,7 @@ describe("Disputes", () => {
     await expect(
       resolveDispute(sql, { userId: outsider, workspaceId: String(otherWs.id), disputeId: String(d.id), resolution: "ok" })
     ).rejects.toMatchObject({ code: "DISPUTE_RESOLUTION_NOT_ALLOWED" });
-    expect(await listWorkspaceDisputes(sql, { userId: outsider, workspaceId: String(otherWs.id) })).toHaveLength(0);
+    expect((await listWorkspaceDisputes(sql, { userId: outsider, workspaceId: String(otherWs.id), query: defaultQuery })).rows).toHaveLength(0);
     expect((await sql.unsafe("select status::text s from disputes where id=$1::uuid", [d.id]))[0].s).toBe("OPEN");
   });
 

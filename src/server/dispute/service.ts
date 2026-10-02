@@ -1,4 +1,4 @@
-import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";import{writeAudit}from"@/server/shared/audit";
+import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";import{writeAudit}from"@/server/shared/audit";import{Conditions,runPagedList}from"@/server/shared/paged-sql";import type{ListQuery,Page}from"@/server/shared/list-query";
 
 type Tx={unsafe:Sql["unsafe"]};
 async function audit(tx:Tx,i:{userId:string;workspaceId:string;disputeId:string;action:string;delta?:Record<string,unknown>}){await writeAudit(tx,{actorId:i.userId,workspaceId:i.workspaceId,action:i.action,entityType:"dispute",entityId:i.disputeId,delta:i.delta});}
@@ -18,7 +18,18 @@ export async function openCreatorDispute(sql:Sql,input:{userId:string;engagement
     return r[0];
   });
 }
-export async function listWorkspaceDisputes(sql:Sql,input:{userId:string;workspaceId:string}){await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"dispute.view"});return sql.unsafe("select d.id::text,d.engagement_id::text,d.reason,d.details,d.status::text,d.resolution,d.created_at,d.resolved_at,cp.display_name creator_name from disputes d join creator_profiles cp on cp.id=d.creator_profile_id where d.workspace_id=$1::uuid order by d.updated_at desc",[input.workspaceId]);}
+export const disputeListConfig={sorts:["updated_at","created_at","status","creator","campaign"] as const,defaultSort:"updated_at" as const,statuses:["OPEN","UNDER_REVIEW","RESOLVED","CLOSED"] as const};
+export type DisputeSort=(typeof disputeListConfig.sorts)[number];
+const disputeOrder:Record<DisputeSort,string>={updated_at:"d.updated_at",created_at:"d.created_at",status:"d.status",creator:"cp.display_name",campaign:"c.name"};
+export type WorkspaceDisputeRow={id:string;engagement_id:string;reason:string;details:string|null;status:string;resolution:string|null;created_at:Date;updated_at:Date;resolved_at:Date|null;creator_name:string;campaign_name:string};
+export async function listWorkspaceDisputes(sql:Sql,input:{userId:string;workspaceId:string;query:ListQuery<DisputeSort>}):Promise<Page<WorkspaceDisputeRow>>{
+  await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"dispute.view"});
+  const{query}=input;
+  const conditions=new Conditions().add("d.workspace_id = ?::uuid",input.workspaceId);
+  if(query.status)conditions.add("d.status = ?::dispute_status",query.status);
+  conditions.search(["c.name","cp.display_name","d.reason"],query.q);
+  return runPagedList<WorkspaceDisputeRow>(sql,{select:"d.id::text,d.engagement_id::text,d.reason,d.details,d.status::text,d.resolution,d.created_at,d.updated_at,d.resolved_at,cp.display_name creator_name,c.name campaign_name",from:"from disputes d join creator_profiles cp on cp.id=d.creator_profile_id join campaign_engagements e on e.id=d.engagement_id join campaigns c on c.id=e.campaign_id",conditions,orderBy:disputeOrder[query.sort],tiebreaker:"d.id",query});
+}
 export async function startDisputeReview(sql:Sql,input:{userId:string;workspaceId:string;disputeId:string}){
   await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"dispute.manage"});
   return sql.begin(async(tx)=>{

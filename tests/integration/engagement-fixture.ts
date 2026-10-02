@@ -124,3 +124,13 @@ export async function createNegotiationFixture(sql: TestSql, tag: string, partic
   );
   return { owner, workspaceId, creatorUser, creatorProfileId, campaignId, participationId: String(participation[0].id) };
 }
+
+/** Adds an ACTIVE member with a system role to an existing workspace (direct SQL, no invitation flow). */
+export async function addMember(sql: TestSql, workspaceId: string, roleCode: string, tag: string) {
+  const userId = await createUser(sql, `${roleCode.toLowerCase()}@${tag}.test`);
+  await sql.unsafe(
+    "insert into memberships(user_id,workspace_id,role_id) select $1,$2::uuid,r.id from roles r where r.code=$3 and r.workspace_id is null",
+    [userId, workspaceId, roleCode]
+  );
+  return userId;
+}

@@ -21,7 +21,36 @@ export type ApplicationCapability =
   | "music"
   | "promoted"
   | "workspaceSettings"
-  | "campaign";
+  | "campaign"
+  | "engagements"
+  | "contentReview"
+  | "publications"
+  | "finance"
+  | "analytics"
+  | "matching"
+  | "disputes";
+
+/** Navigation capabilities are the server-side `*.view`/`*.update` permissions; hiding a link never authorizes. */
+export const capabilityPermissions = {
+  workspace: "workspace.view",
+  team: "team.member.view",
+  media: "media.view",
+  music: "music_catalog.view",
+  promoted: "promoted_entity.view",
+  workspaceSettings: "workspace.update",
+  campaign: "campaign.view",
+  engagements: "engagement.view",
+  contentReview: "deliverable.view",
+  publications: "publication.view",
+  finance: "finance.view",
+  analytics: "analytics.view",
+  matching: "matching.view",
+  disputes: "dispute.view"
+} as const satisfies Record<ApplicationCapability, PermissionCode>;
+
+export function noCapabilities(): Record<ApplicationCapability, boolean> {
+  return Object.fromEntries(Object.keys(capabilityPermissions).map((name) => [name, false])) as Record<ApplicationCapability, boolean>;
+}
 
 export type ApplicationShellState = {
   user: { id: string; name: string; email: string };
@@ -60,28 +89,15 @@ export async function getApplicationShellState(
       }
     : null;
 
-  const capabilities: Record<ApplicationCapability, boolean> = {
-    workspace: false,
-    team: false,
-    media: false,
-    music: false,
-    promoted: false,
-    workspaceSettings: false,
-    campaign: false
-  };
+  const capabilities = noCapabilities();
 
   if (activeWorkspace) {
     const workspaceId = activeWorkspace.id;
-    const [workspace, team, media, music, promoted, workspaceSettings, campaign] = await Promise.all([
-      hasWorkspacePermission(sql, user.id, workspaceId, "workspace.view"),
-      hasWorkspacePermission(sql, user.id, workspaceId, "team.member.view"),
-      hasWorkspacePermission(sql, user.id, workspaceId, "media.view"),
-      hasWorkspacePermission(sql, user.id, workspaceId, "music_catalog.view"),
-      hasWorkspacePermission(sql, user.id, workspaceId, "promoted_entity.view"),
-      hasWorkspacePermission(sql, user.id, workspaceId, "workspace.update"),
-      hasWorkspacePermission(sql, user.id, workspaceId, "campaign.view")
-    ]);
-    Object.assign(capabilities, { workspace, team, media, music, promoted, workspaceSettings, campaign });
+    const entries = Object.entries(capabilityPermissions) as Array<[ApplicationCapability, PermissionCode]>;
+    const granted = await Promise.all(entries.map(([, permission]) => hasWorkspacePermission(sql, user.id, workspaceId, permission)));
+    entries.forEach(([name], index) => {
+      capabilities[name] = granted[index];
+    });
   }
 
   return { user, workspaces, activeWorkspace, creator, capabilities };

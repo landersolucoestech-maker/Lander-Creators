@@ -1,1 +1,6 @@
-import{parseEnv}from"@/server/config/env";import{createDatabaseClient}from"@/server/db/client";import{apiErrorResponse,requireAuthenticatedUser}from"@/server/http/api";import{listWorkspaceDisputes}from"@/server/dispute/service";export async function GET(request:Request,{params}:{params:Promise<{workspaceId:string}>}){const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);try{const u=await requireAuthenticatedUser(request),p=await params;return Response.json({disputes:await listWorkspaceDisputes(client,{userId:u.id,...p})});}catch(e){return apiErrorResponse(e)}finally{await client.end()}}
+import { handleWorkspaceList } from "@/server/http/list-route";
+import { disputeListConfig, listWorkspaceDisputes } from "@/server/dispute/service";
+
+export async function GET(request: Request, { params }: { params: Promise<{ workspaceId: string }> }) {
+  return handleWorkspaceList(request, params, disputeListConfig, (c) => listWorkspaceDisputes(c.client, c));
+}
