@@ -1,44 +1,47 @@
-# Definition of Done
+# LANDER CREATORS — Definition of Done
 
-A change is complete only when:
-- repository identity and the `main`-only branch invariant are verified;
-- scope and domain ownership are clear;
-- deterministic dependency installation succeeds;
+A change is complete only when all applicable requirements below are satisfied.
+
+## Repository and scope
+- repository identity and the `main`-only invariant are verified;
+- scope, owning domain and blast radius are clear;
+- the diff contains no unrelated work;
+- canonical documentation reflects implemented truth.
+
+## Database and bootstrap
 - applicable migrations apply from zero and remain repeatable;
-- deterministic bootstrap/seed operations remain idempotent;
+- bootstrap/seed operations remain deterministic and idempotent;
+- concurrency/integrity invariants are tested where relevant;
+- applied migrations are never rewritten.
+
+## Code quality
+- deterministic dependency installation succeeds;
 - lint passes;
 - typecheck passes;
-- unit/integration/security tests pass;
-- tenant-isolation and authorization tests pass for security-bound changes;
-- relevant concurrency/integrity invariants are tested;
+- applicable unit/integration/security tests pass;
 - build passes;
-- runtime smoke passes;
-- security implications are reviewed;
+- runtime smoke passes.
+
+## Security
+- server-side authorization remains authoritative;
+- tenant/ownership isolation is tested for security-bound changes;
 - no secret, raw storage key, filesystem path or raw technical error is exposed;
-- documentation reflects implemented truth;
-- the diff contains no unrelated work;
-- taxonomy integrity and reference bootstrap are validated when changed;
-- media changes include MIME/content, size, checksum, filename, access-token, tenant-isolation and storage-boundary coverage;
-- user-visible changes pass GitHub-only desktop/mobile Playwright inspection and accessibility checks on the exact CI-green `main` SHA;
-- the GitHub Actions visual artifact exists for user-visible stages.
+- provider connectivity is never claimed without provider evidence.
 
-External infrastructure is never selected or introduced without explicit owner approval.
+## Domain-specific invariants
+- Creator self-service proves ownership isolation independently from Workspace RBAC.
+- Music Catalog proves Workspace permission + Artist access and protected Track audio.
+- XLSX import preserves canonical one-sheet parsing, preview-before-write, duplicate resolution, idempotency and transactional confirmation.
+- Commercial promoted entities preserve explicit access and registry adapters.
+- Campaign remains one generic engine and preserves the boundary between planning configuration and Participation, Engagement, Terms, delivered Content, Publication, Finance, Analytics, Matching and AI.
 
-- Creator changes prove ownership isolation independently from Workspace RBAC.
-- Social provider claims require actual provider evidence; declared data remains explicitly manual/not connected.
-- Creator readiness remains explainable and does not claim deferred Terms/legal gates are satisfied.
+## User-visible changes
+- exact final `main` SHA passes repository desktop/mobile browser inspection;
+- accessibility checks have no unresolved serious/critical findings;
+- the visual artifact exists;
+- the exact SHA passes the repository's publication/preview gate where applicable.
 
-- Music Catalog changes prove Workspace permission + Artist access authorization, Track audio protection and access-revocation behavior.
-- XLSX changes prove canonical columns, preview-before-write, duplicate resolution, idempotency, no silent overwrite, parser security limits and transactional confirmation.
-- Music Catalog completion must preserve the no-Work/no-Phonogram/no-Rights/no-Distribution boundary.
+A running `Keep preview online` step is not a completion blocker once build, external-origin smoke and live application acceptance have succeeded.
 
-## Etapa 5C addition
-Commercial Promoted Entities require additive migrations from zero, explicit authorization, all canonical registry adapters, structured readiness, real PT-BR UI, full tests/build/runtime, desktop/mobile evidence, axe without serious/critical issues, exact-SHA artifact and GitHub-native publication. Campaign must remain absent.
-
-
-## Etapa 5D completion additions
-Application Shell + Dashboard is complete only when the exact final main SHA has: a coherent authenticated shell, real access-filtered Dashboard, capability-aware navigation, explicit Workspace/Creator contexts, safe direct-route authorization, responsive mobile navigation, no future-domain implementation, full regression tests, build/runtime smoke, desktop/mobile Playwright, axe with no unresolved serious/critical findings, visual artifact and successful GitHub-native publication.
-
-
-## Etapa 6 — Campaign Core
-Etapa 6 is complete only when one generic Campaign engine, all 10 persistent builder steps, exact promoted-object registry integration, readiness, lifecycle, authorization, Dashboard/navigation, migration, tests, build, runtime smoke, Playwright, axe, exact-SHA artifact and GitHub Pages are green while downstream domains remain absent.
+## Infrastructure
+No external infrastructure/provider is selected or introduced without explicit owner authorization. Vercel is prohibited.
