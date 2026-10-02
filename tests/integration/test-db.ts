@@ -11,6 +11,7 @@ export function createTestSql() {
 
 export async function resetSecurityData(sql: ReturnType<typeof createTestSql>) {
   await sql.unsafe("delete from audit_logs");
+  await sql.unsafe("delete from campaign_participations");
   await sql.unsafe("delete from campaign_builder_steps");
   await sql.unsafe("delete from campaign_tracking_config");
   await sql.unsafe("delete from campaign_rights_requirements");
