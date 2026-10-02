@@ -21,6 +21,7 @@ This document describes the current repository state. Historical stage notes bel
 - Proposal/Negotiation: workspace offers, creator counterproposals, acceptance and rejection with immutable negotiation rounds
 - Engagement/Contracts: accepted-proposal engagement snapshot, versioned contract, creator/workspace signatures and activation
 - Deliverables/Content: contracted deliverables, creator submissions, immutable content versions, review/change-request/approval lifecycle
+- Publication: mandatory approved-content publication plan, creator/contractor/collab modes, proof URL and verification
 
 ## Implemented application-experience layer
 
@@ -28,7 +29,7 @@ The authenticated application shell, Dashboard, navigation registry, Media, Team
 
 ## Intentionally not implemented yet
 
-Publication, Finance/Payments, Analytics metrics, Reporting, Matching, Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
+Finance/Payments, Analytics metrics, Reporting, Matching, Disputes, downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Operations and Distribution remain separate downstream domains.
 
 ## Boundary rules
 
