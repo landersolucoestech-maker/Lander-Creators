@@ -37,3 +37,7 @@ Do not introduce hosting, storage, auth, social, payment, signature, messaging, 
 ## Completion rule
 
 Before claiming completion, satisfy `DEFINITION-OF-DONE.md`, identify the exact SHA, and verify the required CI/runtime/visual gates. If a gate fails, return to the failure before advancing.
+
+## Authentication in local/development
+
+Authentication is intentionally disabled in local/development by product-owner decision (DEV AUTH BYPASS, `DEVELOPMENT-RULES.md`). Do not re-enable, remove or "fix" it without an explicit owner order. Authorization and tenant isolation stay enforced; production stays fail-closed.

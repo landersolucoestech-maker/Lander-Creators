@@ -51,3 +51,8 @@ Authenticated User → active Workspace → active Membership → Workspace Perm
 # Authorization Model
 
 Campaign authorization is server-authoritative: authenticated User → active Workspace → active Membership → explicit Campaign permission → Workspace-owned Campaign → promoted-object access/readiness where required → action. Runtime authorization never uses role-name checks. Viewer is read-only; Campaign Manager receives Campaign capabilities through role permissions; Finance receives no Campaign management merely because Campaign has planning budget.
+
+## Development personas
+
+Under the DEV AUTH BYPASS, the actor is selected from deterministic personas (see `DEVELOPMENT-RULES.md`). Personas are ordinary users
+with ordinary memberships, so every capability check in this model applies unchanged. Platform Admin authorization is not modeled yet.

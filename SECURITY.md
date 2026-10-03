@@ -74,3 +74,11 @@ Campaign security gate covers cross-Workspace IDOR, promoted-object access, fore
 
 ## Workspace read layer
 List routes authorize Membership + capability permission server-side, scope every query by `workspace_id`, accept only whitelisted sort/filter keys, cap page size and return DTOs without storage keys or foreign-tenant data. Unknown, foreign and inaccessible ids produce the same not-found response (no 404×409 enumeration) in proposal, participation and neighbor flows. Media attached to content versions must be owned by the submitting Creator (`created_by_user_id`).
+
+## Local/development authentication bypass
+
+Authentication is intentionally disabled in local/development by product-owner decision (see `DEVELOPMENT-RULES.md`).
+The bypass is fail-closed: it requires `NODE_ENV=development` and `LANDER_DEV_AUTH_BYPASS=true`, is rejected by `parseEnv` in
+production and is guarded by automated tests. It replaces only the session lookup; server-side authorization and tenant isolation
+remain enforced. Security reviews must not report the development bypass as a defect, but must flag any path that could enable it
+outside development.

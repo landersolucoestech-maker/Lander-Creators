@@ -1,5 +1,11 @@
 import { createDatabaseClient } from "@/server/db/client";
 
+// Tests that go through the application's own client (Better Auth, route handlers) read DATABASE_URL, while fixtures use
+// TEST_DATABASE_URL. If both are set they must match, otherwise tests fail confusingly and pollute the other database.
+if (process.env.DATABASE_URL && process.env.TEST_DATABASE_URL && process.env.DATABASE_URL !== process.env.TEST_DATABASE_URL) {
+  throw new Error("DATABASE_URL and TEST_DATABASE_URL must be identical when running integration tests");
+}
+
 export const testDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??

@@ -20,6 +20,7 @@
     "test:integration": "vitest run tests/integration",
     "foundation:bootstrap": "node scripts/bootstrap-foundation.mjs",
     "preview:bootstrap": "node scripts/bootstrap-live-preview.mjs",
+    "dev:personas": "node scripts/bootstrap-dev-personas.mjs",
     "test:engineering-os": "node scripts/test-engineering-os.mjs",
     "db:guarantees": "node scripts/schema-guarantees.mjs"
   },

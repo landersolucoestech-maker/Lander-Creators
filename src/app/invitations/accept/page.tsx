@@ -1,5 +1,4 @@
-import { headers } from "next/headers";
-import { auth } from "@/server/auth/auth";
+import { resolveApplicationActor } from "@/server/auth/application-actor";
 import { AcceptInvitation } from "./accept-invitation";
 
 export default async function AcceptInvitationPage({
@@ -7,7 +6,7 @@ export default async function AcceptInvitationPage({
 }: {
   searchParams: Promise<{ token?: string }>;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const actor = await resolveApplicationActor();
   const params = await searchParams;
 
   return (
@@ -17,7 +16,7 @@ export default async function AcceptInvitationPage({
         <h1>Convite de workspace</h1>
         <AcceptInvitation
           token={params.token ?? ""}
-          authenticated={Boolean(session)}
+          authenticated={Boolean(actor)}
         />
       </section>
     </main>
