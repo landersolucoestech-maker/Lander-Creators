@@ -101,3 +101,144 @@ body{background:var(--surface-page);color:var(--text)}
 @media(max-width:820px){.campaign-row,.campaign-detail-grid,.campaign-create{grid-template-columns:1fr}.builder-progress{display:flex;overflow-x:auto;padding-bottom:8px}.builder-progress button{flex:0 0 150px}.builder-actions{position:sticky;bottom:8px;padding:10px;background:rgb(11 13 16 / 94%);border:1px solid var(--border);border-radius:12px}}
 .list-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:12px 0}.list-toolbar label{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;font-size:.84rem;font-weight:700;min-width:150px}.list-toolbar input,.list-toolbar select{min-height:42px;width:100%;min-width:0}.pager{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:12px;color:var(--text-muted);font-size:.9rem}.pager-links{display:flex;gap:10px}.button-link.disabled{opacity:.45;cursor:not-allowed}.row-actions{display:grid;gap:8px;min-width:190px}.row-actions button{padding:8px 11px}.inline-note{margin:6px 0 0;font-size:.82rem;color:var(--text-muted)}.pending-decision{border-left:3px solid var(--border-strong);padding:10px 14px;background:var(--surface-raised);border-radius:8px;margin:0 0 12px}.pending-decision strong{display:block;margin-bottom:4px}.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}.metric-grid span{display:grid;gap:2px;font-size:.78rem;color:var(--text-muted)}.metric-grid b{font-size:1rem;color:var(--text)}
 @media(max-width:640px){.list-toolbar label{min-width:100%}.list-toolbar button,.list-toolbar .button-link{width:100%;justify-content:center}.pager{justify-content:center;text-align:center}}
+
+/* ==========================================================================
+   FOUNDATION_NEW — Etapa 02 U1 (docs/reference-ui/ETAPA-01-AUDITORIA.md)
+   Light-theme semantic tokens for LANDER CREATORS, prefixed --lc- so they
+   never collide with the LEGACY unprefixed tokens above (--surface-*, --text,
+   --border, --radius-*, --space-*), which still power all 31 existing pages
+   on the dark theme. Only Button/Badge/Icon primitives and the isolated
+   /dev/foundation preview consume --lc- tokens today.
+   MIGRATION_PENDING: each page moves to --lc- tokens, one unit at a time;
+   LEGACY tokens/selectors are retired only once no page references them.
+   ========================================================================== */
+:root{
+  /* Color */
+  --lc-color-background:#ffffff;
+  --lc-color-surface:#ffffff;
+  --lc-color-surface-subtle:#f7f8fb;
+  --lc-color-surface-elevated:#ffffff;
+  --lc-color-text-primary:#0a0a0a;
+  --lc-color-text-secondary:#4b5563;
+  --lc-color-text-muted:#8a93a3;
+  --lc-color-border:#e7eaf0;
+  --lc-color-border-strong:#d7dce4;
+  --lc-color-brand-primary:#f8001c;
+  --lc-color-brand-primary-hover:#d40017;
+  --lc-color-brand-primary-active:#b50013;
+  --lc-color-brand-primary-subtle:#fff2f6;
+  --lc-color-success:#0f9d58;
+  --lc-color-success-subtle:#e1f8ec;
+  --lc-color-warning:#b45309;
+  --lc-color-warning-subtle:#fdf3da;
+  --lc-color-danger:#d4000f;
+  --lc-color-danger-subtle:#fde8ea;
+  --lc-color-info:#1d6fd6;
+  --lc-color-info-subtle:#e6f1fe;
+  --lc-color-neutral:#4b5563;
+  --lc-color-neutral-subtle:#eef0f3;
+
+  /* Typography. BLOCKED_ASSET_FONT: no brand family evidence found in repo
+     (no next/font, no font files, no package reference) — Inter/system-ui
+     stays a documented technical fallback, not a confirmed brand choice. */
+  --lc-font-family-base:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --lc-font-size-display:2.75rem;
+  --lc-font-size-page-title:2.25rem;
+  --lc-font-size-section-title:1.375rem;
+  --lc-font-size-card-title:1.0625rem;
+  --lc-font-size-body:1rem;
+  --lc-font-size-body-small:0.875rem;
+  --lc-font-size-label:0.8125rem;
+  --lc-font-size-caption:0.75rem;
+  --lc-font-size-table-header:0.75rem;
+  --lc-font-size-table-cell:0.875rem;
+  --lc-font-size-button:0.9375rem;
+  --lc-font-size-badge:0.75rem;
+  --lc-font-weight-regular:400;
+  --lc-font-weight-medium:600;
+  --lc-font-weight-bold:800;
+  --lc-line-height-tight:1.1;
+  --lc-line-height-base:1.5;
+  --lc-letter-spacing-tight:-0.02em;
+  --lc-letter-spacing-wide:0.06em;
+
+  /* Spacing */
+  --lc-space-1:4px;
+  --lc-space-2:8px;
+  --lc-space-3:12px;
+  --lc-space-4:16px;
+  --lc-space-5:24px;
+  --lc-space-6:32px;
+  --lc-space-7:48px;
+
+  /* Radius */
+  --lc-radius-sm:8px;
+  --lc-radius-md:12px;
+  --lc-radius-lg:16px;
+  --lc-radius-pill:999px;
+
+  /* Borders */
+  --lc-border-default:1px solid var(--lc-color-border);
+  --lc-border-strong:1px solid var(--lc-color-border-strong);
+  --lc-border-focus:2px solid var(--lc-color-brand-primary);
+  --lc-border-error:1px solid var(--lc-color-danger);
+
+  /* Shadows — references are predominantly flat; only light elevation. */
+  --lc-shadow-sm:0 1px 2px rgb(16 24 40 / 6%);
+  --lc-shadow-md:0 4px 12px rgb(16 24 40 / 8%);
+
+  /* Canonical dimensions (see DESIGN-SYSTEM.md for OBSERVED/JUSTIFICATION) */
+  --lc-sidebar-width:288px;
+  --lc-topbar-height:64px;
+  --lc-control-height-sm:32px;
+  --lc-control-height-md:40px;
+  --lc-control-height-lg:48px;
+  --lc-badge-height:24px;
+  --lc-table-row-height:56px;
+  --lc-detail-panel-width:400px;
+  --lc-page-gutter:32px;
+}
+
+.lc-surface{background:var(--lc-color-background);color:var(--lc-color-text-primary);font-family:var(--lc-font-family-base)}
+
+/* Icon */
+.lc-icon{flex-shrink:0;display:inline-block;vertical-align:middle}
+
+/* Button */
+.lc-button{
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--lc-space-2);
+  font-family:var(--lc-font-family-base);font-size:var(--lc-font-size-button);font-weight:var(--lc-font-weight-medium);
+  border-radius:var(--lc-radius-sm);border:1px solid transparent;cursor:pointer;white-space:nowrap;
+  padding:0 var(--lc-space-4);transition:background-color .15s ease,border-color .15s ease,color .15s ease;
+}
+.lc-button--sm{height:var(--lc-control-height-sm);font-size:var(--lc-font-size-body-small);padding:0 var(--lc-space-3)}
+.lc-button--md{height:var(--lc-control-height-md)}
+.lc-button--lg{height:var(--lc-control-height-lg);font-size:var(--lc-font-size-body)}
+.lc-button--icon{width:var(--lc-control-height-md);height:var(--lc-control-height-md);padding:0;border-radius:var(--lc-radius-sm)}
+.lc-button--primary{background:var(--lc-color-brand-primary);color:#fff}
+.lc-button--primary:hover:not(:disabled){background:var(--lc-color-brand-primary-hover)}
+.lc-button--primary:active:not(:disabled){background:var(--lc-color-brand-primary-active)}
+.lc-button--secondary{background:var(--lc-color-surface);color:var(--lc-color-brand-primary);border-color:var(--lc-color-brand-primary)}
+.lc-button--secondary:hover:not(:disabled){background:var(--lc-color-brand-primary-subtle)}
+.lc-button--ghost,.lc-button--icon{background:transparent;color:var(--lc-color-text-secondary)}
+.lc-button--ghost:hover:not(:disabled),.lc-button--icon:hover:not(:disabled){background:var(--lc-color-surface-subtle)}
+.lc-button--danger{background:var(--lc-color-danger);color:#fff}
+.lc-button--danger:hover:not(:disabled){background:var(--lc-color-brand-primary-active)}
+.lc-button:disabled{opacity:.5;cursor:not-allowed}
+.lc-button:focus-visible{outline:var(--lc-border-focus);outline-offset:2px}
+.lc-button-spinner{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:lc-spin .6s linear infinite}
+@media(prefers-reduced-motion:reduce){.lc-button-spinner{animation-duration:1.2s}}
+@keyframes lc-spin{to{transform:rotate(360deg)}}
+
+/* Badge */
+.lc-badge{
+  display:inline-flex;align-items:center;height:var(--lc-badge-height);padding:0 var(--lc-space-3);
+  border-radius:var(--lc-radius-pill);font-family:var(--lc-font-family-base);font-size:var(--lc-font-size-badge);
+  font-weight:var(--lc-font-weight-medium);line-height:1;white-space:nowrap;
+}
+.lc-badge--success{background:var(--lc-color-success-subtle);color:var(--lc-color-success)}
+.lc-badge--warning{background:var(--lc-color-warning-subtle);color:var(--lc-color-warning)}
+.lc-badge--danger{background:var(--lc-color-danger-subtle);color:var(--lc-color-danger)}
+.lc-badge--info{background:var(--lc-color-info-subtle);color:var(--lc-color-info)}
+.lc-badge--neutral{background:var(--lc-color-neutral-subtle);color:var(--lc-color-neutral)}
+.lc-badge--brand{background:var(--lc-color-brand-primary-subtle);color:var(--lc-color-brand-primary)}
