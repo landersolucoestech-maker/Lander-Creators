@@ -1,24 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import { useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import type { ApplicationShellState } from "@/server/application/application-context";
 import type { ApplicationNavItem } from "./application-navigation";
-
-function matches(pathname: string, href: string) {
-  const target = href.split("#")[0];
-  if (target === "/") return pathname === "/";
-  return pathname === target || pathname.startsWith(`${target}/`);
-}
-
-/** The most specific matching item wins, so /engagements/contracts does not also highlight /engagements. */
-function isActive(pathname: string, href: string, navigation: ApplicationNavItem[]) {
-  if (!matches(pathname, href)) return false;
-  const length = href.split("#")[0].length;
-  return !navigation.some((item) => item.href !== href && matches(pathname, item.href) && item.href.split("#")[0].length > length);
-}
+import { Icon } from "./ui/icons";
+import { MobileNav } from "./ui/mobile-nav";
+import { PageContainer } from "./ui/page-container";
+import { Sidebar } from "./ui/sidebar";
+import { Topbar } from "./ui/topbar";
 
 export function ApplicationShell({
   state,
@@ -35,20 +26,6 @@ export function ApplicationShell({
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!mobileOpen) return;
-    closeRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setMobileOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [mobileOpen]);
 
   async function switchWorkspace(workspaceId: string) {
     const response = await fetch("/api/workspaces/active", {
@@ -61,127 +38,103 @@ export function ApplicationShell({
     router.refresh();
   }
 
-  function closeNavigation() {
-    setMobileOpen(false);
+  async function signOut() {
+    await authClient.signOut();
+    router.push("/");
+    router.refresh();
   }
 
-  const groups = ["Visão geral", "Operação", "Recursos", "Organização"] as const;
-  const nav = (
-    <nav className="primary-navigation" aria-label="Navegação principal">
-      {groups.map((group) => {
-        const items = navigation.filter((item) => item.group === group);
-        if (!items.length) return null;
-        return (
-          <div className="nav-group" key={group}>
-            <p className="nav-group-label">{group}</p>
-            {items.map((item) => {
-              const active = isActive(pathname, item.href, navigation);
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  className={active ? "nav-link active" : "nav-link"}
-                  aria-current={active ? "page" : undefined}
-                  onClick={closeNavigation}
-                >
-                  <span>{item.label}</span>
-                  {active ? <span className="nav-current" aria-hidden="true">●</span> : null}
-                </Link>
-              );
-            })}
-          </div>
-        );
-      })}
-    </nav>
+  const contextLabel =
+    context === "creator" ? state.creator?.displayName ?? "Creator" : state.activeWorkspace?.name ?? "Sem workspace";
+
+  const sidebarContent = (
+    <Sidebar
+      navigation={navigation}
+      pathname={pathname}
+      contextLabel={contextLabel}
+      onNavigate={() => setMobileOpen(false)}
+    />
+  );
+
+  const initials = state.user.name.trim().slice(0, 1).toUpperCase() || "U";
+
+  const accountMenu = (
+    <details className="lc-account-menu">
+      <summary>
+        <span className="lc-avatar" aria-hidden="true">{initials}</span>
+        <span className="lc-account-name">{state.user.name}</span>
+        <Icon name="chevron-down" />
+      </summary>
+      <div className="lc-account-menu-panel">
+        {context === "workspace" && state.workspaces.length > 1 ? (
+          <label className="lc-workspace-switcher">
+            <span>Trocar workspace</span>
+            <select value={state.activeWorkspace?.id ?? ""} onChange={(event) => void switchWorkspace(event.target.value)}>
+              {state.workspaces.map((workspace) => (
+                <option key={workspace.id} value={workspace.id}>{workspace.name}</option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <button type="button" className="lc-account-menu-item" onClick={() => void signOut()}>Sair</button>
+      </div>
+    </details>
+  );
+
+  const contextSwitcher = (
+    <div className="lc-context-switcher" aria-label="Contexto ativo">
+      {state.activeWorkspace ? (
+        <button
+          type="button"
+          className={context === "workspace" ? "lc-context-chip lc-context-chip--active" : "lc-context-chip"}
+          aria-pressed={context === "workspace"}
+          onClick={() => router.push("/")}
+        >
+          {state.activeWorkspace.name}
+        </button>
+      ) : null}
+      <button
+        type="button"
+        className={context === "creator" ? "lc-context-chip lc-context-chip--active" : "lc-context-chip"}
+        aria-pressed={context === "creator"}
+        onClick={() => router.push("/creator")}
+      >
+        {state.creator?.displayName ?? "Meu perfil"}
+      </button>
+    </div>
   );
 
   return (
-    <div className="product-shell">
+    <div className="lc-shell lc-surface">
       <a className="skip-link" href="#main-content">Pular para o conteúdo</a>
-      <aside className="desktop-sidebar" aria-label="LANDER CREATORS">
-        <Link href="/" className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">LC</span>
-          <span><strong>LANDER</strong><small>CREATORS</small></span>
-        </Link>
-        {nav}
-        <div className="sidebar-footer">
-          <span className="muted-label">Contexto</span>
-          <strong>{context === "creator" ? state.creator?.displayName ?? "Creator" : state.activeWorkspace?.name ?? "Sem workspace"}</strong>
-        </div>
+
+      <aside className="lc-desktop-sidebar" aria-label="LANDER CREATORS">
+        {sidebarContent}
       </aside>
 
-      {mobileOpen ? (
-        <div className="mobile-nav-layer" role="presentation">
-          <button className="mobile-nav-backdrop" aria-label="Fechar navegação" onClick={() => { setMobileOpen(false); triggerRef.current?.focus(); }} />
-          <aside className="mobile-sidebar" aria-label="Navegação móvel">
-            <div className="mobile-nav-heading">
-              <strong>LANDER CREATORS</strong>
-              <button ref={closeRef} type="button" onClick={() => { setMobileOpen(false); triggerRef.current?.focus(); }}>Fechar</button>
-            </div>
-            {nav}
-          </aside>
-        </div>
-      ) : null}
+      <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} label="Navegação" triggerRef={triggerRef}>
+        {sidebarContent}
+      </MobileNav>
 
-      <div className="product-workspace">
-        <header className="product-header">
-          <button
-            ref={triggerRef}
-            className="mobile-nav-trigger"
-            type="button"
-            aria-label="Abrir navegação"
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen(true)}
-          >
-            Menu
-          </button>
-
-          <div className="context-controls" aria-label="Contexto ativo">
-            {state.activeWorkspace ? (
-              <button
-                type="button"
-                className={context === "workspace" ? "context-chip active" : "context-chip"}
-                aria-pressed={context === "workspace"}
-                onClick={() => router.push("/")}
-              >
-                Workspace: {state.activeWorkspace.name}
-              </button>
-            ) : null}
+      <div className="lc-shell-main">
+        <Topbar
+          mobileNavTrigger={
             <button
+              ref={triggerRef}
               type="button"
-              className={context === "creator" ? "context-chip active" : "context-chip"}
-              aria-pressed={context === "creator"}
-              onClick={() => router.push("/creator")}
+              className="lc-button lc-button--icon lc-mobile-nav-trigger"
+              aria-label="Abrir navegação"
+              aria-expanded={mobileOpen}
+              onClick={() => setMobileOpen(true)}
             >
-              Creator: {state.creator?.displayName ?? "Meu perfil"}
+              <Icon name="menu" />
             </button>
-            {context === "workspace" && state.workspaces.length > 1 ? (
-              <label className="workspace-switcher">
-                <span>Trocar workspace</span>
-                <select
-                  value={state.activeWorkspace?.id ?? ""}
-                  onChange={(event) => void switchWorkspace(event.target.value)}
-                >
-                  {state.workspaces.map((workspace) => (
-                    <option key={workspace.id} value={workspace.id}>{workspace.name}</option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
-          </div>
-
-          <div className="user-controls">
-            <span>{state.user.name}</span>
-            <button type="button" className="secondary-button" onClick={async () => {
-              await authClient.signOut();
-              router.push("/");
-              router.refresh();
-            }}>Sair</button>
-          </div>
-        </header>
-
-        <main id="main-content" className="product-content" tabIndex={-1}>
-          {children}
+          }
+          contextSwitcher={contextSwitcher}
+          accountMenu={accountMenu}
+        />
+        <main id="main-content" className="lc-main-content" tabIndex={-1}>
+          <PageContainer>{children}</PageContainer>
         </main>
       </div>
     </div>
