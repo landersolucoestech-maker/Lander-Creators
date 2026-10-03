@@ -105,7 +105,7 @@ export function ApplicationShell({
   );
 
   return (
-    <div className="lc-shell lc-surface">
+    <div className={`lc-shell lc-surface lc-shell--${context}`}>
       <a className="skip-link" href="#main-content">Pular para o conteúdo</a>
 
       <aside className="lc-desktop-sidebar" aria-label="LANDER CREATORS">
