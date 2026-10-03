@@ -19,9 +19,9 @@ export default async function CreatorPage(){
   const state=await getApplicationShellState(client,{id:actor.id,name:actor.name,email:actor.email});
   const profile=await getCreatorProfileByUser(client,actor.id);
   const[taxonomies,referenceData,attachableMedia]=await Promise.all([listTaxonomies(client),getReferenceData(client),listCreatorAttachableMedia(client,actor.id)]);
-  const relations=profile?await listCreatorTaxonomies(client,String((profile as Record<string,unknown>).id)):{niches:[],contentStyles:[],musicGenres:[]};
-  const socials=profile?await listSocialProfiles(client,{userId:actor.id,creatorProfileId:String((profile as Record<string,unknown>).id)}):[];
+  const relations=profile?await listCreatorTaxonomies(client,profile.id):{niches:[],contentStyles:[],musicGenres:[]};
+  const socials=profile?await listSocialProfiles(client,{userId:actor.id,creatorProfileId:profile.id}):[];
   const readiness=profile?await calculateCreatorReadiness(client,actor.id):null;
-  return <ApplicationShell state={state} navigation={creatorNavigation()} context="creator"><CreatorPanel profile={profile as never} taxonomies={taxonomies as never} referenceData={referenceData as never} relations={relations as never} socials={socials as never} readiness={readiness as never} attachableMedia={attachableMedia as never}/></ApplicationShell>;
+  return <ApplicationShell state={state} navigation={creatorNavigation()} context="creator"><CreatorPanel profile={profile} taxonomies={taxonomies} referenceData={referenceData} relations={relations} socials={socials} readiness={readiness} attachableMedia={attachableMedia}/></ApplicationShell>;
  }finally{await client.end();}
 }

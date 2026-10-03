@@ -19,6 +19,8 @@ function artistView(row: Record<string, unknown>) {
   };
 }
 
+export type ArtistView = ReturnType<typeof artistView>;
+
 export async function listWorkspaceArtists(sql: Sql, input: { userId: string; workspaceId: string }) {
   await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"artist.view"});
   const rows=await sql.unsafe(

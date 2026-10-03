@@ -9,17 +9,19 @@ import {
   recruitmentLabels,
   visibilityLabels
 } from "@/server/campaign/labels";
+import type { CampaignListRow } from "@/server/campaign/service";
 
-type Campaign = {
-  id: string;
-  name: string;
-  status: keyof typeof campaignStatusLabels;
-  promoted_object_type: keyof typeof promotedObjectLabels | null;
-  promoted_object_display_name_snapshot: string | null;
-  goal_label: string | null;
-  recruitment_status: keyof typeof recruitmentLabels;
-  visibility: keyof typeof visibilityLabels;
-};
+type Campaign = Pick<
+  CampaignListRow,
+  | "id"
+  | "name"
+  | "status"
+  | "promoted_object_type"
+  | "promoted_object_display_name_snapshot"
+  | "goal_label"
+  | "recruitment_status"
+  | "visibility"
+>;
 
 export function CampaignsPanel({
   workspaceId,

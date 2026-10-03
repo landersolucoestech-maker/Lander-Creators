@@ -128,6 +128,16 @@ async function authorizeRoleAssignment(
   }
 }
 
+export type WorkspaceMemberRow = {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  status: string;
+  role_code: string;
+  created_at: Date;
+};
+
 export async function listWorkspaceMembers(
   sql: Sql,
   input: { actorUserId: string; workspaceId: string }
@@ -138,7 +148,7 @@ export async function listWorkspaceMembers(
     permission: "team.member.view"
   });
 
-  return sql.unsafe(
+  return sql.unsafe<WorkspaceMemberRow[]>(
     'select m.id::text,u.id as user_id,u.name,u.email,m.status::text as status,r.code as role_code,m.created_at from memberships m join "user" u on u.id=m.user_id join roles r on r.id=m.role_id where m.workspace_id=$1::uuid and m.status<>\'REMOVED\' order by u.name,u.email',
     [input.workspaceId]
   );

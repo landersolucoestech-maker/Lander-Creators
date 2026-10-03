@@ -18,6 +18,6 @@ export default async function TeamPage(){
   const active=await resolveActiveWorkspace(client,{userId:actor.id});if(!active)redirect("/workspace");
   if(!state.capabilities.team)return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><AccessDeniedState/></ApplicationShell>;
   const members=await listWorkspaceMembers(client,{actorUserId:actor.id,workspaceId:active.workspaceId});
-  return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><TeamPanel workspaceId={active.workspaceId} workspaceName={state.activeWorkspace?.name??"Workspace"} members={members as never}/></ApplicationShell>;
+  return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><TeamPanel workspaceId={active.workspaceId} workspaceName={state.activeWorkspace?.name??"Workspace"} members={members}/></ApplicationShell>;
  }finally{await client.end();}
 }

@@ -49,7 +49,7 @@ export default async function CampaignsPage() {
       >
         <CampaignsPanel
           workspaceId={active.workspaceId}
-          initialCampaigns={campaigns as never}
+          initialCampaigns={campaigns}
         />
       </ApplicationShell>
     );

@@ -63,12 +63,12 @@ export default async function Builder({
       >
         <CampaignBuilder
           workspaceId={active.workspaceId}
-          data={data as never}
+          data={data}
           objects={objects}
-          goals={goals as never}
-          media={media as never}
-          referenceData={referenceData as never}
-          taxonomies={taxonomies as never}
+          goals={goals}
+          media={media}
+          referenceData={referenceData}
+          taxonomies={taxonomies}
         />
       </ApplicationShell>
     );

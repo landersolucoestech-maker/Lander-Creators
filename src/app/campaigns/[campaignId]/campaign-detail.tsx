@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Link from "next/link";
@@ -11,13 +10,14 @@ import {
   recruitmentLabels,
   visibilityLabels
 } from "@/server/campaign/labels";
+import type { CampaignDetailData } from "@/server/campaign/service";
 
 export function CampaignDetail({
   workspaceId,
   data
 }: {
   workspaceId: string;
-  data: any;
+  data: CampaignDetailData;
 }) {
   const [campaign, setCampaign] = useState(data.campaign);
   const [message, setMessage] = useState("");
@@ -102,7 +102,7 @@ export function CampaignDetail({
             <>
               <p>Esta campanha ainda não pode ser ativada.</p>
               <ul>
-                {data.readiness.blockers.map((reason: string) => (
+                {data.readiness.blockers.map((reason) => (
                   <li key={reason}>
                     {campaignReadinessReasonLabels[reason] ?? "Revise esta configuração."}
                   </li>

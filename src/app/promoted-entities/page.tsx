@@ -24,6 +24,6 @@ export default async function PromotedEntitiesPage(){
    listWorkspacePromotedEntities(client,{userId:actor.id,workspaceId:active.workspaceId}),
    listTaxonomies(client),getReferenceData(client),listMediaAssets(client,{userId:actor.id,workspaceId:active.workspaceId})
   ]);
-  return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><PromotedEntitiesPanel workspaceId={active.workspaceId} initialEntities={entities as never} taxonomies={taxonomies as never} referenceData={referenceData as never} media={media as never}/></ApplicationShell>;
+  return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><PromotedEntitiesPanel workspaceId={active.workspaceId} initialEntities={entities} taxonomies={taxonomies} referenceData={referenceData} media={media}/></ApplicationShell>;
  }finally{await client.end();}
 }

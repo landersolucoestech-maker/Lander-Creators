@@ -26,6 +26,6 @@ export default async function MusicCatalogPage(){
    listCatalog(client,{userId:actor.id,workspaceId:active.workspaceId}),
    listTaxonomies(client),getReferenceData(client),listMediaAssets(client,{userId:actor.id,workspaceId:active.workspaceId})
   ]);
-  return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><MusicCatalogPanel workspaceId={active.workspaceId} artists={artists as never} catalog={catalog as never} taxonomies={taxonomies as never} referenceData={referenceData as never} media={media as never}/></ApplicationShell>;
+  return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><MusicCatalogPanel workspaceId={active.workspaceId} artists={artists} catalog={catalog} taxonomies={taxonomies} referenceData={referenceData} media={media}/></ApplicationShell>;
  }finally{await client.end();}
 }

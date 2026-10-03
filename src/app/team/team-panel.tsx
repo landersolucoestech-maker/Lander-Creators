@@ -3,8 +3,9 @@
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { WorkspaceMemberRow } from "@/server/workspace/membership-service";
 
-type MemberView={id:string;user_id:string;name:string;email:string;status:string;role_code:string};
+type MemberView=Pick<WorkspaceMemberRow,"id"|"user_id"|"name"|"email"|"status"|"role_code">;
 const roles=[
   {value:"OWNER",label:"Proprietário"},{value:"ADMIN",label:"Administrador"},
   {value:"CAMPAIGN_MANAGER",label:"Gestor de campanhas"},{value:"MARKETING",label:"Marketing"},

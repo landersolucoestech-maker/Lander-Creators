@@ -23,8 +23,26 @@ async function audit(sql: QueryExecutor, input: {
   });
 }
 
+export type CreatorProfileRow = {
+  id: string;
+  user_id: string;
+  display_name: string;
+  bio: string | null;
+  country_code: string;
+  language_code: string;
+  timezone_code: string;
+  region: string | null;
+  city: string | null;
+  status: string;
+  marketplace_visibility: string;
+  availability: string;
+  avatar_media_asset_id: string | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
 export async function getCreatorProfileByUser(sql: Sql, userId: string) {
-  const rows = await sql.unsafe(
+  const rows = await sql.unsafe<CreatorProfileRow[]>(
     "select cp.id::text,cp.user_id,cp.display_name,cp.bio,cp.country_code,cp.language_code,cp.timezone_code,cp.region,cp.city,cp.status::text,cp.marketplace_visibility::text,cp.availability::text,cp.avatar_media_asset_id::text,cp.created_at,cp.updated_at from creator_profiles cp where cp.user_id=$1 limit 1",
     [userId]
   );
@@ -142,14 +160,24 @@ export async function addCreatorTaxonomyValue(sql: Sql, input: {
   return {creatorProfileId:input.creatorProfileId,taxonomyValueId:input.taxonomyValueId,kind:input.kind};
 }
 
-export async function listCreatorTaxonomies(sql: Sql, creatorProfileId: string) {
-  const niches=await sql.unsafe("select tv.id::text,tv.code,tv.display_label_pt_br label,cn.is_primary from creator_profile_niches cn join taxonomy_values tv on tv.id=cn.taxonomy_value_id where cn.creator_profile_id=$1::uuid order by cn.is_primary desc,tv.display_label_pt_br",[creatorProfileId]);
-  const contentStyles=await sql.unsafe("select tv.id::text,tv.code,tv.display_label_pt_br label from creator_profile_content_styles cs join taxonomy_values tv on tv.id=cs.taxonomy_value_id where cs.creator_profile_id=$1::uuid order by tv.display_label_pt_br",[creatorProfileId]);
-  const musicGenres=await sql.unsafe("select tv.id::text,tv.code,tv.display_label_pt_br label from creator_music_genres mg join taxonomy_values tv on tv.id=mg.taxonomy_value_id where mg.creator_profile_id=$1::uuid order by tv.display_label_pt_br",[creatorProfileId]);
+export type CreatorTaxonomyOptionRow = { id: string; code: string; label: string };
+export type CreatorNicheRow = CreatorTaxonomyOptionRow & { is_primary: boolean };
+export type CreatorTaxonomyRelations = {
+  niches: CreatorNicheRow[];
+  contentStyles: CreatorTaxonomyOptionRow[];
+  musicGenres: CreatorTaxonomyOptionRow[];
+};
+
+export async function listCreatorTaxonomies(sql: Sql, creatorProfileId: string): Promise<CreatorTaxonomyRelations> {
+  const niches=await sql.unsafe<CreatorNicheRow[]>("select tv.id::text,tv.code,tv.display_label_pt_br label,cn.is_primary from creator_profile_niches cn join taxonomy_values tv on tv.id=cn.taxonomy_value_id where cn.creator_profile_id=$1::uuid order by cn.is_primary desc,tv.display_label_pt_br",[creatorProfileId]);
+  const contentStyles=await sql.unsafe<CreatorTaxonomyOptionRow[]>("select tv.id::text,tv.code,tv.display_label_pt_br label from creator_profile_content_styles cs join taxonomy_values tv on tv.id=cs.taxonomy_value_id where cs.creator_profile_id=$1::uuid order by tv.display_label_pt_br",[creatorProfileId]);
+  const musicGenres=await sql.unsafe<CreatorTaxonomyOptionRow[]>("select tv.id::text,tv.code,tv.display_label_pt_br label from creator_music_genres mg join taxonomy_values tv on tv.id=mg.taxonomy_value_id where mg.creator_profile_id=$1::uuid order by tv.display_label_pt_br",[creatorProfileId]);
   return {niches,contentStyles,musicGenres};
 }
 
-export async function calculateCreatorReadiness(sql: Sql, userId: string) {
+export type CreatorReadiness = { technicalReady: boolean; missing: string[]; legalGate: "CREATOR_TERMS_GATE_DEFERRED" };
+
+export async function calculateCreatorReadiness(sql: Sql, userId: string): Promise<CreatorReadiness> {
   const rows=await sql.unsafe(
     "select cp.id::text,cp.display_name,cp.country_code,cp.language_code,u.email_verified,exists(select 1 from creator_profile_niches n where n.creator_profile_id=cp.id) has_niche,exists(select 1 from social_profiles sp where sp.creator_profile_id=cp.id and sp.provenance='DECLARED') has_social from creator_profiles cp join \"user\" u on u.id=cp.user_id where cp.user_id=$1",
     [userId]

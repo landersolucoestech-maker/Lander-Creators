@@ -1,13 +1,17 @@
 "use client";
 import { useState,type FormEvent } from "react";
+import type { MediaAssetView } from "@/server/media/media-service";
+import type { PromotedEntityListRow } from "@/server/promoted-entities/service";
+import type { ReferenceDataBundle } from "@/server/reference-data/reference-data-service";
+import type { TaxonomyDefinitionRow } from "@/server/taxonomy/taxonomy-service";
 
-type Entity={id:string;name:string;status:string;access_level:string;access_status:string;verification_status?:string|null};
+type Entity=PromotedEntityListRow;
 type Props={
   workspaceId:string;
   initialEntities:Record<string,Entity[]>;
-  taxonomies:Array<{code:string;values:Array<{id:string;label:string}>}>;
-  referenceData:{countries:Array<{code:string;label:string}>;languages:Array<{code:string;label:string}>;timezones:Array<{code:string;label:string}>};
-  media:Array<{id:string;originalFileName:string;mediaKind:string}>;
+  taxonomies:TaxonomyDefinitionRow[];
+  referenceData:Pick<ReferenceDataBundle,"countries"|"languages"|"timezones">;
+  media:Array<Pick<MediaAssetView,"id"|"originalFileName"|"mediaKind">>;
 };
 const labels:Record<string,string>={COMPANY:"Empresas",BRAND:"Marcas",PRODUCT:"Produtos",SERVICE:"Serviços",PLATFORM:"Plataformas",EVENT:"Eventos",PROJECT:"Projetos",INSTITUTIONAL_INITIATIVE:"Iniciativas institucionais"};const accessLabels:Record<string,string>={OWNER:"Proprietário",MANAGE_CAMPAIGNS:"Gerenciar uso em campanhas",VIEW:"Visualizar",CAMPAIGN_ONLY:"Uso em campanha"};
 

@@ -43,7 +43,7 @@ export default async function CampaignPage({
         >
           <CampaignDetail
             workspaceId={active.workspaceId}
-            data={data as never}
+            data={data}
           />
         </ApplicationShell>
       );

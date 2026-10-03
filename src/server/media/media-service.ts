@@ -21,6 +21,8 @@ function safe(row: Record<string, unknown>) {
   };
 }
 
+export type MediaAssetView = ReturnType<typeof safe>;
+
 export async function listMediaAssets(
   sql: Sql,
   input: { userId: string; workspaceId: string }

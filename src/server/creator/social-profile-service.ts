@@ -48,9 +48,27 @@ export async function addDeclaredSocialProfile(sql:Sql,input:{
   }
 }
 
+export type SocialProfileRow = {
+  id: string;
+  platform: string;
+  external_account_id: string | null;
+  handle: string;
+  profile_url: string | null;
+  display_name: string | null;
+  provenance: string;
+  connection_status: string;
+  captured_at: Date | null;
+  metrics_source: string | null;
+  followers: string | null;
+  following: string | null;
+  total_likes: string | null;
+  average_views: string | null;
+  engagement_rate_basis_points: number | null;
+};
+
 export async function listSocialProfiles(sql:Sql,input:{userId:string;creatorProfileId:string}){
   await requireCreatorOwner(sql,input);
-  return sql.unsafe(
+  return sql.unsafe<SocialProfileRow[]>(
     "select sp.id::text,sp.platform::text,sp.external_account_id,sp.handle,sp.profile_url,sp.display_name,sp.provenance::text,sp.connection_status::text,latest.captured_at,latest.source::text metrics_source,latest.followers,latest.following,latest.total_likes,latest.average_views,latest.engagement_rate_basis_points from social_profiles sp left join lateral(select * from social_metrics_snapshots sm where sm.social_profile_id=sp.id order by sm.captured_at desc limit 1) latest on true where sp.creator_profile_id=$1::uuid order by sp.created_at",
     [input.creatorProfileId]
   );

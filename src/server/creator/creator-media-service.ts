@@ -56,18 +56,25 @@ export async function setCreatorAvatar(
   return rows[0];
 }
 
-export async function listCreatorAttachableMedia(sql: Sql, userId: string) {
-  const candidates = await sql.unsafe(
+export type CreatorAttachableMediaRow = {
+  id: string;
+  original_file_name: string;
+  media_kind: string;
+  mime_type: string;
+};
+
+export async function listCreatorAttachableMedia(sql: Sql, userId: string): Promise<CreatorAttachableMediaRow[]> {
+  const candidates = await sql.unsafe<(CreatorAttachableMediaRow & { workspace_id: string })[]>(
     "select ma.id::text,ma.workspace_id::text,ma.original_file_name,ma.media_kind::text,ma.mime_type from media_assets ma where ma.created_by_user_id=$1 and ma.status='READY' order by ma.original_file_name",
     [userId]
   );
 
-  const authorized: Record<string, unknown>[] = [];
-  for (const row of candidates as Record<string, unknown>[]) {
+  const authorized: CreatorAttachableMediaRow[] = [];
+  for (const row of candidates) {
     try {
       await authorizeWorkspacePermission(sql, {
         userId,
-        workspaceId: String(row.workspace_id),
+        workspaceId: row.workspace_id,
         permission: "media.view"
       });
       const { workspace_id: _workspaceId, ...publicRow } = row;

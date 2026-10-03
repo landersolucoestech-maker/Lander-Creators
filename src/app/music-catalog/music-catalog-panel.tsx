@@ -2,15 +2,16 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { MediaAssetView } from "@/server/media/media-service";
+import type { ArtistView } from "@/server/music-catalog/artist-service";
+import type { CatalogListing, CatalogTrackRow } from "@/server/music-catalog/catalog-service";
+import type { ReferenceDataBundle } from "@/server/reference-data/reference-data-service";
+import type { TaxonomyDefinitionRow } from "@/server/taxonomy/taxonomy-service";
 
-type Artist={id:string;artisticName:string;civilName:string|null;bio?:string|null;countryCode?:string|null;languageCode?:string|null;avatarMediaAssetId?:string|null;status:string;accessLevel:string|null};
-type Release={id:string;primary_artist_id:string;title:string;type:string;release_date:string|null;status:string;artistic_name:string};
-type Track={id:string;release_id:string;title:string;track_number:number;version:string;duration_ms:number|null;isrc:string|null;explicit_content:boolean|null;audio_media_asset_id:string|null;primary_artist_id:string};
-type Segment={id:string;track_id:string;start_ms:number;end_ms:number;label:string|null;recommended:boolean;authorized:boolean};
-type Credit={track_id:string;artist_id:string;role:string;position:number;artistic_name:string};
-type Taxonomy={code:string;values:{id:string;label:string;parentId:string|null;status:string}[]};
-type Ref={code:string;label:string};
-type Media={id:string;originalFileName:string;mediaKind:string;status:string};
+type Artist=ArtistView;
+type Track=CatalogTrackRow;
+type Taxonomy=TaxonomyDefinitionRow;
+type Media=Pick<MediaAssetView,"id"|"originalFileName"|"mediaKind"|"status">;
 type ImportArtist={name:string;normalizedName:string;kind:string;artistId?:string;candidates?:{id:string;artisticName:string}[]};
 type ImportRow={id:string;row_number:number;classification:string;normalized_data:{trackTitle:string;releaseTitle:string;releaseType:string;trackNumber:number;primaryArtists:ImportArtist[];featuredArtists:ImportArtist[];isrc:string|null};error_codes:string[];resolution?:unknown;created_entity_ids?:unknown};
 type ImportState={session:{id:string;source_filename:string;status:string;row_count:number};rows:ImportRow[]}|null;
@@ -29,7 +30,7 @@ async function jsonApi(url:string,init?:RequestInit){
 function durationText(ms:number|null){if(ms==null)return"—";const total=Math.floor(ms/1000);return `${Math.floor(total/60)}:${String(total%60).padStart(2,"0")}`;}
 function parseDuration(value:string){const m=value.trim().match(/^(\d+):(\d{2})$/);if(!m||Number(m[2])>59)return null;return(Number(m[1])*60+Number(m[2]))*1000;}
 
-export function MusicCatalogPanel({workspaceId,artists,catalog,taxonomies,referenceData,media}:{workspaceId:string;artists:Artist[];catalog:{releases:Release[];tracks:Track[];segments:Segment[];credits:Credit[]};taxonomies:Taxonomy[];referenceData:{languages:Ref[];countries:Ref[]};media:Media[]}){
+export function MusicCatalogPanel({workspaceId,artists,catalog,taxonomies,referenceData,media}:{workspaceId:string;artists:Artist[];catalog:CatalogListing;taxonomies:Taxonomy[];referenceData:Pick<ReferenceDataBundle,"languages"|"countries">;media:Media[]}){
   const router=useRouter();const[message,setMessage]=useState("");const[importState,setImportState]=useState<ImportState>(null);const[importBusy,setImportBusy]=useState(false);const[catalogState,setCatalogState]=useState(catalog);
   const genres=taxonomies.find(t=>t.code==="MUSIC_GENRE")?.values.filter(v=>v.status==="ACTIVE")??[];
   const rootGenres=genres.filter(g=>!g.parentId);const images=media.filter(m=>m.mediaKind==="IMAGE"&&m.status==="READY");const audios=media.filter(m=>m.mediaKind==="AUDIO"&&m.status==="READY");

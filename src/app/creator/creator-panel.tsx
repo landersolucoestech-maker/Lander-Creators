@@ -1,10 +1,10 @@
 "use client";
 import type{FormEvent}from"react";import{useState}from"react";import{useRouter}from"next/navigation";
 
-type Profile={id:string;display_name:string;bio:string|null;country_code:string;language_code:string;timezone_code:string;region:string|null;city:string|null;status:string;marketplace_visibility:string;availability:string;avatar_media_asset_id:string|null}|null;
-type Taxonomy={code:string;values:{id:string;label:string;status:string}[]};
-type Ref={code:string;label:string};
-type Social={id:string;platform:string;handle:string;profile_url:string|null;provenance:string;connection_status:string;captured_at:string|null;metrics_source:string|null;followers:number|null;average_views:number|null};
+import type{CreatorProfileRow,CreatorReadiness,CreatorTaxonomyRelations}from"@/server/creator/creator-service";import type{CreatorAttachableMediaRow}from"@/server/creator/creator-media-service";import type{SocialProfileRow}from"@/server/creator/social-profile-service";import type{ReferenceDataBundle}from"@/server/reference-data/reference-data-service";import type{TaxonomyDefinitionRow}from"@/server/taxonomy/taxonomy-service";
+type Profile=Pick<CreatorProfileRow,"id"|"display_name"|"bio"|"country_code"|"language_code"|"timezone_code"|"region"|"city"|"status"|"marketplace_visibility"|"availability"|"avatar_media_asset_id">|null;
+type Taxonomy=TaxonomyDefinitionRow;
+type Social=SocialProfileRow;
 const statusLabels:Record<string,string>={DRAFT:"Rascunho",UNDER_REVIEW:"Em análise",ACTIVE:"Ativo",LIMITED:"Limitado",SUSPENDED:"Suspenso",DISABLED:"Desativado"};
 const availabilityLabels:Record<string,string>={AVAILABLE:"Disponível",LIMITED_AVAILABILITY:"Disponibilidade limitada",UNAVAILABLE:"Indisponível"};
 const visibilityLabels:Record<string,string>={VISIBLE:"Visível",HIDDEN:"Oculto"};
@@ -13,7 +13,7 @@ const readinessLabels:Record<string,string>={MISSING_DISPLAY_NAME:"Nome de exibi
 
 async function api(url:string,init?:RequestInit){const response=await fetch(url,{...init,headers:{"Content-Type":"application/json",...(init?.headers??{})}});const payload=await response.json();if(!response.ok)throw new Error(payload?.error?.message??"Não foi possível concluir a operação.");return payload;}
 
-export function CreatorPanel({profile,taxonomies,referenceData,relations,socials,readiness,attachableMedia}:{profile:Profile;taxonomies:Taxonomy[];referenceData:{countries:Ref[];languages:Ref[];timezones:Ref[];currencies:Ref[]};relations:{niches:{id:string;label:string;is_primary:boolean}[];contentStyles:{id:string;label:string}[];musicGenres:{id:string;label:string}[]};socials:Social[];readiness:{technicalReady:boolean;missing:string[];legalGate:string}|null;attachableMedia:{id:string;original_file_name:string;media_kind:string}[]}){
+export function CreatorPanel({profile,taxonomies,referenceData,relations,socials,readiness,attachableMedia}:{profile:Profile;taxonomies:Taxonomy[];referenceData:ReferenceDataBundle;relations:CreatorTaxonomyRelations;socials:Social[];readiness:CreatorReadiness|null;attachableMedia:CreatorAttachableMediaRow[]}){
 const router=useRouter();const[message,setMessage]=useState("");const taxonomy=(code:string)=>taxonomies.find(t=>t.code===code)?.values.filter(v=>v.status==="ACTIVE")??[];
 async function submitJson(url:string,body:unknown,success:string){try{await api(url,{method:"POST",body:JSON.stringify(body)});setMessage(success);router.refresh();}catch(e){setMessage(e instanceof Error?e.message:"Não foi possível concluir a operação.");}}
 async function saveProfile(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=e.currentTarget;const d=new FormData(f);const body={displayName:String(d.get("displayName")??""),bio:String(d.get("bio")??"")||null,countryCode:String(d.get("countryCode")??""),languageCode:String(d.get("languageCode")??""),timezoneCode:String(d.get("timezoneCode")??""),region:String(d.get("region")??"")||null,city:String(d.get("city")??"")||null};try{await api("/api/creator",{method:profile?"PUT":"POST",body:JSON.stringify(profile?{creatorProfileId:profile.id,...body}:body)});setMessage(profile?"Perfil atualizado.":"Perfil de Creator criado.");router.refresh();}catch(e){setMessage(e instanceof Error?e.message:"Não foi possível salvar o perfil.");}}

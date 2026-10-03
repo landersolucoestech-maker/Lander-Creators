@@ -17,21 +17,26 @@ function urls(input:Record<string,unknown>){
   };
 }
 
-export async function listCatalog(sql:Sql,input:{userId:string;workspaceId:string}){
+export type CatalogReleaseRow={id:string;primary_artist_id:string;title:string;type:string;release_date:Date|null;status:string;artistic_name:string};
+export type CatalogTrackRow={id:string;release_id:string;title:string;track_number:number;version:string;duration_ms:number|null;isrc:string|null;explicit_content:boolean|null;audio_media_asset_id:string|null;primary_artist_id:string};
+export type CatalogSegmentRow={id:string;track_id:string;start_ms:number;end_ms:number;label:string|null;recommended:boolean;authorized:boolean};
+export type CatalogCreditRow={track_id:string;artist_id:string;role:string;position:number;artistic_name:string};
+export type CatalogListing={releases:CatalogReleaseRow[];tracks:CatalogTrackRow[];segments:CatalogSegmentRow[];credits:CatalogCreditRow[]};
+export async function listCatalog(sql:Sql,input:{userId:string;workspaceId:string}):Promise<CatalogListing>{
   await authorizeWorkspacePermission(sql,{userId:input.userId,workspaceId:input.workspaceId,permission:"music_catalog.view"});
-  const releases=await sql.unsafe(
+  const releases=await sql.unsafe<CatalogReleaseRow[]>(
     "select r.id::text,r.primary_artist_id::text,r.title,r.type::text,r.release_date,r.status::text,a.artistic_name from releases r join artists a on a.id=r.primary_artist_id join workspace_artist_access waa on waa.artist_id=r.primary_artist_id and waa.workspace_id=$1::uuid order by r.release_date desc nulls last,r.title",
     [input.workspaceId]
   );
-  const tracks=await sql.unsafe(
+  const tracks=await sql.unsafe<CatalogTrackRow[]>(
     "select t.id::text,t.release_id::text,t.title,t.track_number,t.version::text,t.duration_ms,t.isrc,t.explicit_content,t.audio_media_asset_id::text,r.primary_artist_id::text from tracks t join releases r on r.id=t.release_id join workspace_artist_access waa on waa.artist_id=r.primary_artist_id and waa.workspace_id=$1::uuid order by r.id,t.track_number",
     [input.workspaceId]
   );
-  const segments=await sql.unsafe(
+  const segments=await sql.unsafe<CatalogSegmentRow[]>(
     "select ts.id::text,ts.track_id::text,ts.start_ms,ts.end_ms,ts.label,ts.recommended,ts.authorized from track_segments ts join tracks t on t.id=ts.track_id join releases r on r.id=t.release_id join workspace_artist_access waa on waa.artist_id=r.primary_artist_id and waa.workspace_id=$1::uuid order by ts.track_id,ts.start_ms",
     [input.workspaceId]
   );
-  const credits=await sql.unsafe(
+  const credits=await sql.unsafe<CatalogCreditRow[]>(
     "select tac.track_id::text,tac.artist_id::text,tac.role::text,tac.position,a.artistic_name from track_artist_credits tac join artists a on a.id=tac.artist_id join tracks t on t.id=tac.track_id join releases r on r.id=t.release_id join workspace_artist_access waa on waa.artist_id=r.primary_artist_id and waa.workspace_id=$1::uuid order by tac.track_id,tac.role,tac.position",
     [input.workspaceId]
   );

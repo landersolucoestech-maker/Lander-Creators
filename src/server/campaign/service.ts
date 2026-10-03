@@ -7,15 +7,26 @@ import type{PromotedObjectType}from "@/server/promoted-entities/types";
 import{assertCampaignTransition}from "./state-machine";
 import{evaluateCampaignReadiness}from "./readiness";
 import{assertRange,assertSafeUrl,assertSchedule}from "./validation";
-import type{CampaignStatus}from "./types";
+import type{CampaignMode,CampaignReadiness,CampaignStatus,CampaignVisibility,RecruitmentStatus}from "./types";
+
+export type CampaignRow={id:string;workspace_id:string;name:string;internal_description:string|null;objective_context:string|null;status:CampaignStatus;mode:CampaignMode|null;visibility:CampaignVisibility;recruitment_status:RecruitmentStatus;promoted_object_type:PromotedObjectType|null;promoted_object_id:string|null;promoted_object_display_name_snapshot:string|null;promoted_object_parent_snapshot:unknown;promoted_object_asset_ids_snapshot:unknown;goal_code:string|null;cta_type:string|null;cta_url:string|null;brief:string|null;brief_do:string|null;brief_dont:string|null;mandatory_messages:string|null;hashtags:string|null;mentions:string|null;cta_instructions:string|null;reference_notes:string|null;starts_at:Date|null;ends_at:Date|null;timezone_code:string|null;recruitment_opens_at:Date|null;recruitment_closes_at:Date|null;budget_minor:string|null;currency_code:string;target_creator_count:number|null;maximum_creator_count:number|null;last_builder_step:number;revision:number;created_by_user_id:string;created_at:Date;updated_at:Date};
+export type CampaignListRow=CampaignRow&{goal_label:string|null};
+export type CampaignBuilderStepRow={step:number;completed:boolean;completed_at:Date|null};
+export type CampaignContentRequirementRow={id:string;campaign_id:string;platform:string;format:string;quantity:number;notes:string|null;required_publication:boolean;ugc:boolean;sort_order:number};
+export type CampaignAssetRow={campaign_id:string;media_asset_id:string;purpose:string|null;sort_order:number;original_file_name:string};
+export type CampaignRightsRow={campaign_id:string;organic_usage_days:number|null;paid_media_allowed:boolean;whitelisting_required:boolean;exclusivity_required:boolean;geography:string|null;usage_duration_days:number|null};
+export type CampaignTrackingRow={campaign_id:string;target_url:string|null;utm_source:string|null;utm_medium:string|null;utm_campaign:string|null;utm_content_pattern:string|null;tracking_label:string|null;measure_views:boolean;measure_reach:boolean;measure_engagement:boolean;measure_clicks:boolean;measure_conversions:boolean};
+export type CampaignTargetingRow={campaign_id:string;follower_min:string|null;follower_max:string|null;updated_at:Date};
+export type CampaignDetailData={campaign:CampaignListRow;steps:CampaignBuilderStepRow[];content:CampaignContentRequirementRow[];assets:CampaignAssetRow[];rights:CampaignRightsRow|null;tracking:CampaignTrackingRow|null;targeting:CampaignTargetingRow|null;readiness:CampaignReadiness};
+export type CampaignGoalOption={code:string;label:string};
 async function auth(sql:Sql, i:{userId:string;workspaceId:string},permission:"campaign.view"|"campaign.create"|"campaign.manage"|"campaign.activate"|"campaign.pause"|"campaign.cancel") {
   await authorizeWorkspacePermission(sql,{...i,permission});
 }
 async function row(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string},permission:"campaign.view"|"campaign.manage"|"campaign.activate"|"campaign.pause"|"campaign.cancel"="campaign.view") {
   await auth(sql,i,permission);
-  const r=await sql.unsafe("select * from campaigns where id=$1::uuid and workspace_id=$2::uuid",[i.campaignId,i.workspaceId]);
+  const r=await sql.unsafe<CampaignRow[]>("select * from campaigns where id=$1::uuid and workspace_id=$2::uuid",[i.campaignId,i.workspaceId]);
   if(!r[0])throw new DomainError("CAMPAIGN_NOT_FOUND","Campaign not found",404);
-  return r[0] as Record<string,unknown>;
+  return r[0];
 }
 async function audit(tx:{unsafe:Sql["unsafe"]}, i:{userId:string;workspaceId:string;campaignId:string;action:string;delta?:Record<string,unknown>}) {
   await writeAudit(tx,{actorId:i.userId,workspaceId:i.workspaceId,action:i.action,entityType:"campaign",entityId:i.campaignId,delta:i.delta??{}});
@@ -44,14 +55,14 @@ export async function createCampaign(sql:Sql, i:{userId:string;workspaceId:strin
 
 export async function listCampaigns(sql:Sql, i:{userId:string;workspaceId:string}) {
   await auth(sql,i,"campaign.view");
-  return sql.unsafe("select c.*,g.display_name_pt_br goal_label from campaigns c left join campaign_goals g on g.code=c.goal_code where c.workspace_id=$1::uuid order by c.updated_at desc",[i.workspaceId]);
+  return sql.unsafe<CampaignListRow[]>("select c.*,g.display_name_pt_br goal_label from campaigns c left join campaign_goals g on g.code=c.goal_code where c.workspace_id=$1::uuid order by c.updated_at desc",[i.workspaceId]);
 }
 
-export async function getCampaign(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string}) {
+export async function getCampaign(sql:Sql, i:{userId:string;workspaceId:string;campaignId:string}):Promise<CampaignDetailData> {
   const base=await row(sql,i);
-  const goalRows=base.goal_code?await sql.unsafe("select display_name_pt_br from campaign_goals where code=$1",[String(base.goal_code)]):[];
-  const c=Object.assign(base as Record<string,unknown>,{goal_label:goalRows[0]?.display_name_pt_br??null});
-  const[steps,content,assets,rights,tracking,targeting]=await Promise.all([sql.unsafe("select step,completed,completed_at from campaign_builder_steps where campaign_id=$1::uuid order by step",[i.campaignId]),sql.unsafe("select * from campaign_content_requirements where campaign_id=$1::uuid order by sort_order,id",[i.campaignId]),sql.unsafe("select ca.*,m.original_file_name from campaign_assets ca join media_assets m on m.id=ca.media_asset_id where ca.campaign_id=$1::uuid order by ca.sort_order",[i.campaignId]),sql.unsafe("select * from campaign_rights_requirements where campaign_id=$1::uuid",[i.campaignId]),sql.unsafe("select * from campaign_tracking_config where campaign_id=$1::uuid",[i.campaignId]),sql.unsafe("select * from campaign_targeting where campaign_id=$1::uuid",[i.campaignId])]);
+  const goalRows=base.goal_code?await sql.unsafe<{display_name_pt_br:string}[]>("select display_name_pt_br from campaign_goals where code=$1",[String(base.goal_code)]):[];
+  const c:CampaignListRow=Object.assign(base,{goal_label:goalRows[0]?.display_name_pt_br??null});
+  const[steps,content,assets,rights,tracking,targeting]=await Promise.all([sql.unsafe<CampaignBuilderStepRow[]>("select step,completed,completed_at from campaign_builder_steps where campaign_id=$1::uuid order by step",[i.campaignId]),sql.unsafe<CampaignContentRequirementRow[]>("select * from campaign_content_requirements where campaign_id=$1::uuid order by sort_order,id",[i.campaignId]),sql.unsafe<CampaignAssetRow[]>("select ca.*,m.original_file_name from campaign_assets ca join media_assets m on m.id=ca.media_asset_id where ca.campaign_id=$1::uuid order by ca.sort_order",[i.campaignId]),sql.unsafe<CampaignRightsRow[]>("select * from campaign_rights_requirements where campaign_id=$1::uuid",[i.campaignId]),sql.unsafe<CampaignTrackingRow[]>("select * from campaign_tracking_config where campaign_id=$1::uuid",[i.campaignId]),sql.unsafe<CampaignTargetingRow[]>("select * from campaign_targeting where campaign_id=$1::uuid",[i.campaignId])]);
   return{campaign:c,steps,content,assets,rights:rights[0]??null,tracking:tracking[0]??null,targeting:targeting[0]??null,readiness:await evaluateCampaignReadiness(sql,i)};
 }
 
@@ -199,5 +210,5 @@ export async function listCampaignPromotedObjectOptions(sql:Sql, i:{userId:strin
 }catch{}}return out;
 }
 
-export async function listCampaignGoals(sql:Sql,type?:PromotedObjectType|null) {return type?sql.unsafe("select g.code,g.display_name_pt_br label from campaign_goals g join campaign_goal_object_types c on c.goal_code=g.code where g.active and c.object_type=$1::promoted_object_type order by g.sort_order",[type]):sql.unsafe("select code,display_name_pt_br label from campaign_goals where active order by sort_order");
+export async function listCampaignGoals(sql:Sql,type?:PromotedObjectType|null) {return type?sql.unsafe<CampaignGoalOption[]>("select g.code,g.display_name_pt_br label from campaign_goals g join campaign_goal_object_types c on c.goal_code=g.code where g.active and c.object_type=$1::promoted_object_type order by g.sort_order",[type]):sql.unsafe<CampaignGoalOption[]>("select code,display_name_pt_br label from campaign_goals where active order by sort_order");
 }

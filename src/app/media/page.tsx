@@ -18,6 +18,6 @@ export default async function MediaPage(){
   const active=await resolveActiveWorkspace(client,{userId:actor.id});if(!active)redirect("/workspace");
   if(!state.capabilities.media)return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><AccessDeniedState/></ApplicationShell>;
   const media=await listMediaAssets(client,{userId:actor.id,workspaceId:active.workspaceId});
-  return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><MediaPanel workspaceId={active.workspaceId} media={media as never}/></ApplicationShell>;
+  return <ApplicationShell state={state} navigation={workspaceNavigation(state)} context="workspace"><MediaPanel workspaceId={active.workspaceId} media={media}/></ApplicationShell>;
  }finally{await client.end();}
 }

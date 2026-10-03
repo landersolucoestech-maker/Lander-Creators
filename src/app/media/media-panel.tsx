@@ -3,16 +3,9 @@
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { MediaAssetView } from "@/server/media/media-service";
 
-type MediaView = {
-  id: string;
-  originalFileName: string;
-  mediaKind: string;
-  mimeType: string;
-  sizeBytes: number;
-  status: string;
-  visibility: string;
-};
+type MediaView = Pick<MediaAssetView, "id" | "originalFileName" | "mediaKind" | "mimeType" | "sizeBytes" | "status" | "visibility">;
 
 const visibilityLabels: Record<string,string> = { PRIVATE:"Privado", WORKSPACE_AVAILABLE:"Disponível no workspace" };
 const kindLabels: Record<string,string> = { IMAGE:"Imagem", AUDIO:"Áudio", DOCUMENT:"Documento" };
