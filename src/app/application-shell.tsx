@@ -60,7 +60,7 @@ export function ApplicationShell({
 
   const accountMenu = (
     <details className="lc-account-menu">
-      <summary>
+      <summary aria-label={`Menu da conta de ${state.user.name}`}>
         <span className="lc-avatar" aria-hidden="true">{initials}</span>
         <span className="lc-account-name">{state.user.name}</span>
         <Icon name="chevron-down" />
