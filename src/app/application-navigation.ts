@@ -63,12 +63,13 @@ export function workspaceNavigation(state: ApplicationShellState): ApplicationNa
 
 export function creatorNavigation(): ApplicationNavItem[] {
   return [
-    { id: "creator", label: "Meu perfil", href: "/creator", group: "Visão geral" },
+    { id: "creator-dashboard", label: "Dashboard", href: "/creator/dashboard", group: "Visão geral" },
     { id: "opportunities", label: "Oportunidades", href: "/opportunities", group: "Operação" },
-    { id: "proposals", label: "Propostas", href: "/proposals", group: "Operação" },
-    { id: "creator-engagements", label: "Contratações", href: "/creator-engagements", group: "Operação" },
-    { id: "contracts", label: "Contratos", href: "/contracts", group: "Operação" },
-    { id: "deliverables", label: "Entregas", href: "/deliverables", group: "Operação" },
-    { id: "payments", label: "Pagamentos", href: "/payments", group: "Operação" }
+    { id: "proposals", label: "Campanhas", href: "/proposals", group: "Operação" },
+    { id: "contracts", label: "Meus Contratos", href: "/contracts", group: "Operação" },
+    { id: "deliverables", label: "Minhas Entregas", href: "/deliverables", group: "Operação" },
+    { id: "creator-engagements", label: "Publicações", href: "/creator-engagements", group: "Operação" },
+    { id: "payments", label: "Pagamentos", href: "/payments", group: "Operação" },
+    { id: "creator", label: "Meu Perfil", href: "/creator", group: "Recursos" }
   ];
 }
