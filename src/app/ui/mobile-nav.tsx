@@ -23,6 +23,10 @@ export function MobileNav({
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -33,7 +37,7 @@ export function MobileNav({
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab" || !dialogRef.current) return;
@@ -56,7 +60,7 @@ export function MobileNav({
       document.body.style.overflow = previousOverflow;
       trigger?.focus();
     };
-  }, [open, onClose, triggerRef]);
+  }, [open, triggerRef]);
 
   if (!open) return null;
 

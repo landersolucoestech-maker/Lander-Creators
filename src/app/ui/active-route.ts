@@ -12,6 +12,7 @@ export function matchesRoute(pathname: string, href: string): boolean {
 
 /** The most specific matching item wins, so /engagements/contracts does not also highlight /engagements. */
 export function isActiveRoute(pathname: string, href: string, navigation: RouteLike[]): boolean {
+  if (href.includes("#")) return false; // pathname cannot see fragments, so anchor items are never "current"
   if (!matchesRoute(pathname, href)) return false;
   const length = hrefTarget(href).length;
   return !navigation.some(

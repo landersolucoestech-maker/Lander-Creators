@@ -6,6 +6,10 @@ The principal repository orchestrator is `lander-creators-orchestrator`. Read `E
 
 `main` is the only valid branch. Work, commit, validate and push only on `main`. Never create or use topic, PR, develop, release or automated update branches. Never force-push or rewrite history except explicit repository recovery.
 
+## Autonomous execution
+
+Autonomous execution is the default (`AUTONOMOUS-EXECUTION.md`, `.claude/rules/autonomous-execution.md`). Implement, validate, commit, push to `main`, follow CI, fix and continue to the next unit without re-asking authorization already granted by the owner. Hard limits stay in force: no force-push/history rewrite/destructive operations, no secrets, no new providers, no Vercel, no change to the DEV AUTH BYPASS without an explicit owner order. Record Engineering Pack usage truthfully in `ORCHESTRATION-LEDGER.md`.
+
 ## Canonical control plane
 
 Use `.claude/agents`, `.claude/skills`, `.claude/commands`, `.claude/rules` and `.claude/hooks` as the repository-scoped engineering control plane. External engineering packs are selective capability sources only; they do not replace this control plane.

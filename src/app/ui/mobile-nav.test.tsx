@@ -57,4 +57,14 @@ describe("MobileNav", () => {
     rerender(<Harness open={false} onClose={() => {}} />);
     expect(screen.getByRole("button", { name: "Abrir navegação" })).toHaveFocus();
   });
+
+  it("keeps focus and scroll lock stable when the parent re-renders with a new onClose", () => {
+    const { rerender } = render(<Harness open={true} onClose={() => {}} />);
+    const close = screen.getByRole("button", { name: "Fechar navegação" });
+    screen.getByRole("button", { name: "Campanhas" }).focus();
+    rerender(<Harness open={true} onClose={() => {}} />);
+    expect(screen.getByRole("button", { name: "Campanhas" })).toHaveFocus();
+    expect(close).toBeInTheDocument();
+    expect(document.body.style.overflow).toBe("hidden");
+  });
 });

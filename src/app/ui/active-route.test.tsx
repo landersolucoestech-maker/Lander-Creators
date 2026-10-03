@@ -36,4 +36,10 @@ describe("isActiveRoute", () => {
   it("does not activate on an unrelated route", () => {
     expect(isActiveRoute("/finance", "/engagements", navigation)).toBe(false);
   });
+
+  it("never marks fragment hrefs current, so a same-path sibling is the only active item", () => {
+    const nav = [{ href: "/music-catalog#artists" }, { href: "/music-catalog" }];
+    expect(isActiveRoute("/music-catalog", "/music-catalog#artists", nav)).toBe(false);
+    expect(isActiveRoute("/music-catalog", "/music-catalog", nav)).toBe(true);
+  });
 });

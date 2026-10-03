@@ -53,3 +53,7 @@ Creator self-service does not inherit Workspace administration authority.
 ## Not yet exposed in navigation
 
 AI Runtime and provider-backed Integrations are not exposed. Engagement-level Workspace actions that have no owner-approved UX (for example mandatory negotiation, blocking payment on dispute) are intentionally absent; see `docs/product/PRODUCT-DECISIONS.md`.
+
+## Active-route detection
+
+The shell marks one item current per path (`src/app/ui/active-route.ts`): exact match or `href/` prefix; the longest matching href wins; fragment hrefs (for example `/music-catalog#artists`) are never marked current.

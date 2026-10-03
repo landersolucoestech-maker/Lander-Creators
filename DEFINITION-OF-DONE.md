@@ -44,5 +44,11 @@ A change is complete only when all applicable requirements below are satisfied.
 
 A running `Keep preview online` step is not a completion blocker once build, external-origin smoke and live application acceptance have succeeded.
 
+## Autonomous execution
+- the unit followed IMPLEMENT -> VALIDATE -> COMMIT -> PUSH `main` -> CI -> FIX -> LEDGER;
+- `ORCHESTRATION-LEDGER.md` is updated with head SHA, last green SHA, CI status, next action and blockers;
+- Engineering Pack usage is recorded truthfully (EXECUTED_AS_SUBAGENT / EXECUTED_BY_ORCHESTRATOR / EXECUTED_INLINE_FALLBACK / NOT_APPLICABLE);
+- undefined product decisions are recorded as `PRODUCT_DECISION_REQUIRED` and isolated, never invented.
+
 ## Infrastructure
 No external infrastructure/provider is selected or introduced without explicit owner authorization. Vercel is prohibited.
