@@ -24,20 +24,20 @@ export function CreatorEngagementsPanel({ engagements }: { engagements: CreatorE
     <div className="module-surface">
       <header className="page-header">
         <div>
-          <p className="eyebrow">CONTRATAÇÃO</p>
-          <h1>Contratações</h1>
-          <p>Suas contratações ativas e encerradas. Se algo não for cumprido, você pode abrir uma disputa para o contratante analisar.</p>
+          <p className="eyebrow">Publicações</p>
+          <h1>Publicações</h1>
+          <p>Acompanhe as campanhas contratadas relacionadas às suas publicações e eventuais pendências.</p>
         </div>
       </header>
 
       {message ? <p className="notice" role="status">{message}</p> : null}
 
       <section className="card compact-card">
-        <h2>Suas contratações</h2>
+        <h2>Campanhas e publicações</h2>
         {engagements.length === 0 ? (
           <div className="empty-state">
-            <strong>Nenhuma contratação</strong>
-            <p>Quando uma proposta for aceita e a contratação for criada, ela aparecerá aqui.</p>
+            <strong>Nenhuma publicação em andamento</strong>
+            <p>Quando uma campanha contratada entrar em execução, ela aparecerá aqui.</p>
           </div>
         ) : (
           <div className="table-scroll" tabIndex={0} aria-label="Tabela de contratações">
