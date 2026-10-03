@@ -8,9 +8,9 @@ export function PaymentsPanel({ payments }: { payments: CreatorPayableRow[] }) {
     <div className="module-surface">
       <header className="page-header">
         <div>
-          <p className="eyebrow">FINANCEIRO</p>
+          <p className="eyebrow">Pagamentos</p>
           <h1>Pagamentos</h1>
-          <p>Acompanhe o andamento dos seus pagamentos. A liberação depende da verificação das publicações contratadas.</p>
+          <p>Acompanhe valores, elegibilidade, liberações e pagamentos das suas campanhas.</p>
         </div>
       </header>
 
