@@ -1,0 +1,8 @@
+import { redirect } from "next/navigation";
+import { resolveApplicationActor } from "@/server/auth/application-actor";
+import { parseEnv } from "@/server/config/env";
+import { createDatabaseClient } from "@/server/db/client";
+import { getApplicationShellState } from "@/server/application/application-context";
+import { ApplicationShell } from "../../application-shell";
+import { creatorNavigation } from "../../application-navigation";
+export default async function Page(){const actor=await resolveApplicationActor();if(!actor)redirect("/");const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);try{const state=await getApplicationShellState(client,{id:actor.id,name:actor.name,email:actor.email});if(!state.creator)redirect("/creator");return <ApplicationShell state={state} navigation={creatorNavigation()} context="creator"><div className="module-surface creator-reference-page"><header className="page-header"><div><p className="eyebrow">Rede de Criadores</p><h1>Rede de Criadores</h1><p>Conexões e creators da rede Lander.</p></div></header><section className="card compact-card"><div className="creator-toolbar"><input type="search" placeholder="Buscar creator" aria-label="Buscar creator"/><button type="button">Buscar</button></div><div className="empty-state"><strong>Nenhum creator disponível para exibição.</strong><p>A rede será preenchida somente a partir de dados reais e permissões aprovadas.</p></div></section></div></ApplicationShell>}finally{await client.end()}}
