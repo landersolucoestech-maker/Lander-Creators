@@ -38,15 +38,22 @@ Navigation visibility is capability-based. Direct server authorization remains a
 
 ## Creator context
 
-- Meu perfil — `/creator`
+- Dashboard — `/creator/dashboard` — visão inicial composta apenas por módulos e dados reais
 - Oportunidades — `/opportunities` — campanhas abertas, candidaturas e convites
 - Propostas — `/proposals` — rodadas recebidas; aceitar, recusar ou contrapropor
-- Contratos — `/contracts` — contratos enviados; assinatura do Creator
-- Entregas — `/deliverables` — envio de conteúdo para revisão e comprovação de publicação (HTTPS)
-- Contratações — `/creator-engagements` — contratações do Creator e abertura de disputa (ACTIVE/COMPLETED sem disputa em andamento)
+- Meus Contratos — `/contracts` — contratos enviados; assinatura do Creator
+- Minhas Entregas — `/deliverables` — envio de conteúdo para revisão e comprovação de publicação (HTTPS)
+- Publicações — `/creator-engagements` — superfície das campanhas contratadas; preserva as ações reais de contratação e disputa
 - Pagamentos — `/payments` — acompanhamento somente leitura dos pagamentos do Creator
+- Meu Perfil — `/creator` — dados profissionais, redes, classificação, disponibilidade e mídia
+- Estatísticas — `/creator/statistics` — superfície sem métricas fabricadas; apresenta estado vazio quando não há fonte consolidada
+- Rede de Criadores — `/creator/network` — superfície preparada para dados autorizados da rede
+- Biblioteca de Conteúdo — `/creator/library` — superfície preparada para materiais reais vinculados às campanhas
+- Chat — `/creator/chat` — superfície sem mensagens simuladas enquanto não houver fonte implementada
+- Ajuda e Suporte — `/creator/help` — orientação do Portal Creators
+- Configurações — `/creator/settings` — preferências disponíveis sem criar regras de negócio inexistentes
 
-Creator pages are TableView surfaces (`.table-scroll` + semantic `<table>`), render PT-BR status labels, and require an existing Creator profile (otherwise they redirect to `/creator`).
+Creator operational pages preserve their existing domain actions and server authorization. Reference-only surfaces do not fabricate records, metrics, messages, notification counts or business rules. All Creator routes require an existing Creator profile, otherwise redirect to `/creator`.
 
 Creator self-service does not inherit Workspace administration authority.
 
