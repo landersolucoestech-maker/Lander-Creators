@@ -13,9 +13,9 @@ export function ContractsPanel({ contracts }: { contracts: CreatorContractRow[] 
     <div className="module-surface">
       <header className="page-header">
         <div>
-          <p className="eyebrow">CONTRATAÇÃO</p>
-          <h1>Contratos</h1>
-          <p>Contratos enviados a você. A contratação só fica ativa depois da assinatura das duas partes.</p>
+          <p className="eyebrow">Meus Contratos</p>
+          <h1>Meus contratos</h1>
+          <p>Consulte contratos recebidos, valores, termos e situações de assinatura.</p>
         </div>
       </header>
 
