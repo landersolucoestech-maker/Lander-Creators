@@ -358,3 +358,11 @@ body{background:var(--surface-page);color:var(--text)}
 
 .creator-reference-page .card{border-radius:6px}.creator-toolbar{display:flex;gap:10px;margin-bottom:12px}.creator-toolbar input{flex:1}.creator-toolbar button{border-color:#f8001c;background:#f8001c;color:#fff}.creator-chat-layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:14px;min-height:520px}.creator-chat-list,.creator-chat-empty{min-height:520px}.creator-chat-empty{display:grid;place-content:center;text-align:center}.creator-help-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.creator-help-grid .card{min-height:150px}.creator-settings-list{display:grid}.creator-settings-list>div{padding:16px 0;border-bottom:1px solid #e8ebf2}.creator-settings-list>div:last-child{border-bottom:0}.creator-settings-list p{margin:4px 0 0}.lc-sidebar-nav{padding-bottom:22px}.lc-nav-link{font-size:14px}
 @media(max-width:760px){.creator-chat-layout,.creator-help-grid{grid-template-columns:1fr}.creator-chat-list,.creator-chat-empty{min-height:260px}.creator-toolbar{flex-direction:column}}
+
+/* WCAG AA contrast corrections for the light portal shell. */
+.lc-brand-wordmark small{color:#d40017}
+.lc-nav-link:hover{color:#d40017}.lc-nav-link--active{color:#d40017}
+.creator-reference-dashboard .section-heading a,.creator-list-page .section-heading a{color:#d40017}
+.creator-reference-dashboard .button-link{color:#d40017}
+.module-surface .empty-state p{color:#6975a8}
+.module-surface .compact-card>.eyebrow{color:#6975a8}
