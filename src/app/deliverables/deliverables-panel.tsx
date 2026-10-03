@@ -40,9 +40,9 @@ export function DeliverablesPanel({ deliverables, publications }: { deliverables
     <div className="module-surface">
       <header className="page-header">
         <div>
-          <p className="eyebrow">PRODUÇÃO</p>
-          <h1>Entregas</h1>
-          <p>Envie o conteúdo para revisão e, depois da aprovação, comprove a publicação. O pagamento só é liberado com as publicações verificadas.</p>
+          <p className="eyebrow">Minhas Entregas</p>
+          <h1>Minhas entregas</h1>
+          <p>Acompanhe seus conteúdos, prazos, revisões e comprovações de publicação.</p>
         </div>
       </header>
 
