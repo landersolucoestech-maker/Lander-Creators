@@ -71,6 +71,11 @@ export function creatorNavigation(): ApplicationNavItem[] {
     { id: "creator-engagements", label: "Publicações", href: "/creator-engagements", group: "Operação" },
     { id: "payments", label: "Pagamentos", href: "/payments", group: "Operação" },
     { id: "creator", label: "Meu Perfil", href: "/creator", group: "Recursos" },
-    { id: "creator-stats", label: "Estatísticas", href: "/creator/statistics", group: "Recursos" }
+    { id: "creator-stats", label: "Estatísticas", href: "/creator/statistics", group: "Recursos" },
+    { id: "creator-network", label: "Rede de Criadores", href: "/creator/network", group: "Recursos" },
+    { id: "creator-library", label: "Biblioteca de Conteúdo", href: "/creator/library", group: "Recursos" },
+    { id: "creator-chat", label: "Chat", href: "/creator/chat", group: "Organização" },
+    { id: "creator-help", label: "Ajuda e Suporte", href: "/creator/help", group: "Organização" },
+    { id: "creator-settings", label: "Configurações", href: "/creator/settings", group: "Organização" }
   ];
 }
