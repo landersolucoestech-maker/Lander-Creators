@@ -34,16 +34,16 @@ export function ProposalsPanel({ proposals }: { proposals: CreatorProposalRow[] 
     <div className="module-surface">
       <header className="page-header">
         <div>
-          <p className="eyebrow">NEGOCIAÇÃO</p>
-          <h1>Propostas</h1>
-          <p>Propostas dos contratantes para suas candidaturas e convites. Cada rodada fica registrada no histórico.</p>
+          <p className="eyebrow">Campanhas</p>
+          <h1>Minhas campanhas</h1>
+          <p>Acompanhe negociações, propostas recebidas e o histórico das suas participações.</p>
         </div>
       </header>
 
       {message ? <p className="notice" role="status">{message}</p> : null}
 
       <section className="card compact-card">
-        <h2>Rodadas de proposta</h2>
+        <h2>Propostas e negociações</h2>
         {proposals.length === 0 ? (
           <div className="empty-state">
             <strong>Nenhuma proposta recebida</strong>
