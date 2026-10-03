@@ -617,6 +617,44 @@ test("captures current LANDER CREATORS user-visible flow", async ({ page }, test
     );
   }finally{await restoreSql.end();}
 
+  // Workspace operational screens (server-rendered TableView) over the same persisted data.
+  for (const [route, heading, name] of [
+    ["/negotiations", "Negociações", "workspace-negotiations"],
+    ["/engagements", "Contratações", "workspace-engagements"],
+    ["/engagements/contracts", "Contratos", "workspace-contracts"],
+    ["/content-review", "Revisão de conteúdo", "workspace-content-review"],
+    ["/publications", "Publicações", "workspace-publications"],
+    ["/publications/planning", "Planejamento de publicações", "workspace-publication-planning"],
+    ["/finance", "Pagamentos", "workspace-finance"],
+    ["/finance/candidates", "Contratações sem pagamento", "workspace-finance-candidates"],
+    ["/analytics", "Analytics", "workspace-analytics"],
+    ["/disputes", "Disputas", "workspace-disputes"],
+    ["/matching", "Matching", "workspace-matching"]
+  ]) {
+    await page.goto(route);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Acesso não disponível" })).toHaveCount(0);
+    await verifyNoHorizontalOverflow(page);
+    await capture(page, project, name, route, `Workspace ${route} renders from the real read model (${heading}) with filters, pagination and PT-BR copy.`);
+  }
+  await page.goto("/finance?q=zzz-sem-resultado");
+  await expect(page.getByText(/Nenhum|nenhum/).first()).toBeVisible();
+  await capture(page, project, "workspace-finance-empty-filter", "/finance", "A search with no matches shows the empty state instead of an empty table.");
+
+  // Creator opens a dispute from the engagements list through the real API.
+  await page.goto("/creator-engagements");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await verifyNoHorizontalOverflow(page);
+  await capture(page, project, "creator-engagements", "/creator-engagements", "Creator sees engagements with contractor, value, status and the dispute action.");
+  await page.getByText("Abrir disputa").first().click();
+  await page.getByLabel(/Motivo/).first().fill("Prazo de pagamento divergente");
+  await page.getByRole("button", { name: /Abrir disputa|Enviar disputa/ }).last().click();
+  await expect(page.getByText(/Em aberto|Aberta|OPEN/).first()).toBeVisible();
+  await capture(page, project, "creator-dispute-opened", "/creator-engagements", "Opening a dispute updates the row through the real API.");
+  await page.goto("/disputes");
+  await expect(page.getByText("Prazo de pagamento divergente").first()).toBeVisible();
+  await capture(page, project, "workspace-disputes-opened", "/disputes", "The Workspace sees the dispute opened by the Creator.");
+
   await page.goto("/reset-password?token=visual-inspection-placeholder");
   await expect(page.getByRole("heading", { name: "Definir nova senha" })).toBeVisible();
   await verifyNoHorizontalOverflow(page);
