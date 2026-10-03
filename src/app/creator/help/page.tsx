@@ -1,0 +1,8 @@
+import { redirect } from "next/navigation";
+import { resolveApplicationActor } from "@/server/auth/application-actor";
+import { parseEnv } from "@/server/config/env";
+import { createDatabaseClient } from "@/server/db/client";
+import { getApplicationShellState } from "@/server/application/application-context";
+import { ApplicationShell } from "../../application-shell";
+import { creatorNavigation } from "../../application-navigation";
+export default async function Page(){const actor=await resolveApplicationActor();if(!actor)redirect("/");const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);try{const state=await getApplicationShellState(client,{id:actor.id,name:actor.name,email:actor.email});if(!state.creator)redirect("/creator");return <ApplicationShell state={state} navigation={creatorNavigation()} context="creator"><div className="module-surface creator-reference-page"><header className="page-header"><div><p className="eyebrow">Ajuda e Suporte</p><h1>Como podemos ajudar?</h1><p>Encontre orientações sobre o Portal Creators.</p></div></header><section className="creator-help-grid"><article className="card compact-card"><h2>Campanhas e oportunidades</h2><p>Consulte oportunidades, candidaturas, propostas e campanhas em andamento.</p></article><article className="card compact-card"><h2>Entregas e publicações</h2><p>Acompanhe prazos, revisão de conteúdo e comprovações.</p></article><article className="card compact-card"><h2>Pagamentos</h2><p>Consulte elegibilidade, liberações e pagamentos registrados.</p></article><article className="card compact-card"><h2>Perfil</h2><p>Atualize seus dados, redes sociais e disponibilidade.</p></article></section></div></ApplicationShell>}finally{await client.end()}}
