@@ -55,7 +55,7 @@ Legacy routes (Negociações, Disputas, Matching, Entidades promovidas, Equipe, 
 
 | ID | Status | Resolution |
 | --- | --- | --- |
-| F Creator navigation | RESOLVED_FOR_U2 | Implemented routes only, per `NAVIGATION-MAP.md` (Meu perfil, no separate Estatísticas). Settings/Reports placement stays `PRODUCT_DECISION_REQUIRED` (C03/C11). |
+| F Creator navigation | RESOLVED_FOR_U2 | Creator reference navigation is implemented per `NAVIGATION-MAP.md`. Reference-only surfaces must remain honest zero states until backed by real sources. Relatórios remains `PRODUCT_DECISION_REQUIRED` and is not exposed. |
 | G Workspace navigation | RESOLVED_FOR_U2 | Capability-gated implemented set; unimplemented reference items (Chat, Ajuda, Integrações, Pacotes, Smart Link, Pré-save) are not exposed. Analytics vs Relatórios naming remains `PRODUCT_DECISION_REQUIRED`. |
 | H Screens without reference | RESOLVED | Preserved, grouped under Operação/Recursos/Organização. |
 | I Final tokens | RESOLVED | U1 `DESIGN-SYSTEM.md` values are canonical (288/64/32/40). Reference px ratio (51 vs 38 title, 283 vs 290 sidebar) still unconfirmed by the owner. |
