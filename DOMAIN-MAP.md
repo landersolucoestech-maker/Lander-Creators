@@ -47,3 +47,6 @@ downstream provider-backed Integrations, Music Intelligence, AI Runtime/AI Opera
 - Shared Media owns media metadata/storage seams; business domains own business meaning and references.
 - Logical domain boundaries do not require one package or service per domain.
 - State-changing operations from Participation through Finance/Payments, Disputes and the Music import/Promoted-entity grants write `audit_logs` in the same transaction as the state change and serialize on the owning row (participation, engagement, deliverable, payable) with status-guarded transitions.
+
+## Workspace read models
+`src/server/application/operations/*` and `dispute/service.ts#listWorkspaceDisputes` are read-only compositions over the owners' tables for Workspace screens (Negociações, Contratações/Contratos, Revisão de conteúdo, Publicações, Financeiro, Disputas, Matching, Analytics). They own no persistence; writes stay with the owning domain service. Creator `/creator-engagements` composes Engagement + Dispute.

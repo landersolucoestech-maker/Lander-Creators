@@ -71,3 +71,6 @@ Campaign security gate covers cross-Workspace IDOR, promoted-object access, fore
 - Music import never exposes or claims another workspace's Artist, and never creates or upgrades Artist access.
 - A promoted-entity access grant cannot downgrade an OWNER access row.
 - Creators never see contract drafts that were not sent to them.
+
+## Workspace read layer
+List routes authorize Membership + capability permission server-side, scope every query by `workspace_id`, accept only whitelisted sort/filter keys, cap page size and return DTOs without storage keys or foreign-tenant data. Unknown, foreign and inaccessible ids produce the same not-found response (no 404×409 enumeration) in proposal, participation and neighbor flows. Media attached to content versions must be owned by the submitting Creator (`created_by_user_id`).

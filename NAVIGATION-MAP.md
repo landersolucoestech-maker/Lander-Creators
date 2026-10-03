@@ -18,6 +18,22 @@
 - Workspace — `/workspace`
 - Configurações — `/settings`
 
+Operação (post-campaign, grouped under "Operação"; each item is visible only with its capability from `src/server/application/application-context.ts`):
+
+| Item | Route | Capability (permission) |
+| --- | --- | --- |
+| Negociações | `/negotiations` | `negotiations` (`participation.view`) |
+| Contratações | `/engagements` | `engagements` (`engagement.view`) |
+| Contratos | `/engagements/contracts` | `engagements` |
+| Revisão de conteúdo | `/content-review` | `contentReview` (`deliverable.view`) |
+| Publicações | `/publications`, `/publications/planning` | `publications` (`publication.view`) |
+| Financeiro | `/finance`, `/finance/candidates` | `finance` (`finance.view`) |
+| Disputas | `/disputes` | `disputes` (`dispute.view`) |
+| Matching | `/matching` | `matching` (`matching.view`) |
+| Analytics | `/analytics`, `/analytics/publications` | `analytics` (`analytics.view`) |
+
+Every screen is a server-rendered TableView (GET toolbar with search, filter, sort; pager; empty/error states; row actions gated by `manage`-type permissions). Pending owner decisions are shown openly on the screen (Finance: dispute does not block payment, no four-eyes; Matching: no score history). Reads go through `GET /api/workspaces/{workspaceId}/...` list routes returning `{rows,total,page,pageSize,pageCount}`.
+
 Navigation visibility is capability-based. Direct server authorization remains authoritative. Artist and promoted-entity records retain their explicit access models.
 
 ## Creator context
@@ -27,6 +43,7 @@ Navigation visibility is capability-based. Direct server authorization remains a
 - Propostas — `/proposals` — rodadas recebidas; aceitar, recusar ou contrapropor
 - Contratos — `/contracts` — contratos enviados; assinatura do Creator
 - Entregas — `/deliverables` — envio de conteúdo para revisão e comprovação de publicação (HTTPS)
+- Contratações — `/creator-engagements` — contratações do Creator e abertura de disputa (ACTIVE/COMPLETED sem disputa em andamento)
 - Pagamentos — `/payments` — acompanhamento somente leitura dos pagamentos do Creator
 
 Creator pages are TableView surfaces (`.table-scroll` + semantic `<table>`), render PT-BR status labels, and require an existing Creator profile (otherwise they redirect to `/creator`).
@@ -35,4 +52,4 @@ Creator self-service does not inherit Workspace administration authority.
 
 ## Not yet exposed in navigation
 
-Workspace-side screens for Engagement/Contracts, Deliverables review, Publication verification, Finance/Payments, Analytics/Reporting, Matching and Disputes are not exposed yet: their services and APIs exist, but the Workspace needs dedicated list/read endpoints and screens first. Creator-side engagement/dispute opening, AI Runtime and provider-backed Integrations are also not exposed.
+AI Runtime and provider-backed Integrations are not exposed. Engagement-level Workspace actions that have no owner-approved UX (for example mandatory negotiation, blocking payment on dispute) are intentionally absent; see `docs/product/PRODUCT-DECISIONS.md`.

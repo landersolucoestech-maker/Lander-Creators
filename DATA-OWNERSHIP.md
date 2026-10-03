@@ -51,3 +51,6 @@ This document is the canonical current-state ownership map. A responsibility has
 - Campaign content requirements never become delivered content records.
 - Campaign rights requirements never become the executed contract.
 - Provider integrations remain adapters at boundaries; provider payloads must not become canonical domain models.
+
+## Read models
+Workspace list read models join tables owned by Participation/Proposal, Engagement, Deliverable, Publication, Finance, Analytics, Matching and Dispute for display only; they never write and never become an owner. `audit_logs` is written exclusively through `src/server/shared/audit.ts`.
