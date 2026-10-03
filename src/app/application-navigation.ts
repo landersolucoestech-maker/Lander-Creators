@@ -70,6 +70,7 @@ export function creatorNavigation(): ApplicationNavItem[] {
     { id: "deliverables", label: "Minhas Entregas", href: "/deliverables", group: "Operação" },
     { id: "creator-engagements", label: "Publicações", href: "/creator-engagements", group: "Operação" },
     { id: "payments", label: "Pagamentos", href: "/payments", group: "Operação" },
-    { id: "creator", label: "Meu Perfil", href: "/creator", group: "Recursos" }
+    { id: "creator", label: "Meu Perfil", href: "/creator", group: "Recursos" },
+    { id: "creator-stats", label: "Estatísticas", href: "/creator/statistics", group: "Recursos" }
   ];
 }
