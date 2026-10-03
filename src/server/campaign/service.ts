@@ -170,13 +170,13 @@ export async function transitionCampaign(sql:Sql, i:{userId:string;workspaceId:s
   const from=String(preliminary.status)as CampaignStatus;
   const permission=i.to==="PAUSED"||from==="PAUSED"&&i.to==="ACTIVE"?"campaign.pause":i.to==="CANCELLATION_PENDING"||i.to==="CANCELLED"?"campaign.cancel":"campaign.activate";
   const c=await row(sql,i,permission);assertCampaignTransition(from,i.to);
+  // Re-requesting the status the campaign already has is an idempotent no-op: no write, no revision bump, no audit.
+  if(from===i.to)return{status:i.to};
   if(["ACTIVE","SCHEDULED"].includes(i.to)) {
   const ready=await evaluateCampaignReadiness(sql,i);
   if(ready.status==="BLOCKED")throw new DomainError("CAMPAIGN_NOT_READY","Campaign is not ready",409,{blockers:ready.blockers});
   if(i.to==="SCHEDULED"&&(!c.starts_at||new Date(String(c.starts_at))<=new Date()))throw new DomainError("CAMPAIGN_SCHEDULE_INVALID","Scheduled Campaign requires future start",409);
 }
-  // Re-requesting the status the campaign already has is an idempotent no-op: no write, no revision bump, no audit.
-  if(from===i.to)return{status:i.to};
   await sql.begin(async tx=>{
     // Compare-and-set on the origin status: concurrent transitions cannot both apply.
     const moved=await tx.unsafe("update campaigns set status=$2::campaign_status,updated_at=now(),revision=revision+1 where id=$1::uuid and status=$3::campaign_status returning id",[i.campaignId,i.to,from]);

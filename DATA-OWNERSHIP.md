@@ -12,6 +12,7 @@ This document is the canonical current-state ownership map. A responsibility has
 | Role/permission definitions and grants | Authorization |
 | Team invitations | Workspace/Authorization `workspace_invitations` |
 | Security action history | Audit `audit_logs` |
+| Schema integrity diagnostics (`schema_guarantees`, `refresh_schema_guarantees`) | Database operations (diagnostic only; no business-data authority, never deduplicates) |
 | Taxonomy definitions/values/aliases | Taxonomy |
 | Countries/languages/currencies/timezones | Reference Data |
 | Media metadata and storage seam | Shared Media |
