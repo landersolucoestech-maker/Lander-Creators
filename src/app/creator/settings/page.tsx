@@ -1,0 +1,8 @@
+import { redirect } from "next/navigation";
+import { resolveApplicationActor } from "@/server/auth/application-actor";
+import { parseEnv } from "@/server/config/env";
+import { createDatabaseClient } from "@/server/db/client";
+import { getApplicationShellState } from "@/server/application/application-context";
+import { ApplicationShell } from "../../application-shell";
+import { creatorNavigation } from "../../application-navigation";
+export default async function Page(){const actor=await resolveApplicationActor();if(!actor)redirect("/");const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);try{const state=await getApplicationShellState(client,{id:actor.id,name:actor.name,email:actor.email});if(!state.creator)redirect("/creator");return <ApplicationShell state={state} navigation={creatorNavigation()} context="creator"><div className="module-surface creator-reference-page"><header className="page-header"><div><p className="eyebrow">Configurações</p><h1>Configurações</h1><p>Preferências da sua experiência no Portal Creators.</p></div></header><section className="card compact-card"><h2>Preferências</h2><div className="creator-settings-list"><div><strong>Conta e perfil</strong><p>Os dados profissionais são gerenciados em Meu Perfil.</p></div><div><strong>Notificações</strong><p>Nenhuma preferência adicional é exposta sem uma fonte de notificações implementada.</p></div><div><strong>Privacidade</strong><p>Visibilidade e disponibilidade são controladas no seu perfil.</p></div></div></section></div></ApplicationShell>}finally{await client.end()}}
