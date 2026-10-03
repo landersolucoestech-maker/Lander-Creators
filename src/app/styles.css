@@ -366,3 +366,7 @@ body{background:var(--surface-page);color:var(--text)}
 .creator-reference-dashboard .button-link{color:#d40017}
 .module-surface .empty-state p{color:#6975a8}
 .module-surface .compact-card>.eyebrow{color:#6975a8}
+
+/* Baseline contrast fixes also cover the unaffiliated workspace landing captured by CI. */
+.empty-state p{color:#697386}
+.compact-card>.eyebrow{color:#5f6980}
