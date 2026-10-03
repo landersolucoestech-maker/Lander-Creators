@@ -1,0 +1,8 @@
+import { redirect } from "next/navigation";
+import { resolveApplicationActor } from "@/server/auth/application-actor";
+import { parseEnv } from "@/server/config/env";
+import { createDatabaseClient } from "@/server/db/client";
+import { getApplicationShellState } from "@/server/application/application-context";
+import { ApplicationShell } from "../../application-shell";
+import { creatorNavigation } from "../../application-navigation";
+export default async function Page(){const actor=await resolveApplicationActor();if(!actor)redirect("/");const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);try{const state=await getApplicationShellState(client,{id:actor.id,name:actor.name,email:actor.email});if(!state.creator)redirect("/creator");return <ApplicationShell state={state} navigation={creatorNavigation()} context="creator"><div className="module-surface creator-reference-page"><header className="page-header"><div><p className="eyebrow">Biblioteca de Conteúdo</p><h1>Biblioteca de Conteúdo</h1><p>Organize e consulte materiais vinculados às suas campanhas.</p></div></header><section className="card compact-card"><div className="section-heading"><div><h2>Seus conteúdos</h2><p>Materiais disponíveis para reutilização e consulta.</p></div></div><div className="empty-state"><strong>Nenhum conteúdo disponível.</strong><p>Conteúdos reais vinculados às campanhas aparecerão aqui.</p></div></section></div></ApplicationShell>}finally{await client.end()}}
