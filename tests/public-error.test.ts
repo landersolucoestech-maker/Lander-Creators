@@ -23,4 +23,9 @@ describe("public error catalogue", () => {
     const missing = [...codes].filter((code) => toPublicError(new DomainError(code, "internal detail", 400)).message === generic).sort();
     expect(missing).toEqual([]);
   });
+
+  it("maps malformed identifiers (PostgreSQL 22P02) to INVALID_REQUEST (served as HTTP 400)", () => {
+    const error = Object.assign(new Error("invalid input syntax for type uuid"), { code: "22P02" });
+    expect(toPublicError(error).code).toBe("INVALID_REQUEST");
+  });
 });

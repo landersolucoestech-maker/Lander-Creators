@@ -155,5 +155,10 @@ export function toPublicError(error: unknown): PublicError {
     return { code: "INVALID_REQUEST", message: messages.INVALID_REQUEST };
   }
 
+  // PostgreSQL 22P02 (invalid_text_representation): a malformed identifier such as a non-UUID path/query value.
+  if (typeof error === "object" && error !== null && (error as { code?: unknown }).code === "22P02") {
+    return { code: "INVALID_REQUEST", message: messages.INVALID_REQUEST };
+  }
+
   return fallback;
 }
