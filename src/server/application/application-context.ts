@@ -22,6 +22,7 @@ export type ApplicationCapability =
   | "promoted"
   | "workspaceSettings"
   | "campaign"
+  | "negotiations"
   | "engagements"
   | "contentReview"
   | "publications"
@@ -39,6 +40,7 @@ export const capabilityPermissions = {
   promoted: "promoted_entity.view",
   workspaceSettings: "workspace.update",
   campaign: "campaign.view",
+  negotiations: "participation.view",
   engagements: "engagement.view",
   contentReview: "deliverable.view",
   publications: "publication.view",
@@ -60,7 +62,7 @@ export type ApplicationShellState = {
   capabilities: Record<ApplicationCapability, boolean>;
 };
 
-async function hasWorkspacePermission(
+export async function hasWorkspacePermission(
   sql: Sql,
   userId: string,
   workspaceId: string,

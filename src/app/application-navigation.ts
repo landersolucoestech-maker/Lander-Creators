@@ -23,6 +23,31 @@ export function workspaceNavigation(state: ApplicationShellState): ApplicationNa
   if (state.capabilities.promoted) {
     items.push({ id: "promoted", label: "Entidades promovidas", href: "/promoted-entities", group: "Operação" });
   }
+  if (state.capabilities.negotiations) {
+    items.push({ id: "negotiations", label: "Negociações", href: "/negotiations", group: "Operação" });
+  }
+  if (state.capabilities.engagements) {
+    items.push({ id: "engagements", label: "Contratações", href: "/engagements", group: "Operação" });
+    items.push({ id: "engagement-contracts", label: "Contratos", href: "/engagements/contracts", group: "Operação" });
+  }
+  if (state.capabilities.contentReview) {
+    items.push({ id: "content-review", label: "Revisão de conteúdo", href: "/content-review", group: "Operação" });
+  }
+  if (state.capabilities.publications) {
+    items.push({ id: "publications", label: "Publicações", href: "/publications", group: "Operação" });
+  }
+  if (state.capabilities.finance) {
+    items.push({ id: "finance", label: "Financeiro", href: "/finance", group: "Operação" });
+  }
+  if (state.capabilities.disputes) {
+    items.push({ id: "disputes", label: "Disputas", href: "/disputes", group: "Operação" });
+  }
+  if (state.capabilities.matching) {
+    items.push({ id: "matching", label: "Matching", href: "/matching", group: "Operação" });
+  }
+  if (state.capabilities.analytics) {
+    items.push({ id: "analytics", label: "Analytics", href: "/analytics", group: "Operação" });
+  }
   if (state.capabilities.media) {
     items.push({ id: "media", label: "Mídia", href: "/media", group: "Recursos" });
   }
@@ -41,6 +66,7 @@ export function creatorNavigation(): ApplicationNavItem[] {
     { id: "creator", label: "Meu perfil", href: "/creator", group: "Visão geral" },
     { id: "opportunities", label: "Oportunidades", href: "/opportunities", group: "Operação" },
     { id: "proposals", label: "Propostas", href: "/proposals", group: "Operação" },
+    { id: "creator-engagements", label: "Contratações", href: "/creator-engagements", group: "Operação" },
     { id: "contracts", label: "Contratos", href: "/contracts", group: "Operação" },
     { id: "deliverables", label: "Entregas", href: "/deliverables", group: "Operação" },
     { id: "payments", label: "Pagamentos", href: "/payments", group: "Operação" }

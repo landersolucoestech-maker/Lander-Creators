@@ -11,6 +11,8 @@ import { contractListConfig, engagementListConfig, listWorkspaceContracts, listW
 import { contentReviewListConfig, listWorkspaceContentVersions } from "@/server/application/operations/content-review";
 import { listWorkspacePlannableDeliverables, listWorkspacePublications, plannableListConfig, publicationListConfig } from "@/server/application/operations/publications";
 import { listWorkspacePayableCandidates, listWorkspacePayables, payableCandidateListConfig, payableListConfig } from "@/server/application/operations/payables";
+import { listWorkspaceMatches, matchListConfig } from "@/server/application/operations/matching";
+import { recalculateCampaignMatches } from "@/server/matching/service";
 import { campaignAnalyticsListConfig, listWorkspaceCampaignAnalytics, listWorkspaceMetricTargets, metricTargetListConfig } from "@/server/application/operations/analytics";
 
 const sql = createTestSql();
@@ -137,5 +139,28 @@ describe("Workspace read models: content, filters, sorting and pagination", () =
     const targets = await listWorkspaceMetricTargets(sql, { userId: f.owner, workspaceId: f.workspaceId, query: q(metricTargetListConfig) });
     expect(targets.total).toBe(2);
     expect(targets.rows.find((r) => r.title === "B")).toMatchObject({ views: null, last_captured_at: null });
+  });
+
+  it("pages campaign matches, hides other workspaces' campaigns and keeps scores as stored", async () => {
+    const f = await createEngagementFixture(sql, "rm8");
+    const outsider = await createUser(sql, "outsider@rm8.test");
+    const otherWs = await createWorkspace(sql, { userId: outsider, name: "Other", type: "AGENCY", idempotencyKey: "rm8-o" });
+    for (const n of [1, 2, 3]) {
+      const user = await createUser(sql, `match${n}@rm8.test`);
+      const profile = await sql.unsafe("insert into creator_profiles(user_id,display_name,country_code,language_code,timezone_code,status,marketplace_visibility) values($1,$2,'BR','pt-BR','America/Sao_Paulo','ACTIVE','VISIBLE') returning id::text", [user, `Match ${n}`]);
+      expect(profile).toHaveLength(1);
+    }
+    const ctx = { userId: f.owner, workspaceId: f.workspaceId, campaignId: f.campaignId };
+    await recalculateCampaignMatches(sql, ctx);
+    const run = (params: Record<string, string>) => listWorkspaceMatches(sql, { ...ctx, query: q(matchListConfig, params) });
+    const all = await run({ sort: "name", dir: "asc" });
+    expect(all.total).toBe(3);
+    expect(all.rows.map((r) => r.display_name)).toEqual(["Match 1", "Match 2", "Match 3"]);
+    expect(all.rows[0].reasons).toEqual(["deterministic_targeting_v1"]);
+    expect((await run({ pageSize: "2", page: "2", sort: "name", dir: "asc" })).rows.map((r) => r.display_name)).toEqual(["Match 3"]);
+    expect((await run({ q: "match 2" })).rows).toHaveLength(1);
+    // another workspace cannot read, nor probe, this campaign
+    await expect(listWorkspaceMatches(sql, { userId: outsider, workspaceId: String(otherWs.id), campaignId: f.campaignId, query: q(matchListConfig) })).rejects.toMatchObject({ code: "CAMPAIGN_NOT_FOUND", status: 404 });
+    await expect(listWorkspaceMatches(sql, { userId: outsider, workspaceId: f.workspaceId, campaignId: f.campaignId, query: q(matchListConfig) })).rejects.toMatchObject({ code: "WORKSPACE_ACCESS_DENIED" });
   });
 });

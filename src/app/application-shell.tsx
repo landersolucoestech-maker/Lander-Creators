@@ -7,10 +7,17 @@ import { authClient } from "@/lib/auth-client";
 import type { ApplicationShellState } from "@/server/application/application-context";
 import type { ApplicationNavItem } from "./application-navigation";
 
-function isActive(pathname: string, href: string) {
+function matches(pathname: string, href: string) {
   const target = href.split("#")[0];
   if (target === "/") return pathname === "/";
   return pathname === target || pathname.startsWith(`${target}/`);
+}
+
+/** The most specific matching item wins, so /engagements/contracts does not also highlight /engagements. */
+function isActive(pathname: string, href: string, navigation: ApplicationNavItem[]) {
+  if (!matches(pathname, href)) return false;
+  const length = href.split("#")[0].length;
+  return !navigation.some((item) => item.href !== href && matches(pathname, item.href) && item.href.split("#")[0].length > length);
 }
 
 export function ApplicationShell({
@@ -68,7 +75,7 @@ export function ApplicationShell({
           <div className="nav-group" key={group}>
             <p className="nav-group-label">{group}</p>
             {items.map((item) => {
-              const active = isActive(pathname, item.href);
+              const active = isActive(pathname, item.href, navigation);
               return (
                 <Link
                   key={item.id}

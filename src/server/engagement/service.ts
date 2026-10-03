@@ -1,6 +1,7 @@
 import type{Sql}from"postgres";import{authorizeWorkspacePermission}from"@/server/authorization/authorization-service";import{getCreatorProfileByUser}from"@/server/creator/creator-service";import{DomainError}from"@/server/shared/domain-error";import{writeAudit}from"@/server/shared/audit";
 
 type Tx={unsafe:Sql["unsafe"]};
+export type CreatorEngagementRow={id:string;status:string;campaign_name:string;contractor_name:string;amount_minor:string;currency_code:string;scope_snapshot:string;activated_at:Date|null;created_at:Date;dispute_status:string|null;dispute_resolution:string|null};
 export type CreatorContractRow={id:string;version:number;status:string;scope_of_work:string;rights_terms:string;payment_terms:string;campaign_name:string;contracted_amount_minor:string;currency_code:string};
 const LIVE_CONTRACT="('DRAFT','SENT','SIGNED_CREATOR','SIGNED_WORKSPACE')";
 
@@ -71,3 +72,5 @@ export async function workspaceSignContract(sql:Sql,input:{userId:string;workspa
   });
 }
 export async function listCreatorContracts(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe<CreatorContractRow[]>("select ec.id::text,ec.version,ec.status::text,ec.scope_of_work,ec.rights_terms,ec.payment_terms,c.name campaign_name,ce.contracted_amount_minor::text,ce.currency_code from engagement_contracts ec join campaign_engagements ce on ce.id=ec.engagement_id join campaigns c on c.id=ce.campaign_id where ce.creator_profile_id=$1::uuid and ec.status<>'DRAFT' order by ec.updated_at desc",[String((cp as Record<string,unknown>).id)]);}
+/** The Creator's own engagements, with the state of their latest dispute. Only columns the Creator may see are selected. */
+export async function listCreatorEngagements(sql:Sql,userId:string){const cp=await getCreatorProfileByUser(sql,userId);if(!cp)return[];return sql.unsafe<CreatorEngagementRow[]>("select e.id::text,e.status::text,c.name campaign_name,w.name contractor_name,e.contracted_amount_minor::text amount_minor,e.currency_code,e.scope_snapshot,e.activated_at,e.created_at,ld.status::text dispute_status,ld.resolution dispute_resolution from campaign_engagements e join campaigns c on c.id=e.campaign_id join workspaces w on w.id=e.workspace_id left join lateral (select d.status,d.resolution from disputes d where d.engagement_id=e.id order by d.created_at desc limit 1) ld on true where e.creator_profile_id=$1::uuid order by e.created_at desc",[String((cp as Record<string,unknown>).id)]);}
