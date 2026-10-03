@@ -1,0 +1,8 @@
+import { redirect } from "next/navigation";
+import { resolveApplicationActor } from "@/server/auth/application-actor";
+import { parseEnv } from "@/server/config/env";
+import { createDatabaseClient } from "@/server/db/client";
+import { getApplicationShellState } from "@/server/application/application-context";
+import { ApplicationShell } from "../../application-shell";
+import { creatorNavigation } from "../../application-navigation";
+export default async function Page(){const actor=await resolveApplicationActor();if(!actor)redirect("/");const{client}=createDatabaseClient(parseEnv(process.env).DATABASE_URL);try{const state=await getApplicationShellState(client,{id:actor.id,name:actor.name,email:actor.email});if(!state.creator)redirect("/creator");return <ApplicationShell state={state} navigation={creatorNavigation()} context="creator"><div className="module-surface creator-reference-page"><header className="page-header"><div><p className="eyebrow">Chat</p><h1>Mensagens</h1><p>Central de conversas relacionadas às suas campanhas.</p></div></header><section className="creator-chat-layout"><aside className="card compact-card creator-chat-list"><h2>Conversas</h2><div className="empty-state"><strong>Nenhuma conversa</strong><p>Conversas aparecerão quando houver uma fonte de mensagens implementada.</p></div></aside><article className="card compact-card creator-chat-empty"><strong>Selecione uma conversa</strong><p>As mensagens não são simuladas.</p></article></section></div></ApplicationShell>}finally{await client.end()}}
