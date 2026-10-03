@@ -88,6 +88,7 @@ export function ApplicationShell({
           type="button"
           className={context === "workspace" ? "lc-context-chip lc-context-chip--active" : "lc-context-chip"}
           aria-pressed={context === "workspace"}
+          aria-label={`Workspace: ${state.activeWorkspace.name}`}
           onClick={() => router.push("/")}
         >
           {state.activeWorkspace.name}
@@ -97,6 +98,7 @@ export function ApplicationShell({
         type="button"
         className={context === "creator" ? "lc-context-chip lc-context-chip--active" : "lc-context-chip"}
         aria-pressed={context === "creator"}
+        aria-label={`Creator: ${state.creator?.displayName ?? "Meu perfil"}`}
         onClick={() => router.push("/creator")}
       >
         {state.creator?.displayName ?? "Meu perfil"}
